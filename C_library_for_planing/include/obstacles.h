@@ -37,24 +37,6 @@ private:
     double radius_;
 };
 
-class Triangle : public Obstacle {
-public:
-    Triangle(double x1, double y1, double x2, double y2, double x3, double y3)
-        : x1_(x1), y1_(y1), x2_(x2), y2_(y2), x3_(x3), y3_(y3) {name="Triangle";}
-
-    void Draw() const override {
-        std::cout << name << " obstacle: (" << x1_ << ", " << y1_ << "), (" << x2_ << ", " << y2_ << "), (" << x3_ << ", " << y3_ << ")" << std::endl;
-    }
-
-private:
-    double x1_;
-    double y1_;
-    double x2_;
-    double y2_;
-    double x3_;
-    double y3_;
-};
-
 class Square : public Obstacle {
 public:
     Square(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
