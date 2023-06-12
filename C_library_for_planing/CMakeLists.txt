@@ -10,6 +10,10 @@ set(LIB_HEADERS_FILES "./include/obstacles.h")
 add_library(obstacles STATIC ${LIB_HEADERS_FILES}) 
 set_target_properties(obstacles PROPERTIES LINKER_LANGUAGE CXX)
 
+set(LIB_HEADERS_FILES "./include/planner.h")
+add_library(planner STATIC ${LIB_HEADERS_FILES}) 
+set_target_properties(planner PROPERTIES LINKER_LANGUAGE CXX)
+
 set(LIB_HEADERS_FILES "./include/robot.h")
 add_library(robot STATIC ${LIB_HEADERS_FILES})
 set_target_properties(robot PROPERTIES LINKER_LANGUAGE CXX) 

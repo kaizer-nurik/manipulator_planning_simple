@@ -10,13 +10,13 @@
 #include "robot.h"
 
 
-void read_scene(const std::string &filename, std::vector<std::shared_ptr<Obstacle>> &obstacles, Robot &start, Robot &goal)
+bool read_scene(const std::string &filename, std::vector<std::shared_ptr<Obstacle>> &obstacles, Robot &start, Robot &goal)
 {
     // Load the XML file
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Failed to open XML file." << std::endl;
-        return;
+        return false;
     }
 
     // Read the file into a string buffer
@@ -32,7 +32,7 @@ void read_scene(const std::string &filename, std::vector<std::shared_ptr<Obstacl
         rapidxml::xml_node<>* rootNode = doc.first_node("robot");
         if (!rootNode) {
             std::cerr << "Invalid XML format. Root node not found." << std::endl;
-            return;
+            return false;
         }
 
         // Parse the start manipulator information
@@ -147,6 +147,8 @@ void read_scene(const std::string &filename, std::vector<std::shared_ptr<Obstacl
     }
     catch (rapidxml::parse_error& e) {
         std::cerr << "Failed to parse XML: " << e.what() << std::endl;
-        return;
+        return false;
     }
+
+    return true;
 }
