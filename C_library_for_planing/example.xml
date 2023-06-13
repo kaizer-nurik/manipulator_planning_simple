@@ -5,25 +5,25 @@
     <joints>
     <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 18 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
       <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 36 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
     <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 54 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
     <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 72 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
@@ -34,25 +34,25 @@
     <joints>
     <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 2 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
       <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 40.0 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
     <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> -10 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
     <joint>
       <length> 1.2 </length>
-      <angle> 45.0 </angle>
+      <angle> 100.0 </angle>
       <limit1> -180.0 </limit1>
       <limit2> 180.0 </limit2>
     </joint>
