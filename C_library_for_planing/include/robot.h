@@ -3,40 +3,44 @@
 #include <vector>
 #include <cmath>
 
-class Robot {
+struct Joint 
+{
+double length;
+double width;
+std::vector<double> limits;
+};
+
+class Robot
+{
 public:
-    Robot() : degreesOfFreedom(0) {}
+    Robot() : dof_(0) {}
+
     Robot(const Robot& other) 
     {
         for (Joint a:other.joints)
         {
-            this->AddJoint(a.angle, a.length, a.limits);            
+            this->AddJoint(a.length, a.width, a.limits);            
         }
+        this->configuration = other.configuration;
     }
 
-    struct Joint {
-    double angle;
-    double length;
-    std::vector<double> limits;
-    };
-
-    void AddJoint(double angle, double length, const std::vector<double>& limits) {
+    void AddJoint(double length, double width, const std::vector<double>& limits) {
         Joint joint;
-        joint.angle = angle;
         joint.length = length;
+        joint.width = width;
         joint.limits = limits;
-
         joints.push_back(joint);
-        degreesOfFreedom++;
+        dof_++;
     }
 
-    void PrintJointDetails() const {
-        std::cout << "Robot DOF: " << degreesOfFreedom << std::endl;
+    void printJointDetails() const {
+        std::cout << "Robot DOF: " << dof_ << std::endl;
 
-        for (const auto& joint : joints) {
-            std::cout << "Joint Angle: " << joint.angle << std::endl;
-            std::cout << "Joint Length: " << joint.length << std::endl;
-            std::cout << "Joint Limits: ";
+        for (const auto& joint : joints)
+         {
+            std::cout << "Joint length: " << joint.length << std::endl;
+            std::cout << "Joint width: " << joint.width << std::endl;
+            std::cout << "Joint limits: ";
             
             for (const auto& limit : joint.limits) {
                 std::cout << limit << " ";
@@ -47,8 +51,9 @@ public:
     }
     std::vector<Joint> get_joints() const {return joints;};
     std::vector<Joint> joints;
+    std::vector<double> configuration;
     private:
-    double degreesOfFreedom;
+    double dof_;
     
 
 
@@ -56,15 +61,16 @@ public:
 
 double distance(Robot robot1, Robot robot2)
 {
-    std::vector<Robot::Joint> joints1 = robot1.get_joints();
-    std::vector<Robot::Joint> joints2 = robot2.get_joints();
-    double dist = 0.0;
-    if (joints1.size() == joints2.size())
-    {
-        for (auto i=0u; i<joints1.size(); i++)
-        {
-            dist+= std::pow((joints1[i].angle - joints1[i].angle), 2); 
-        }
-    }
-    return std::sqrt(dist);
+    // std::vector<Robot::Joint> joints1 = robot1.get_joints();
+    // std::vector<Robot::Joint> joints2 = robot2.get_joints();
+    // double dist = 0.0;
+    // if (joints1.size() == joints2.size())
+    // {
+    //     for (auto i=0u; i<joints1.size(); i++)
+    //     {
+    //         dist+= std::pow((joints1[i].angle - joints1[i].angle), 2); 
+    //     }
+    // }
+    // return std::sqrt(dist);
+    return 0.0;
 }
