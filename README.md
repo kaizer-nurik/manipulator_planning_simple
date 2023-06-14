@@ -1,5 +1,5 @@
 # Структура входного XML файла:
-
+```
 <?xml version="1.0" encoding="UTF-8"?>
 <input_info>
   <robot_info> - Информация о роботе
@@ -46,4 +46,4 @@
     .
   </scene>
 </input_info>
-
+```
