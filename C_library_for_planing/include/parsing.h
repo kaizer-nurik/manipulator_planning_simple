@@ -10,7 +10,7 @@
 #include "robot.h"
 
 
-bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Robot &start, Vector2D &goal)
+bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Robot &start, GoalPoint &goal)
 {
     std::ifstream file(filename);
     if (!file) {
@@ -77,7 +77,11 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
         {
             double x = std::stod(goalNode->first_node("x")->value());
             double y = std::stod(goalNode->first_node("y")->value());
-            goal.x = x; goal.y = y;
+            double angle1 = std::stod(goalNode->first_node("angle1")->value());
+            double angle2 = std::stod(goalNode->first_node("angle2")->value());
+            goal.goalpoint.x = x; goal.goalpoint.y = y;
+            goal.angle1_ = angle1;
+            goal.angle2_ = angle2;
         }
 
         // Parse the scene obstacles

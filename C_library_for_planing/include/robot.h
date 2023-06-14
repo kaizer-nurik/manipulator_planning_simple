@@ -59,6 +59,15 @@ public:
 
 };
 
+struct GoalPoint
+{
+    Vector2D goalpoint;
+    double angle1_;
+    double angle2_;
+
+    GoalPoint(double x, double y, double angle1, double angle2): goalpoint(x, y), angle1_(angle1), angle2_(angle2){}
+};
+
 double distance(Robot robot1, Robot robot2)
 {
     // std::vector<Robot::Joint> joints1 = robot1.get_joints();
