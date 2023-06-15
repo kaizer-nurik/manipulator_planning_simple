@@ -68,7 +68,7 @@ Projection projectPolygon(const Polygon& polygon, const Vector2D& axis) {
 }
 
 // Check if two polygons collide using the Separating Axis Theorem (SAT)
-bool checkCollision(const Polygon& polygonA, const Polygon& polygonB) {
+bool checkCollision(const Polygon& polygonA, const Polygon& polygonB) {  // true -- not collide, false -- collide
     std::vector<Vector2D> edgesA = polygonA.getEdges();
     std::vector<Vector2D> edgesB = polygonB.getEdges();
 
@@ -95,6 +95,41 @@ bool checkCollision(const Polygon& polygonA, const Polygon& polygonB) {
     }
 
     return true;  // No separating axis found, polygons collide
+}
+
+bool isConvexPolygon(const Polygon& p) {
+    std::vector<Vector2D> polygon = p.points;
+    int n = polygon.size();
+    if (n < 3) {
+        // A polygon with less than 3 vertices is not considered convex
+        return false;
+    }
+
+    bool isClockwise = false;
+    bool isCounterClockwise = false;
+
+    for (int i = 0; i < n; ++i) {
+        const Vector2D& p1 = polygon[i];
+        const Vector2D& p2 = polygon[(i + 1) % n];
+        const Vector2D& p3 = polygon[(i + 2) % n];
+
+        double crossProduct = (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x);
+
+        if (crossProduct > 0) {
+            isClockwise = true;
+        }
+        else if (crossProduct < 0) {
+            isCounterClockwise = true;
+        }
+
+        if (isClockwise && isCounterClockwise) {
+            // Cross products have different signs, indicating concave angles
+            return false;
+        }
+    }
+
+    // If we didn't find any concave angles, the polygon is convex
+    return true;
 }
 
 /*

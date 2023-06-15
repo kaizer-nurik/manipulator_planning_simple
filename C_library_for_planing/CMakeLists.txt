@@ -43,3 +43,10 @@ target_link_libraries(main obstacles robot parsing rapidxml)
 target_link_libraries(mytests gtest robot parsing rapidxml)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
 
+
+if(ENABLE_GCOV)
+SET(CMAKE_CXX_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage")
+SET(CMAKE_C_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage")
+set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
+endif()
+
