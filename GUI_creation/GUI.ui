@@ -37,16 +37,25 @@
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
+     <enum>Qt::ScrollBarAsNeeded</enum>
     </property>
     <property name="horizontalScrollBarPolicy">
-     <enum>Qt::ScrollBarAlwaysOff</enum>
+     <enum>Qt::ScrollBarAsNeeded</enum>
     </property>
     <property name="sizeAdjustPolicy">
-     <enum>QAbstractScrollArea::AdjustToContents</enum>
+     <enum>QAbstractScrollArea::AdjustIgnored</enum>
+    </property>
+    <property name="dragMode">
+     <enum>QGraphicsView::NoDrag</enum>
+    </property>
+    <property name="transformationAnchor">
+     <enum>QGraphicsView::AnchorUnderMouse</enum>
+    </property>
+    <property name="resizeAnchor">
+     <enum>QGraphicsView::AnchorUnderMouse</enum>
     </property>
    </widget>
-   <widget class="QListView" name="listView">
+   <widget class="QListView" name="poly_list">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -84,157 +93,6 @@
     <property name="placeholderText">
      <string>Путь до файла</string>
     </property>
-   </widget>
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>490</y>
-      <width>131</width>
-      <height>261</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <item>
-      <layout class="QGridLayout" name="dot1">
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="Y1_text"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="Y1_label">
-         <property name="text">
-          <string>Y1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLineEdit" name="X1_text"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="X1_label">
-         <property name="text">
-          <string>X1</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_6">
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="Y2_text"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="X2_label">
-         <property name="text">
-          <string>X2</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLineEdit" name="X2_text"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="Y2_label">
-         <property name="text">
-          <string>Y2</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_7">
-       <item row="0" column="1">
-        <widget class="QLabel" name="Y3_label">
-         <property name="text">
-          <string>Y3</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="X3_label">
-         <property name="text">
-          <string>X3</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLineEdit" name="X3_text"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="Y3_text"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_8">
-       <item row="0" column="0">
-        <widget class="QLabel" name="X4_label">
-         <property name="text">
-          <string>X4</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLineEdit" name="X4_text"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="Y4_label">
-         <property name="text">
-          <string>Y4</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="Y4_text"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="R_label">
-       <property name="text">
-        <string>R</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="R_text"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="verticalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>130</y>
-      <width>160</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_4">
-     <item>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="text">
-        <string>Создать Квадрат</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="text">
-        <string>Создать Круг</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_4">
-       <property name="text">
-        <string>Создать линию</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </widget>
    <widget class="QSpinBox" name="robot_joint_count_spin">
     <property name="geometry">
@@ -301,7 +159,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_3">
+   <widget class="QLineEdit" name="left_limit_text">
     <property name="geometry">
      <rect>
       <x>830</x>
@@ -311,7 +169,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_12">
+   <widget class="QLineEdit" name="right_limit_text">
     <property name="geometry">
      <rect>
       <x>830</x>
@@ -363,7 +221,7 @@
      <string>Правое ограничение</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_13">
+   <widget class="QLineEdit" name="start_angle_text">
     <property name="geometry">
      <rect>
       <x>830</x>
@@ -397,6 +255,77 @@
     </property>
     <property name="text">
      <string>ЭКСПОРТ</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="create_poli_btn">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>170</y>
+      <width>111</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Создать полигон</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="poli_x_text">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>270</y>
+      <width>113</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="poli_y_text">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>310</y>
+      <width>113</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QSlider" name="zoom_slider">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>130</y>
+      <width>160</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>10</number>
+    </property>
+    <property name="maximum">
+     <number>200</number>
+    </property>
+    <property name="pageStep">
+     <number>1</number>
+    </property>
+    <property name="value">
+     <number>100</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>110</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Масштаб</string>
     </property>
    </widget>
   </widget>

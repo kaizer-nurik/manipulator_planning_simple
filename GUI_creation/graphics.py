@@ -18,12 +18,11 @@ def draw_grid(scene:QGraphicsScene,step:int = 50):
     """
     pen = QtGui.QPen(QtGui.Qt.black)
     pen.setCosmetic(True)  # ***
-    max_length = int(scene.sceneRect().width())+1
     
-    for coord in range(0, max_length, step):
-        line = scene.addLine( coord, 0, coord, max_length, pen)
+    for coord in range(-500, 500, step):
+        line = scene.addLine( coord, -500, coord,500, pen)
         line.setZValue(-10)# Порядок объекта, задний план.
-        scene.addLine( 0, coord, max_length, coord, pen)
+        scene.addLine( -500,coord, 500, coord, pen)
         line.setZValue(-10) # Порядок объекта, задний план.
 
 def draw_robot(scene:QGraphicsScene,robot:Robot_class):
@@ -33,8 +32,7 @@ def draw_robot(scene:QGraphicsScene,robot:Robot_class):
         scene (QGraphicsScene): _description_
         robot (Robot_class): _description_
     """
-    max_length = int(scene.sceneRect().width())
-    center = max_length//2
+    center = 0
     robot_pen = QtGui.QPen(QtGui.Qt.black)
     robot_pen.setWidth(5)
     
@@ -44,5 +42,4 @@ def draw_robot(scene:QGraphicsScene,robot:Robot_class):
     scene.addEllipse(x_coord-25,y_coord-25,50,50,robot_pen,robot_brush)
     scene.addItem(robot[0].visuals)
     robot.set_pos(x_coord,y_coord)
-    print(robot.joint_count)
     

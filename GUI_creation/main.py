@@ -9,6 +9,7 @@ def main():
     """
         Точка входа
     """
+    global app 
     app = QApplication(sys.argv)
     w = MainWindow()
     w.show()

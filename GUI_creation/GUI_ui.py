@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QGraphicsView, QGridLayout,
-    QLabel, QLineEdit, QListView, QMainWindow,
-    QMenuBar, QPushButton, QSizePolicy, QSpinBox,
-    QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QGraphicsView, QLabel,
+    QLineEdit, QListView, QMainWindow, QMenuBar,
+    QPushButton, QSizePolicy, QSlider, QSpinBox,
+    QStatusBar, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -33,12 +33,15 @@ class Ui_MainWindow(object):
         self.graphicsView = QGraphicsView(self.centralwidget)
         self.graphicsView.setObjectName(u"graphicsView")
         self.graphicsView.setGeometry(QRect(400, 160, 600, 600))
-        self.graphicsView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.graphicsView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.graphicsView.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
-        self.listView = QListView(self.centralwidget)
-        self.listView.setObjectName(u"listView")
-        self.listView.setGeometry(QRect(10, 130, 161, 341))
+        self.graphicsView.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.graphicsView.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.graphicsView.setSizeAdjustPolicy(QAbstractScrollArea.AdjustIgnored)
+        self.graphicsView.setDragMode(QGraphicsView.NoDrag)
+        self.graphicsView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.graphicsView.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
+        self.poly_list = QListView(self.centralwidget)
+        self.poly_list.setObjectName(u"poly_list")
+        self.poly_list.setGeometry(QRect(10, 130, 161, 341))
         self.label = QLabel(self.centralwidget)
         self.label.setObjectName(u"label")
         self.label.setGeometry(QRect(20, 90, 47, 13))
@@ -46,143 +49,6 @@ class Ui_MainWindow(object):
         self.file_choose_edit.setObjectName(u"file_choose_edit")
         self.file_choose_edit.setGeometry(QRect(30, 20, 481, 21))
         self.file_choose_edit.setReadOnly(False)
-        self.verticalLayoutWidget = QWidget(self.centralwidget)
-        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
-        self.verticalLayoutWidget.setGeometry(QRect(210, 490, 131, 261))
-        self.verticalLayout_3 = QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.dot1 = QGridLayout()
-        self.dot1.setObjectName(u"dot1")
-        self.Y1_text = QLineEdit(self.verticalLayoutWidget)
-        self.Y1_text.setObjectName(u"Y1_text")
-
-        self.dot1.addWidget(self.Y1_text, 1, 1, 1, 1)
-
-        self.Y1_label = QLabel(self.verticalLayoutWidget)
-        self.Y1_label.setObjectName(u"Y1_label")
-
-        self.dot1.addWidget(self.Y1_label, 0, 1, 1, 1)
-
-        self.X1_text = QLineEdit(self.verticalLayoutWidget)
-        self.X1_text.setObjectName(u"X1_text")
-
-        self.dot1.addWidget(self.X1_text, 1, 0, 1, 1)
-
-        self.X1_label = QLabel(self.verticalLayoutWidget)
-        self.X1_label.setObjectName(u"X1_label")
-
-        self.dot1.addWidget(self.X1_label, 0, 0, 1, 1)
-
-
-        self.verticalLayout_3.addLayout(self.dot1)
-
-        self.gridLayout_6 = QGridLayout()
-        self.gridLayout_6.setObjectName(u"gridLayout_6")
-        self.Y2_text = QLineEdit(self.verticalLayoutWidget)
-        self.Y2_text.setObjectName(u"Y2_text")
-
-        self.gridLayout_6.addWidget(self.Y2_text, 1, 1, 1, 1)
-
-        self.X2_label = QLabel(self.verticalLayoutWidget)
-        self.X2_label.setObjectName(u"X2_label")
-
-        self.gridLayout_6.addWidget(self.X2_label, 0, 0, 1, 1)
-
-        self.X2_text = QLineEdit(self.verticalLayoutWidget)
-        self.X2_text.setObjectName(u"X2_text")
-
-        self.gridLayout_6.addWidget(self.X2_text, 1, 0, 1, 1)
-
-        self.Y2_label = QLabel(self.verticalLayoutWidget)
-        self.Y2_label.setObjectName(u"Y2_label")
-
-        self.gridLayout_6.addWidget(self.Y2_label, 0, 1, 1, 1)
-
-
-        self.verticalLayout_3.addLayout(self.gridLayout_6)
-
-        self.gridLayout_7 = QGridLayout()
-        self.gridLayout_7.setObjectName(u"gridLayout_7")
-        self.Y3_label = QLabel(self.verticalLayoutWidget)
-        self.Y3_label.setObjectName(u"Y3_label")
-
-        self.gridLayout_7.addWidget(self.Y3_label, 0, 1, 1, 1)
-
-        self.X3_label = QLabel(self.verticalLayoutWidget)
-        self.X3_label.setObjectName(u"X3_label")
-
-        self.gridLayout_7.addWidget(self.X3_label, 0, 0, 1, 1)
-
-        self.X3_text = QLineEdit(self.verticalLayoutWidget)
-        self.X3_text.setObjectName(u"X3_text")
-
-        self.gridLayout_7.addWidget(self.X3_text, 1, 0, 1, 1)
-
-        self.Y3_text = QLineEdit(self.verticalLayoutWidget)
-        self.Y3_text.setObjectName(u"Y3_text")
-
-        self.gridLayout_7.addWidget(self.Y3_text, 1, 1, 1, 1)
-
-
-        self.verticalLayout_3.addLayout(self.gridLayout_7)
-
-        self.gridLayout_8 = QGridLayout()
-        self.gridLayout_8.setObjectName(u"gridLayout_8")
-        self.X4_label = QLabel(self.verticalLayoutWidget)
-        self.X4_label.setObjectName(u"X4_label")
-
-        self.gridLayout_8.addWidget(self.X4_label, 0, 0, 1, 1)
-
-        self.X4_text = QLineEdit(self.verticalLayoutWidget)
-        self.X4_text.setObjectName(u"X4_text")
-
-        self.gridLayout_8.addWidget(self.X4_text, 1, 0, 1, 1)
-
-        self.Y4_label = QLabel(self.verticalLayoutWidget)
-        self.Y4_label.setObjectName(u"Y4_label")
-
-        self.gridLayout_8.addWidget(self.Y4_label, 0, 1, 1, 1)
-
-        self.Y4_text = QLineEdit(self.verticalLayoutWidget)
-        self.Y4_text.setObjectName(u"Y4_text")
-
-        self.gridLayout_8.addWidget(self.Y4_text, 1, 1, 1, 1)
-
-
-        self.verticalLayout_3.addLayout(self.gridLayout_8)
-
-        self.R_label = QLabel(self.verticalLayoutWidget)
-        self.R_label.setObjectName(u"R_label")
-
-        self.verticalLayout_3.addWidget(self.R_label)
-
-        self.R_text = QLineEdit(self.verticalLayoutWidget)
-        self.R_text.setObjectName(u"R_text")
-
-        self.verticalLayout_3.addWidget(self.R_text)
-
-        self.verticalLayoutWidget_2 = QWidget(self.centralwidget)
-        self.verticalLayoutWidget_2.setObjectName(u"verticalLayoutWidget_2")
-        self.verticalLayoutWidget_2.setGeometry(QRect(200, 130, 160, 100))
-        self.verticalLayout_4 = QVBoxLayout(self.verticalLayoutWidget_2)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.pushButton_2 = QPushButton(self.verticalLayoutWidget_2)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-
-        self.verticalLayout_4.addWidget(self.pushButton_2)
-
-        self.pushButton_3 = QPushButton(self.verticalLayoutWidget_2)
-        self.pushButton_3.setObjectName(u"pushButton_3")
-
-        self.verticalLayout_4.addWidget(self.pushButton_3)
-
-        self.pushButton_4 = QPushButton(self.verticalLayoutWidget_2)
-        self.pushButton_4.setObjectName(u"pushButton_4")
-
-        self.verticalLayout_4.addWidget(self.pushButton_4)
-
         self.robot_joint_count_spin = QSpinBox(self.centralwidget)
         self.robot_joint_count_spin.setObjectName(u"robot_joint_count_spin")
         self.robot_joint_count_spin.setGeometry(QRect(640, 120, 42, 22))
@@ -201,12 +67,12 @@ class Ui_MainWindow(object):
         self.joint_length_line_edit = QLineEdit(self.centralwidget)
         self.joint_length_line_edit.setObjectName(u"joint_length_line_edit")
         self.joint_length_line_edit.setGeometry(QRect(740, 60, 61, 20))
-        self.lineEdit_3 = QLineEdit(self.centralwidget)
-        self.lineEdit_3.setObjectName(u"lineEdit_3")
-        self.lineEdit_3.setGeometry(QRect(830, 30, 61, 20))
-        self.lineEdit_12 = QLineEdit(self.centralwidget)
-        self.lineEdit_12.setObjectName(u"lineEdit_12")
-        self.lineEdit_12.setGeometry(QRect(830, 120, 61, 20))
+        self.left_limit_text = QLineEdit(self.centralwidget)
+        self.left_limit_text.setObjectName(u"left_limit_text")
+        self.left_limit_text.setGeometry(QRect(830, 30, 61, 20))
+        self.right_limit_text = QLineEdit(self.centralwidget)
+        self.right_limit_text.setObjectName(u"right_limit_text")
+        self.right_limit_text.setGeometry(QRect(830, 120, 61, 20))
         self.label_12 = QLabel(self.centralwidget)
         self.label_12.setObjectName(u"label_12")
         self.label_12.setGeometry(QRect(740, 40, 47, 13))
@@ -216,15 +82,35 @@ class Ui_MainWindow(object):
         self.label_14 = QLabel(self.centralwidget)
         self.label_14.setObjectName(u"label_14")
         self.label_14.setGeometry(QRect(820, 100, 111, 16))
-        self.lineEdit_13 = QLineEdit(self.centralwidget)
-        self.lineEdit_13.setObjectName(u"lineEdit_13")
-        self.lineEdit_13.setGeometry(QRect(830, 80, 61, 20))
+        self.start_angle_text = QLineEdit(self.centralwidget)
+        self.start_angle_text.setObjectName(u"start_angle_text")
+        self.start_angle_text.setGeometry(QRect(830, 80, 61, 20))
         self.label_15 = QLabel(self.centralwidget)
         self.label_15.setObjectName(u"label_15")
         self.label_15.setGeometry(QRect(820, 60, 111, 16))
         self.pushButton_5 = QPushButton(self.centralwidget)
         self.pushButton_5.setObjectName(u"pushButton_5")
         self.pushButton_5.setGeometry(QRect(140, 60, 93, 28))
+        self.create_poli_btn = QPushButton(self.centralwidget)
+        self.create_poli_btn.setObjectName(u"create_poli_btn")
+        self.create_poli_btn.setGeometry(QRect(230, 170, 111, 28))
+        self.poli_x_text = QLineEdit(self.centralwidget)
+        self.poli_x_text.setObjectName(u"poli_x_text")
+        self.poli_x_text.setGeometry(QRect(200, 270, 113, 20))
+        self.poli_y_text = QLineEdit(self.centralwidget)
+        self.poli_y_text.setObjectName(u"poli_y_text")
+        self.poli_y_text.setGeometry(QRect(200, 310, 113, 20))
+        self.zoom_slider = QSlider(self.centralwidget)
+        self.zoom_slider.setObjectName(u"zoom_slider")
+        self.zoom_slider.setGeometry(QRect(400, 130, 160, 22))
+        self.zoom_slider.setMinimum(10)
+        self.zoom_slider.setMaximum(200)
+        self.zoom_slider.setPageStep(1)
+        self.zoom_slider.setValue(100)
+        self.zoom_slider.setOrientation(Qt.Horizontal)
+        self.label_4 = QLabel(self.centralwidget)
+        self.label_4.setObjectName(u"label_4")
+        self.label_4.setGeometry(QRect(410, 110, 51, 16))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -244,25 +130,15 @@ class Ui_MainWindow(object):
         self.file_choose_btn.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u044a\u0435\u043a\u0442\u044b", None))
         self.file_choose_edit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041f\u0443\u0442\u044c \u0434\u043e \u0444\u0430\u0439\u043b\u0430", None))
-        self.Y1_label.setText(QCoreApplication.translate("MainWindow", u"Y1", None))
-        self.X1_label.setText(QCoreApplication.translate("MainWindow", u"X1", None))
-        self.X2_label.setText(QCoreApplication.translate("MainWindow", u"X2", None))
-        self.Y2_label.setText(QCoreApplication.translate("MainWindow", u"Y2", None))
-        self.Y3_label.setText(QCoreApplication.translate("MainWindow", u"Y3", None))
-        self.X3_label.setText(QCoreApplication.translate("MainWindow", u"X3", None))
-        self.X4_label.setText(QCoreApplication.translate("MainWindow", u"X4", None))
-        self.Y4_label.setText(QCoreApplication.translate("MainWindow", u"Y4", None))
-        self.R_label.setText(QCoreApplication.translate("MainWindow", u"R", None))
-        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u041a\u0432\u0430\u0434\u0440\u0430\u0442", None))
-        self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u041a\u0440\u0443\u0433", None))
-        self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043b\u0438\u043d\u0438\u044e", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0437\u0432\u0435\u043d\u044c\u0435\u0432", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u2116 \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u0443\u0435\u043c\u043e\u0433\u043e \u0437\u0432\u0435\u043d\u0430", None))
-        self.lineEdit_12.setText("")
+        self.right_limit_text.setText("")
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043b\u0438\u043d\u0430", None))
         self.label_13.setText(QCoreApplication.translate("MainWindow", u"\u041b\u0435\u0432\u043e\u0435 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0435", None))
         self.label_14.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u0430\u0432\u043e\u0435 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0435", None))
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0447\u0430\u043b\u044c\u043d\u044b\u0439 \u0443\u0433\u043e\u043b", None))
         self.pushButton_5.setText(QCoreApplication.translate("MainWindow", u"\u042d\u041a\u0421\u041f\u041e\u0420\u0422", None))
+        self.create_poli_btn.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u043f\u043e\u043b\u0438\u0433\u043e\u043d", None))
+        self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u041c\u0430\u0441\u0448\u0442\u0430\u0431", None))
     # retranslateUi
 
