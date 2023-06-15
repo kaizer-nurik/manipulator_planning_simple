@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cmath>
+#include "obstacles.h"
 
 struct Joint 
 {
@@ -82,4 +83,9 @@ double distance(Robot robot1, Robot robot2)
     // }
     // return std::sqrt(dist);
     return 0.0;
+}
+
+int s(int a, int b)
+{
+    return a+b;
 }

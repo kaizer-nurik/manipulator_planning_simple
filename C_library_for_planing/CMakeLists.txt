@@ -1,10 +1,19 @@
 cmake_minimum_required(VERSION 3.10)
 project(Manipulator C CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+enable_testing() #to  discover tests in test explorer 
 
+add_subdirectory(googletest) # add googletest subdirectory
+
+include_directories(googletest/include) # this is so we can #include <gtest/gtest.h>
+
+add_executable(mytests "./test/mytests.cpp") # add this executable
+
+include(GoogleTest)
+gtest_discover_tests(mytests) # discovers tests by asking the compiled test executable to enumerate its tests
 
 set(LIB_HEADERS_FILES "./include/obstacles.h")
 add_library(obstacles STATIC ${LIB_HEADERS_FILES}) 
@@ -31,7 +40,6 @@ include_directories(${PARENT_DIR}/rapidxml ./include)
 
 add_executable(main "./src/main.cpp")
 target_link_libraries(main obstacles robot parsing rapidxml)
+target_link_libraries(mytests gtest robot parsing rapidxml)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
-
-
 
