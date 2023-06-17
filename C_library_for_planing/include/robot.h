@@ -11,12 +11,17 @@ double width;
 std::vector<double> limits;
 };
 
-class Robot
+class Robot_position
 {
 public:
-    Robot() : dof_(0) {}
+    Robot_position() : dof_(0) {}
+    Robot_position(const Robot_position& _other) = default; // Copy constructor
+    Robot_position& operator=(const Robot_position& other) = default; // Copy asigment
+    Robot_position(Robot_position&& _other) = default; //move constructor
+    Robot_position& operator=(Robot_position&& other) = default;//move asigment
+    ~Robot_position();//Destructor
 
-    Robot(const Robot& other) 
+    Robot_position(const Robot_position& other) 
     {
         for (Joint a:other.joints)
         {
@@ -35,7 +40,7 @@ public:
     }
 
     void printJointDetails() const {
-        std::cout << "Robot DOF: " << dof_ << std::endl;
+        std::cout << "Robot_position DOF: " << dof_ << std::endl;
 
         for (const auto& joint : joints)
          {
@@ -67,12 +72,13 @@ struct GoalPoint
     double angle2_;
 
     GoalPoint(double x, double y, double angle1, double angle2): goalpoint(x, y), angle1_(angle1), angle2_(angle2){}
+    
 };
 
-double distance(Robot robot1, Robot robot2)
+double distance(Robot_position robot1, Robot_position robot2)
 {
-    // std::vector<Robot::Joint> joints1 = robot1.get_joints();
-    // std::vector<Robot::Joint> joints2 = robot2.get_joints();
+    // std::vector<Robot_position::Joint> joints1 = robot1.get_joints();
+    // std::vector<Robot_position::Joint> joints2 = robot2.get_joints();
     // double dist = 0.0;
     // if (joints1.size() == joints2.size())
     // {

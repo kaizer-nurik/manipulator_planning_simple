@@ -14,11 +14,11 @@
 int main(int argc, const char * argv[])
  {
     std::vector<Polygon> polygons;
-    Robot start = Robot();
+    Robot_position start = Robot_position();
     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
     
 
-    bool read_normally = read_scene(argv[1], polygons, start, goal);
+    bool read_normally = xmlParser::read_scene(argv[1], polygons, start, goal);
     std::cout << read_normally << std::endl;
     if (! read_normally)
     {

@@ -5,10 +5,10 @@
 TEST(myfunctions, add)
 {
     std::vector<Polygon> polygons;
-    Robot start = Robot();
+    Robot_position start = Robot_position();
     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
     
-    EXPECT_EQ(read_scene("example.xml", polygons, start, goal), true);
+    EXPECT_EQ(xmlParser::read_scene("example.xml", polygons, start, goal), true);
     EXPECT_EQ(polygons.size(), 3);
     EXPECT_EQ(goal.angle1_, 80); 
     EXPECT_EQ(start.joints.size(), 4); 
