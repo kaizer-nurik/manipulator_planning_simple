@@ -30,6 +30,7 @@ public:
             this->AddJoint(a.length, a.width, a.limits);            
         }
         this->configuration = other.configuration;
+        return *this;
     }
 
     Robot_position(Robot_position&& _other) = default; //move constructor
