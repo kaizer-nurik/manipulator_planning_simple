@@ -12,7 +12,7 @@ jobs:
     - name: install gtest
       run: |
         sudo apt-get install -y cmake
-        cd ..
+        cd ./C_library_for_planing
     - name: cmake
       run: |
         mkdir build
