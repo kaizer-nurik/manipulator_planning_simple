@@ -24,6 +24,8 @@ jobs:
         make
     - name: run
       run: |
+        cd C_library_for_planing
+        cd build
         ls
         ./mytests
 
