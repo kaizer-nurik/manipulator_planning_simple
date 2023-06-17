@@ -244,7 +244,7 @@
      <string>Начальный угол</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_5">
+   <widget class="QPushButton" name="export_btn">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -326,6 +326,19 @@
     </property>
     <property name="text">
      <string>Масштаб</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="create_goal_point_btn">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>130</y>
+      <width>161</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Задать конечную точку</string>
     </property>
    </widget>
   </widget>

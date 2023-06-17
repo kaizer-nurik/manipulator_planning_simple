@@ -134,7 +134,7 @@ class Robot_class():
             self.pop_joint()
         self.joint_count = number
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) ->robot_joint:
         """Получение joint через квадратные скобки для удобства
 
         Args:
@@ -157,5 +157,6 @@ class Robot_class():
 
     def __next__(self):
         if self._current_index < self.joint_count:
-            return self.joints[self._current_index]
+            self._current_index+=1
+            return self.joints[self._current_index-1]
         raise StopIteration

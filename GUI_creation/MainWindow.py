@@ -12,6 +12,8 @@ from robot_class import Robot_class
 from robo_scene import Robo_scene
 from obstacles import ObstacleManager, Obstacle
 from GUI_ui import Ui_MainWindow
+from goal_point import GoalPoint
+from xml_maker import to_xml
 uiclass, baseclass = pg.Qt.loadUiType(
     "./GUI.ui")  # подгузка файла с дизайном
 
@@ -26,6 +28,7 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.robot = Robot_class()
         self.robot.change_joint_number(1)
         self.obstacles = ObstacleManager(self.poli_x_text,self.poli_y_text,self.poly_list,self.scene)
+        self.goal_point = GoalPoint(self.scene)
         
         self.create_poli_btn.clicked.connect(self.create_poli)
         self.file_choose_btn.clicked.connect(self.open_file_dialog) 
@@ -41,7 +44,8 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.start_angle_text.textChanged.connect(self.change_joint_start_angle)
         self.start_angle_text.setText('0')
         self.zoom_slider.valueChanged.connect(self.ZoomSliderChange)
-        
+        self.create_goal_point_btn.clicked.connect(self.goal_point_connect)
+        self.export_btn.clicked.connect(self.export_xml)
         SCENE_MAX_LENGTH = 1000
         # self.scene_rect  = QRectF(-100000,-100000,100000,100000)
         self.scene.angle_changed.connect(self.on_joint_angle_change_by_mouse)    
@@ -53,10 +57,16 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.graphicsView.centerOn(0,0)
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
-
+    @pyqtSlot()
+    def export_xml(self):
+        to_xml(self.file_choose_edit.text(),self.robot,self.obstacles,self.goal_point)
+        
+    @pyqtSlot()
+    def goal_point_connect(self):
+        print(1)
+        self.goal_point.create_goal_point()
     @pyqtSlot(int)
     def ZoomSliderChange(self,value):
-        print(value/100)
         tr = self.graphicsView.transform()
         self.graphicsView.setTransform(QtGui.QTransform(value/100, 0,0, value/100, tr.dx(), tr.dy()))
         # self.graphicsView.scale(value/100,value/100)
