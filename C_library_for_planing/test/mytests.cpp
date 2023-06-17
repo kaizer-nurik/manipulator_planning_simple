@@ -12,7 +12,7 @@ TEST(myfunctions, add)
     EXPECT_EQ(polygons.size(), 3);
     EXPECT_EQ(goal.angle1_, 80); 
     EXPECT_EQ(start.joints.size(), 4); 
-    EXPECT_EQ(read_scene("error_example.xml", polygons, start, goal), false);
+    EXPECT_EQ(xmlParser::read_scene("error_example.xml", polygons, start, goal), false);
 
 }
 

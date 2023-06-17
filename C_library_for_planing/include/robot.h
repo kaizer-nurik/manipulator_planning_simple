@@ -15,11 +15,6 @@ class Robot_position
 {
 public:
     Robot_position() : dof_(0) {}
-    Robot_position(const Robot_position& _other) = default; // Copy constructor
-    Robot_position& operator=(const Robot_position& other) = default; // Copy asigment
-    Robot_position(Robot_position&& _other) = default; //move constructor
-    Robot_position& operator=(Robot_position&& other) = default;//move asigment
-    ~Robot_position();//Destructor
 
     Robot_position(const Robot_position& other) 
     {
@@ -29,6 +24,17 @@ public:
         }
         this->configuration = other.configuration;
     }
+    Robot_position& operator=(const Robot_position& other){
+        for (Joint a:other.joints)
+        {
+            this->AddJoint(a.length, a.width, a.limits);            
+        }
+        this->configuration = other.configuration;
+    }
+
+    Robot_position(Robot_position&& _other) = default; //move constructor
+    Robot_position& operator=(Robot_position&& other) = default;//move asigment
+    ~Robot_position();//Destructor
 
     void AddJoint(double length, double width, const std::vector<double>& limits) {
         Joint joint;

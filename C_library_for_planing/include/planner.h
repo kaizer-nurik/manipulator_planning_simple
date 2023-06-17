@@ -5,7 +5,7 @@ class Planner {
 public:
     Planner(std::string filename): filename_(filename){}
 
-    void motionPlanning(const Robot &start, const Robot& goal, const std::vector<Polygon> &obstacles) 
+    void motionPlanning(const Robot_position &start, const Robot_position& goal, const std::vector<Polygon> &obstacles) 
     {
         // Robot current(start);
         // std::ofstream myfile;
