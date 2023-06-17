@@ -11,7 +11,7 @@
 
 namespace xmlParser
 {
-    bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Robot &start, GoalPoint &goal)
+    bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Robot_position &start, GoalPoint &goal)
     {
         std::ifstream file(filename);
         if (!file) {
