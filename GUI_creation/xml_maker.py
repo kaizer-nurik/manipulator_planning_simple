@@ -1,42 +1,75 @@
 """Создание XML файла по введённым в сцену объектам"""
 
-from dict2xml import dict2xml
+
 from robot_class import Robot_class
 from obstacles import ObstacleManager
 from goal_point import GoalPoint
+import xml.etree.ElementTree as ET
 
-
+GOAL_POINT_TRESHOLD = 5 #абсолютная погрешность угла конечной точки
 def to_xml(filename: str, robot: Robot_class, obstacles: ObstacleManager, goal_point: GoalPoint):
     """Создание xml файла filename"""
-    data = {
-        'input_info':
-        {
-            'robot_info':
-            {
-                'joints':
-                [
-                    {'joint':{
-                        'length': joint.length/100,
-                        'width': joint.width/100,
-                        'limit1': joint.left_angle,
-                        'limit2': joint.right_angle,
+    root = ET.Element('input_info')
+    add_robot_info(root,robot)# Добавления информации о роботе
+    add_start_conf(root,robot)# Добавление информации о начальной конфигурации
+    add_goal_point(root,goal_point)# Добавление информации о цели
+    add_scene(root, obstacles)
+    
+    tree = ET.ElementTree(root)
+    ET.indent(tree, space="  ", level=0)
+    tree.write(filename,encoding='unicode',xml_declaration = True)
 
-                    }
-                    }
-                    for joint in robot
-                ]
-            },
-            "start_configuration":[
-                    {'angle':joint.start_angle}
-                    for joint in robot
-                ]
+def add_scene(root:ET.Element, obstacle: ObstacleManager):    
+    scene = ET.SubElement(root,"scene")
+    
+    for polygon in obstacle:
+        polygon_xml = ET.SubElement(scene, "polygon")
+        for vertex in polygon:
+            vertex_xml = ET.SubElement(polygon_xml, "vertex")
+            
+            x = ET.SubElement(vertex_xml,"x")
+            x.text = str(vertex.x())
+            
+            y = ET.SubElement(vertex_xml,"y")
+            y.text = str(vertex.y())
+            
+    
+def add_goal_point(root:ET.Element, goal_point:GoalPoint):
+    goal_point_xml = ET.SubElement(root,'goal_point')
+    x = ET.SubElement(goal_point_xml,"x")
+    x.text = str(goal_point.x())
+    
+    y = ET.SubElement(goal_point_xml,"y")
+    y.text = str(goal_point.y())
+    
+    angle1 = ET.SubElement(goal_point_xml,"angle1")
+    angle1.text = str(goal_point.angle() - GOAL_POINT_TRESHOLD)
+    
+    angle2 = ET.SubElement(goal_point_xml,"angle2")
+    angle2.text = str(goal_point.angle() + GOAL_POINT_TRESHOLD)    
+    
+    
 
-        }
-    }
-    print(data)
-    with open(filename,'w',encoding='utf-8') as f:
-        f.write(dict2xml(data, wrap="all", indent="  "))
-
+def add_start_conf(root:ET.Element,robot:Robot_class):    
+    start_configuration = ET.SubElement(root,'start_configuration')
+    for joint in robot:
+        angle = ET.SubElement(start_configuration,"angle")
+        angle.text = str(joint.start_angle)
+                
+def add_robot_info(root:ET.Element,robot:Robot_class):
+    robot_info = ET.SubElement(root,'robot_info')
+    joints = ET.SubElement(robot_info,'joints')
+    
+    for robot_joint in robot:
+        joint = ET.SubElement(joints,'joint')
+        length = ET.SubElement(joint,'length')
+        length.text = str(robot_joint.length/100)
+        width = ET.SubElement(joint,'width')
+        width.text = str(robot_joint.width/100)
+        limit1 = ET.SubElement(joint,'limit1')
+        limit1.text = str(robot_joint.left_angle)
+        limit2 = ET.SubElement(joint,'limit2')
+        limit2.text = str(robot_joint.right_angle)
 
 """<input_info>
   <robot_info> - Информация о роботе

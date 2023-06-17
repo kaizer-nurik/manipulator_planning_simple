@@ -94,6 +94,7 @@ class ObstacleManager(QObject):
         self.poli_list = poli_list
         self.scene = scene
         self.obstacles = list()
+        self._counter = 0
         
     def off_dots(self):
         for obstacle in self.obstacles:
@@ -106,5 +107,32 @@ class ObstacleManager(QObject):
 
         self.scene.go_poli_mode(self.obstacles[-1])
         
-        
-        
+    def __iter__(self):
+        self._current_index = 0
+        return self
+
+    def __next__(self):
+        if self._current_index < len(self.obstacles):
+            self._current_index+=1
+            return Polygon(self.obstacles[self._current_index-1].polygon())
+        raise StopIteration
+
+class Polygon():
+    """Вспомогательный итератор для полигонов, для упрощения кода
+    """
+    def __init__(self, poly_qt:QGraphicsPolygonItem):
+        self.poly_qt:QGraphicsPolygonItem = poly_qt
+        self.vertexes = poly_qt.toList()
+        self.vertex_count:int = len(self.vertexes)
+        self._counter = 0
+
+    def __iter__(self):
+        self._current_index = 0
+        return self
+
+    def __next__(self):
+        if self._current_index < self.vertex_count:
+            self._current_index+=1
+            return self.vertexes[self._current_index-1]
+        raise StopIteration
+    

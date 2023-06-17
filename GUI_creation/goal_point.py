@@ -7,6 +7,8 @@ GOAL_POINT_SQUARE_RADIUS = 20
 ARROW_LENGTH = 50
 
 QGraphicsEllipseItem()
+
+
 class GoalPointVisuals(QGraphicsEllipseItem):
 
     def __init__(self, *args, **kwargs):
@@ -17,14 +19,17 @@ class GoalPointVisuals(QGraphicsEllipseItem):
         robot_brush = QtGui.QBrush(QtGui.Qt.blue)
         self.setPen(robot_pen)
         self.setBrush(robot_brush)
-        
+
         self.setFlag(QGraphicsItem.ItemIsMovable)
 
         self.arrow = QGraphicsLineItem(-GOAL_POINT_SQUARE_RADIUS,
-        GOAL_POINT_SQUARE_RADIUS, GOAL_POINT_SQUARE_RADIUS+ARROW_LENGTH,GOAL_POINT_SQUARE_RADIUS,self)
- 
-        self.arrow.setPos(0,0)
+                                       GOAL_POINT_SQUARE_RADIUS, GOAL_POINT_SQUARE_RADIUS+ARROW_LENGTH, GOAL_POINT_SQUARE_RADIUS, self)
+
+        self.arrow.setPos(0, 0)
         self.arrow.setPen(robot_pen)
+        self.angle = 0
+
+
 
     def mousePressEvent(self, event):
 
@@ -38,15 +43,18 @@ class GoalPointVisuals(QGraphicsEllipseItem):
         event.ignore()  # отпустить захват событий мыши
 
     def change_angle(self, angle):
-        print(self.scenePos().x(),self.scenePos().y())
+        self.angle = angle
         self.arrow.setLine(0, 0, ARROW_LENGTH *
                            np.cos(angle), ARROW_LENGTH*np.sin(angle))
+
+
     def change_angle_by_dot(self, coords):
-        
+
         item_coords = self.scenePos()
-        delta = coords - item_coords 
+        delta = coords - item_coords
         print(delta)
-        angle = np.arctan2(delta.y(), delta.x())    # вращение, задаваемое мышью
+        # вращение, задаваемое мышью
+        angle = np.arctan2(delta.y(), delta.x())
         self.change_angle(angle)
 
 
@@ -55,8 +63,8 @@ class GoalPoint():
         self.scene = scene
         self.dot = GoalPointVisuals()
         self.dot.setVisible(False)
-        self.dot.setRect(-GOAL_POINT_SQUARE_RADIUS, 
-         -GOAL_POINT_SQUARE_RADIUS, GOAL_POINT_SQUARE_RADIUS*2, GOAL_POINT_SQUARE_RADIUS*2)
+        self.dot.setRect(-GOAL_POINT_SQUARE_RADIUS,
+                         -GOAL_POINT_SQUARE_RADIUS, GOAL_POINT_SQUARE_RADIUS*2, GOAL_POINT_SQUARE_RADIUS*2)
         self.scene.addItem(self.dot)
 
     def create_goal_point(self):
@@ -66,6 +74,15 @@ class GoalPoint():
         print(4)
         self.dot.setPos(coords)
         self.dot.setVisible(True)
-        
+
     def make_arrow(self, coords):
         self.dot.change_angle_by_dot(coords)
+
+    def x(self):
+        return self.dot.x()
+
+    def y(self):
+        return self.dot.y()
+
+    def angle(self):
+        return self.dot.angle
