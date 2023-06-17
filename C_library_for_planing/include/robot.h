@@ -34,7 +34,7 @@ public:
 
     Robot_position(Robot_position&& _other) = default; //move constructor
     Robot_position& operator=(Robot_position&& other) = default;//move asigment
-    ~Robot_position();//Destructor
+    ~Robot_position()= default;;//Destructor
 
     void AddJoint(double length, double width, const std::vector<double>& limits) {
         Joint joint;

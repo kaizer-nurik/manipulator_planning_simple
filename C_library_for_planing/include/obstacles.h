@@ -34,7 +34,7 @@ struct Polygon {
     Polygon& operator=(const Polygon& other) = default; // Copy asigment
     Polygon(Polygon&& _other) = default; //move constructor
     Polygon& operator=(Polygon&& other) = default;//move asigment
-    ~Polygon();//Destructor
+    ~Polygon()= default;//Destructor
 
     // Get the edges of the polygon
     std::vector<Vector2D> getEdges() const {
@@ -59,7 +59,7 @@ struct Projection {
     Projection& operator=(const Projection& other) = default; // Copy asigment
     Projection(Projection&& _other) = default; //move constructor
     Projection& operator=(Projection&& other) = default;//move asigment
-    ~Projection();//Destructor
+    ~Projection()= default;//Destructor
     // Check if two projections overlap
     bool overlaps(const Projection& other) const {
         return (max >= other.min) && (other.max >= min);
