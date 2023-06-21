@@ -113,6 +113,12 @@ struct CompareKey {
     }
 };
 
+void print_vector(std::vector<double> v)
+{
+    for (auto i:v)
+        std::cout << i << ' ';
+    std::cout << std::endl;
+}
 class Planner {
 public:
     Planner(std::string filename) : filename_(filename) {}
@@ -125,10 +131,10 @@ public:
 
         for (auto i = 0u; i < robot.configuration.size(); i++)
         {
-            deltas[i] = (robot.joints[i].limits[0] - robot.joints[i].limits[0]) / g_units;
+            deltas[i] = (robot.joints[i].limits[1] - robot.joints[i].limits[0]) / g_units;
         }
+        std::cout << cos(std::acos(-1)/2) << std::endl;
         std::vector<std::vector<double>> primitivemoves;
-
         for (auto i = 0u; i < robot.dof_; i++)
         {
             std::vector<double> a(robot.dof_, 0.0);
@@ -136,6 +142,7 @@ public:
             primitivemoves.push_back(a);
             a[i] = -deltas[i];
             primitivemoves.push_back(a);
+            
         }
 
         std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
@@ -178,15 +185,20 @@ public:
                 std::cout << "Vectors successfully written to the file: " << filename_ << std::endl;
                 return true;
             }
+
             opened_nodes.pop();
+            size_t numErased = map_pq_opened.erase(node->position);
+
 
             closed_nodes.insert(node);
             for (const auto &i:primitivemoves)
             {
                 std::shared_ptr<Node> newneighbour = std::make_shared<Node>(config+i, node->gCost+1.0, 0.0, node);
+                config = config + i;
+                print_vector(config);
                 current = end_effector(robot, config);
                 newneighbour->hCost = calculateDistance(current, goal);
-                
+                print_vector(config);
                 if (closed_nodes.count(newneighbour) > 0 )
                 {
                     continue;
@@ -214,7 +226,9 @@ public:
                         newneighbour->parent = node;
                         newneighbour->gCost = tentative_g;
                         newneighbour->hCost = calculateDistance(current, goal);
+                        
                     }
+                    //std::cout << calculateDistance(current, goal) << std::endl;
                 }
             }
         }
