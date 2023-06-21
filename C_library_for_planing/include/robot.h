@@ -73,3 +73,16 @@ bool collide(const Robot &robot, const std::vector<double> config, const std::ve
 {
     return false;
 }
+
+Vector2D end_effector(const Robot &robot, const std::vector<double> config)
+{
+    Vector2D ef(0.0, 0.0);
+    double angle = 0.0;
+    for (auto i=0u; i<robot.dof_; i++)
+    {
+        angle+=config[i];
+        ef.x += robot.joints[i].length * cos(angle);
+        ef.y += robot.joints[i].length * sin(angle);
+    }
+    return ef;
+}

@@ -26,8 +26,11 @@ int main(int argc, const char * argv[])
     }
 
 
-    //Planner planner("example.csv");
+    Planner planner("trajectory.csv");
+    bool b = planner.AStar(start, goal.goalpoint, polygons);
+
     //planner.motionPlanning(start, goal, obstacles);
-    std::cout << goal.angle1_ << std::endl;
+    std::cout << std::endl;
+    std::cout << b << std::endl;
     return EXIT_SUCCESS;
 }

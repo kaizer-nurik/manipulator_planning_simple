@@ -9,47 +9,8 @@
 #include <iostream>
 #include <cmath>
 #include <utility>
-
-struct Node
-{
-    std::vector<double> position;
-    double gCost;
-    double hCost;
-    std::shared_ptr<Node> parent;
-
-    Node() {};
-    Node(const std::vector<double>& pos, double g, double h, const std::shared_ptr<Node>& p) : position(pos), gCost(g), hCost(h), parent(p) {}
-
-    double getFCost() const {
-        return gCost + hCost;
-    }
-    bool operator<(const Node& other) const {
-        return getFCost() < other.getFCost();
-    }
-    bool operator>(const Node& other) const {
-        return getFCost() > other.getFCost();
-    }
-    bool operator==(const Node& other) const {
-        double tolerance = 1e-6;
-        double diff;
-        for (auto i = 0u; i < position.size(); i++)
-            diff += std::abs(position[i] - other.position[i]);
-        return diff <= tolerance;
-    }
-};
-
-struct NodeHash {
-    size_t operator()(const Node& node) const {
-        size_t hash = 0;
-        for (const auto& value : node.position) {
-            // Combine hash with each value in the vector
-            hash ^= std::hash<double>()(value);
-        }
-        return hash;
-    }
-};
-
-
+#include <algorithm>
+#include <fstream>
 
 template<typename T>
 std::vector<T> operator+(const std::vector<T>& vec1, const std::vector<T>& vec2) {
@@ -78,11 +39,85 @@ double calculateDistance(const Vector2D& a, const Vector2D& b) {
     return std::abs(a.x - b.x) + std::abs(a.y - b.y);
 }
 
+struct Node
+{
+    std::vector<double> position;
+    double gCost;
+    double hCost;
+    std::shared_ptr<Node> parent;
+
+    Node(const std::vector<double>& pos, double g, double h, const std::shared_ptr<Node> &p) : position(pos), gCost(g), hCost(h), parent(p) {}
+
+    double getFCost() const {
+        return gCost + hCost;
+    }
+    bool operator<(const Node& other) const {
+        return getFCost() < other.getFCost();
+    }
+    bool operator>(const Node& other) const {
+        return getFCost() > other.getFCost();
+    }
+    bool operator==(const Node& other) const {
+        double tolerance = 1e-6;
+        double diff;
+        for (auto i = 0u; i < position.size(); i++)
+            diff += std::abs(position[i] - other.position[i]);
+        return diff <= tolerance;
+    }
+};
+
+struct CompareNodes {
+    bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const {
+        // Higher priority nodes should have lower priority values
+        return node1->getFCost() > node2->getFCost();
+    }
+};
+
+struct HashNode {
+    size_t operator()(const std::shared_ptr<Node>& node) const {
+        size_t hash = 0;
+        for (const auto& value : node->position) {
+            // Combine hash with each value in the vector
+            hash ^= std::hash<double>()(value);
+        }
+        return hash;
+    }
+};
+
+// Define an equality function for the shared pointers to nodes
+struct EqualNode {
+    bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const {
+        double tolerance = 1e-6;
+        double diff;
+        for (auto i = 0u; i < node1->position.size(); i++)
+            diff += std::abs(node1->position[i] - node1->position[i]);
+        return diff <= tolerance;
+    }
+};
+
+struct CompareKey {
+    bool operator()(const std::vector<double>& key1, const std::vector<double>& key2) const {
+        // Compare the sizes of the vectors
+        if (key1.size() != key2.size()) {
+            return key1.size() < key2.size();
+        }
+
+        // Compare the elements of the vectors element-wise
+        for (size_t i = 0; i < key1.size(); ++i) {
+            if (key1[i] != key2[i]) {
+                return key1[i] < key2[i];
+            }
+        }
+
+        return false; // Both keys are equal
+    }
+};
+
 class Planner {
 public:
     Planner(std::string filename) : filename_(filename) {}
 
-    void AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles)
+    bool AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles)
     {
         const int g_units = 128;
         std::vector<double> deltas(robot.dof_, 0.0);
@@ -103,20 +138,15 @@ public:
             primitivemoves.push_back(a);
         }
 
-        std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, std::greater<std::shared_ptr<Node>>> opened_nodes;
-        std::map<std::vector<double>, std::shared_ptr<Node>> map_pq_opened;
-        std::unordered_set<std::shared_ptr<Node>, NodeHash> closed_nodes;
-        Vector2D current(0.0, 0.0);
+        std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
+        std::map<std::vector<double>, std::shared_ptr<Node>, CompareKey> map_pq_opened;
+        std::unordered_set<std::shared_ptr<Node>, HashNode, EqualNode> closed_nodes;
 
-        double angle = 0.0;
-        for (auto i=0u; i<robot.dof_; i++)
-        {
-            angle+=config[i];
-            current.x += robot.joints[i].length * cos(angle);
-            current.y += robot.joints[i].length * sin(angle);
-        }
+        Vector2D current = end_effector(robot, config);
 
         std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, calculateDistance(current, goal), nullptr);
+        opened_nodes.push(start);
+        map_pq_opened.emplace(start->position, start);
 
         while (!opened_nodes.empty())
         {
@@ -124,13 +154,38 @@ public:
             
             if (current == goal)
             {
-                //return reconstruct path
+                std::vector<std::shared_ptr<Node>> path;
+                while (node != nullptr)
+                 {
+                    path.push_back(node);
+                    node = node->parent;
+                }
+                std::reverse(path.begin(), path.end());
+                 
+                 std::ofstream file(filename_);
+                // Write vectors to the CSV file
+                for (const auto& n : path) {
+                    for (size_t i = 0; i < n->position.size(); ++i) {
+                        file << n->position[i];
+                        if (i != n->position.size() - 1) {
+                            file << ",";
+                        }
+                    }
+                    file << std::endl;
+                }
+
+                file.close();
+                std::cout << "Vectors successfully written to the file: " << filename_ << std::endl;
+                return true;
             }
             opened_nodes.pop();
+
             closed_nodes.insert(node);
             for (const auto &i:primitivemoves)
             {
-                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(config+i, node->gCost+1,0, &node);
+                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(config+i, node->gCost+1.0, 0.0, node);
+                current = end_effector(robot, config);
+                newneighbour->hCost = calculateDistance(current, goal);
                 
                 if (closed_nodes.count(newneighbour) > 0 )
                 {
@@ -139,71 +194,35 @@ public:
 
                 if (! collide(robot, config, obstacles))
                 {
-                    
+                    double tentative_g = node->gCost + std::abs(node->gCost - newneighbour->gCost);
+                    bool tentative_is_better = false;
+                    auto it = map_pq_opened.find(newneighbour->position);
+                    if (it == map_pq_opened.end()) 
+                    {
+                        //not found
+                        map_pq_opened.emplace(newneighbour->position, newneighbour);
+                        opened_nodes.push(newneighbour);
+                        tentative_is_better = true;
+                    } 
+                    else 
+                    {
+                        if (tentative_g < newneighbour->gCost)
+                            tentative_is_better=true;
+                    }
+                    if (tentative_is_better)
+                    {
+                        newneighbour->parent = node;
+                        newneighbour->gCost = tentative_g;
+                        newneighbour->hCost = calculateDistance(current, goal);
+                    }
                 }
             }
         }
 
-        // Define the possible movements (up, down, left, right, and diagonal)
-    // const std::vector<Point> directions = {
-    //     Point(0, -1), Point(0, 1), Point(-1, 0), Point(1, 0),
-    //     Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)
-    // };
+        
+    return false;
 
-    // // Create a 2D vector to store the costs (gCost, hCost)
-    // std::vector<std::vector<int>> costs(grid.size(), std::vector<int>(grid[0].size(), std::numeric_limits<int>::max()));
-
-    // // Create a 2D vector to store the parents of each cell
-    // std::vector<std::vector<Point>> parents(grid.size(), std::vector<Point>(grid[0].size(), Point(-1, -1)));
-
-    // // Create a priority queue for open nodes
-    // std::priority_queue<Node*, std::vector<Node*>, std::function<bool(Node*, Node*)>> openNodes(
-    //     [](Node* a, Node* b) { return a->getFCost() > b->getFCost(); });
-
-    // // Start node
-    // Node* startNode = new Node(start, 0, calculateDistance(start, goal), nullptr);
-    // costs[start.x][start.y] = 0;
-    // openNodes.push(startNode);
-
-    // while (!openNodes.empty()) {
-    //     Node* current = openNodes.top();
-    //     openNodes.pop();
-
-    //     if (current->position.x == goal.x && current->position.y == goal.y) {
-    //         // Reconstruct the path
-    //         std::vector<Point> path;
-    //         Node* node = current;
-    //         while (node != nullptr) {
-    //             path.push_back(node->position);
-    //             node = node->parent;
-    //         }
-    //         std::reverse(path.begin(), path.end());
-    //         return path;
-    //     }
-
-    //     for (const Point& direction : directions) {
-    //         Point next(current->position.x + direction.x, current->position.y + direction.y);
-
-    //         if (next.x < 0 || next.x >= grid.size() || next.y < 0 || next.y >= grid[0].size() || grid[next.x][next.y] == 1) {
-    //             // Skip invalid or blocked cells if checkCollide()
-    //             continue;
-    //         }
-
-    //         int newCost = current->gCost + 1; //
-
-    //         if (newCost < costs[next.x][next.y]) {
-    //             // Update the costs and parent of the next cell
-    //             costs[next.x][next.y] = newCost;
-    //             parents[next.x][next.y] = current->position;
-    //             Node* nextNode = new Node(next, newCost, calculateDistance(next, goal), current);
-    //             openNodes.push(nextNode);
-    //         }
-    //     }
-    // }
-
-    // // No path found
-    // return std::vector<Point>();
-        // Robot current(start);
+    
         // std::ofstream myfile;
         // myfile.open (filename_);
 
