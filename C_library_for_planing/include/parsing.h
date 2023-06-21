@@ -61,7 +61,11 @@ namespace xmlParser
                         std::cout << "Link Length: " << length << std::endl;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                     double limit1 = std::stod(jointNode->first_node("limit1")->value())*pi/180;
+=======
+                    double limit1 = std::stod(jointNode->first_node("limit1")->value());
+>>>>>>> parent of 626851b (dd)
                     std::cout << "limit1: " << limit1 << std::endl;
 
                     double limit2 = std::stod(jointNode->first_node("limit2")->value());

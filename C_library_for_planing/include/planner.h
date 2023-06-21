@@ -7,10 +7,14 @@ public:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     void AStar(const Robot &robot, const Robot& goal, const std::vector<Polygon> &obstacles) 
 =======
     void motionPlanning(const Robot_position &start, const Robot_position& goal, const std::vector<Polygon> &obstacles) 
 >>>>>>> fdb7aa87893498a1a8b7b8abfba282f7874ca4b3
+=======
+    void motionPlanning(const Robot &start, const Robot& goal, const std::vector<Polygon> &obstacles) 
+>>>>>>> parent of 626851b (dd)
 =======
     void motionPlanning(const Robot &start, const Robot& goal, const std::vector<Polygon> &obstacles) 
 >>>>>>> parent of 626851b (dd)
