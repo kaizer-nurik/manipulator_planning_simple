@@ -6,13 +6,14 @@
 TEST(myfunctions, add)
 {
     std::vector<Polygon> polygons;
-    Robot start = Robot();
+    Robot_position start = Robot_position();
     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
     
-    EXPECT_EQ(read_scene("example.xml", polygons, start, goal), true);
+    EXPECT_EQ(xmlParser::read_scene("example.xml", polygons, start, goal), true);
     EXPECT_EQ(polygons.size(), 3);
     EXPECT_EQ(goal.angle1_, 80); 
     EXPECT_EQ(start.joints.size(), 4); 
+<<<<<<< HEAD
     EXPECT_EQ(read_scene("error_example.xml", polygons, start, goal), false);
     EXPECT_EQ(start.joints.size(), 4);
 
@@ -36,6 +37,9 @@ TEST(test1, t1)
 
     EXPECT_EQ(isConvexPolygon(Polygon({ Vector2D(0, 0), Vector2D(1, 1), Vector2D(1, 0), Vector2D(0,0), 
     Vector2D(-1,0), Vector2D(-1,-1)})), false);
+=======
+    EXPECT_EQ(xmlParser::read_scene("error_example.xml", polygons, start, goal), false);
+>>>>>>> fdb7aa87893498a1a8b7b8abfba282f7874ca4b3
 
     //EXPECT_EQ(checkCollision(Polygon({ Vector2D(0, 0), Vector2D(-1, 0), Vector2D(-2, 1), Vector2D(-2,2), Vector2D(-1,3), Vector2D(0,3),
     //Vector2D(1,2), Vector2D(1,2)}), Polygon({ Vector2D(10, 0), Vector2D(9, 0), Vector2D(8, 1), Vector2D(8,2), Vector2D(9,3), Vector2D(10,3),

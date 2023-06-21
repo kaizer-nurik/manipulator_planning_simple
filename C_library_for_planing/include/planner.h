@@ -57,7 +57,11 @@ class Planner {
 public:
     Planner(std::string filename): filename_(filename){}
 
+<<<<<<< HEAD
     void AStar(const Robot &robot, const Robot& goal, const std::vector<Polygon> &obstacles) 
+=======
+    void motionPlanning(const Robot_position &start, const Robot_position& goal, const std::vector<Polygon> &obstacles) 
+>>>>>>> fdb7aa87893498a1a8b7b8abfba282f7874ca4b3
     {
         const int g_units = 128;
         std::vector<double> deltas(robot.dof_, 0.0);

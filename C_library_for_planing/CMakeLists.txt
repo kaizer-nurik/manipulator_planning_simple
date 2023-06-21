@@ -31,12 +31,11 @@ set(LIB_HEADERS_FILES "./include/parsing.h")
 add_library(parsing STATIC ${LIB_HEADERS_FILES}) 
 set_target_properties(parsing PROPERTIES LINKER_LANGUAGE CXX)
 
-file(GLOB sources "../rapidxml/*.hpp")
+file(GLOB sources "./rapidxml/*.hpp")
 add_library(rapidxml STATIC ${sources}) 
 set_target_properties(rapidxml PROPERTIES LINKER_LANGUAGE CXX)
 
-get_filename_component(PARENT_DIR ../ ABSOLUTE)
-include_directories(${PARENT_DIR}/rapidxml ./include)
+include_directories(./rapidxml ./include)
 
 add_executable(main "./src/main.cpp")
 target_link_libraries(main obstacles robot parsing rapidxml)
