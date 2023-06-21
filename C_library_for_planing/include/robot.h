@@ -69,18 +69,7 @@ struct GoalPoint
     GoalPoint(double x, double y, double angle1, double angle2): goalpoint(x, y), angle1_(angle1), angle2_(angle2){}
 };
 
-double distance(Robot robot1, Robot robot2)
+bool collide(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons)
 {
-    // std::vector<Robot::Joint> joints1 = robot1.get_joints();
-    // std::vector<Robot::Joint> joints2 = robot2.get_joints();
-    // double dist = 0.0;
-    // if (joints1.size() == joints2.size())
-    // {
-    //     for (auto i=0u; i<joints1.size(); i++)
-    //     {
-    //         dist+= std::pow((joints1[i].angle - joints1[i].angle), 2); 
-    //     }
-    // }
-    // return std::sqrt(dist);
-    return 0.0;
+    return false;
 }

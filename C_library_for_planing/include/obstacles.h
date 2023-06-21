@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #include <vector>
 #include "geometry.h"
 
@@ -17,6 +18,10 @@ struct Vector2D {
     Vector2D perpendicular() const {
         return Vector2D(-y, x);
     }
+    bool operator==(const Vector2D& other) const {
+    double tolerance = 1e-6;
+    return std::sqrt((x - other.x)*(x - other.x) + (y - other.y)*(y - other.y)) <= tolerance;
+}
 };
 
 struct Polygon {
