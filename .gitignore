@@ -1,2 +1,3 @@
 C_library_for_planing/build
-C_library_for_planing/googletest
+.vscode
+build
