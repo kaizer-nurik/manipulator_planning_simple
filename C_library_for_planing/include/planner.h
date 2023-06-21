@@ -15,10 +15,10 @@ struct Node
     std::vector<double> position;
     double gCost;
     double hCost;
-    Node* parent;
+    std::shared_ptr<Node> parent;
 
     Node() {};
-    Node(const std::vector<double>& pos, double g, double h, Node* p) : position(pos), gCost(g), hCost(h), parent(p) {}
+    Node(const std::vector<double>& pos, double g, double h, const std::shared_ptr<Node>& p) : position(pos), gCost(g), hCost(h), parent(p) {}
 
     double getFCost() const {
         return gCost + hCost;
@@ -103,9 +103,9 @@ public:
             primitivemoves.push_back(a);
         }
 
-        std::priority_queue <Node, std::vector<Node>, std::greater<Node>> opened_nodes;
+        std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, std::greater<std::shared_ptr<Node>>> opened_nodes;
         std::map<std::vector<double>, std::shared_ptr<Node>> map_pq_opened;
-        std::unordered_set<Node, NodeHash> closed_nodes;
+        std::unordered_set<std::shared_ptr<Node>, NodeHash> closed_nodes;
         Vector2D current(0.0, 0.0);
 
         double angle = 0.0;
@@ -116,11 +116,11 @@ public:
             current.y += robot.joints[i].length * sin(angle);
         }
 
-        Node start(config, 0.0, calculateDistance(current, goal), nullptr);
+        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, calculateDistance(current, goal), nullptr);
 
         while (!opened_nodes.empty())
         {
-            Node node = opened_nodes.top();
+            std::shared_ptr<Node> node = opened_nodes.top();
             
             if (current == goal)
             {
@@ -130,7 +130,7 @@ public:
             closed_nodes.insert(node);
             for (const auto &i:primitivemoves)
             {
-                Node newneighbour(config+i, node.gCost+1,0, &node);
+                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(config+i, node->gCost+1,0, &node);
                 
                 if (closed_nodes.count(newneighbour) > 0 )
                 {
