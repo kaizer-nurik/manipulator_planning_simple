@@ -131,25 +131,3 @@ bool isConvexPolygon(const Polygon& p) {
     // If we didn't find any concave angles, the polygon is convex
     return true;
 }
-
-/*
-    // Create two polygons
-    Polygon polygonA;
-    polygonA.points = { Vector2D(-5, 3), Vector2D(1, 8), Vector2D(4, 5), Vector2D(4, 0), Vector2D(0, 0) };
-
-    Polygon polygonB;
-    polygonB.points = { Vector2D(2, 8), Vector2D(3, 9), Vector2D(-2, 0),  Vector2D(5, 6)};
-
-    // Check if the polygons collide
-    bool collision = checkCollision(polygonA, polygonB);
-
-    if (collision) {
-        std::cout << "Polygons collide." << std::endl;
-    }
-    else {
-        std::cout << "Polygons do not collide." << std::endl;
-    }
-
-    return 0;
-
-*/
