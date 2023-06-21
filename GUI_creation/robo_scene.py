@@ -10,11 +10,15 @@ class Robo_scene(QGraphicsScene):
         super().__init__()
         self.obstacle = None
         self.goal_point_manager = None
+    
+    def reset(self):
+        self.obstacle = None
+        self.goal_point_manager = None
+        
     def go_poli_mode(self,obstacle):
         self.obstacle = obstacle
         
     def go_goal_point_mode(self,gpm):
-        print(2)
         self.obstacle = None
         self.goal_point_manager = gpm
         
@@ -35,7 +39,6 @@ class Robo_scene(QGraphicsScene):
                 self.obstacle.set_dots_visible(False)
                 self.obstacle = None
         if self.goal_point_manager is not None:
-            print(3)
             self.goal_point_manager.create_dot(dot_pos)
             
     def mouseMoveEvent(self, event) -> None:

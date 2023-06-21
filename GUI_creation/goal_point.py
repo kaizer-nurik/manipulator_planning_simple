@@ -6,9 +6,6 @@ import numpy as np
 GOAL_POINT_SQUARE_RADIUS = 20
 ARROW_LENGTH = 50
 
-QGraphicsEllipseItem()
-
-
 class GoalPointVisuals(QGraphicsEllipseItem):
 
     def __init__(self, *args, **kwargs):
@@ -52,7 +49,6 @@ class GoalPointVisuals(QGraphicsEllipseItem):
 
         item_coords = self.scenePos()
         delta = coords - item_coords
-        print(delta)
         # вращение, задаваемое мышью
         angle = np.arctan2(delta.y(), delta.x())
         self.change_angle(angle)
@@ -71,7 +67,6 @@ class GoalPoint():
         self.scene.go_goal_point_mode(self)
 
     def create_dot(self, coords):
-        print(4)
         self.dot.setPos(coords)
         self.dot.setVisible(True)
 
@@ -86,3 +81,6 @@ class GoalPoint():
 
     def angle(self):
         return self.dot.angle
+    
+    def reset(self):
+        self.dot.setVisible(False)

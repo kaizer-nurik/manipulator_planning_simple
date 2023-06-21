@@ -1,19 +1,14 @@
 from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene
 from PySide6 import QtGui
 import pyqtgraph as pg
-from datetime import datetime
-from PyQt6.QtCore import pyqtSlot
-import os
-from PySide6.QtCore import Qt
-from pathlib import Path
-from PySide6.QtCore import QRectF
+from PyQt6.QtCore import Qt,pyqtSlot,QTimer, QPoint, QEasingCurve, QRectF
 import graphics
 from robot_class import Robot_class
 from robo_scene import Robo_scene
 from obstacles import ObstacleManager, Obstacle
-from GUI_ui import Ui_MainWindow
 from goal_point import GoalPoint
 from xml_maker import to_xml
+import numpy as np
 uiclass, baseclass = pg.Qt.loadUiType(
     "./GUI.ui")  # подгузка файла с дизайном
 
@@ -46,17 +41,78 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.zoom_slider.valueChanged.connect(self.ZoomSliderChange)
         self.create_goal_point_btn.clicked.connect(self.goal_point_connect)
         self.export_btn.clicked.connect(self.export_xml)
-        SCENE_MAX_LENGTH = 1000
+        self.reset_scene_btn.clicked.connect(self.reset_scene)
         # self.scene_rect  = QRectF(-100000,-100000,100000,100000)
-        self.scene.angle_changed.connect(self.on_joint_angle_change_by_mouse)    
+        self.scene.angle_changed.connect(self.on_joint_angle_change_by_mouse)
+        self.reset_btn.clicked.connect(self.reset_animation)
+        self.animate_btn.clicked.connect(self.animate_robot)
+
+        self.csv_choose_btn.clicked.connect(self.open_csv_dialog)
         # self.scene.setSceneRect(self.scene_rect)
         # graphics.draw_grid(self.scene,10)
         graphics.draw_robot(self.scene,self.robot)
-        self.graphicsView.setSceneRect(QRectF(-5000, -5000, 10000, 10000))
+        self.graphicsView.setSceneRect(-5000, -5000, 10000, 10000)
         self.graphicsView.setScene(self.scene)
         self.graphicsView.centerOn(0,0)
+        self.timer = QTimer()
+        self.timer.setInterval(20)  # msecs 100 = 1/10th sec
+        self.timer.timeout.connect(self.update_anim)
+        self.anim_speed_sldr.value()
+        self.anim_manual_sldr.valueChanged.connect(self.manual_anim)
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
+
+
+    def animate_robot(self):
+        self.anim = np.loadtxt(self.csv_choose_edit.text(),delimiter = ',')
+        self.anim_count = 0
+        
+        self.anim_manual_sldr.blockSignals(True)
+        self.timer.start()
+
+
+    def update_anim(self):  
+        self.robot.set_angles(tuple(self.anim[self.anim_count]))
+        self.anim_count+=int(1000*self.anim_speed_sldr.value()/100)
+        self.anim_manual_sldr.setValue(int(self.anim_count/self.anim.shape[0]*100))
+        if self.anim_count >= self.anim.shape[0]:
+            self.anim_manual_sldr.blockSignals(False)
+            self.timer.stop()
+            
+    @pyqtSlot(int)
+    def manual_anim(self,value):
+        self.robot.set_angles(tuple(self.anim[int((self.anim.shape[0]-1)*value/100)]))
+        
+    @pyqtSlot()
+    def reset_animation(self):
+        self.robot.reset_animation()
+        
+
+    @pyqtSlot()
+    def reset_scene(self):
+        self.robot.reset()
+        self.obstacles.reset()
+        self.goal_point.reset()
+        self.scene.reset()
+        self.joint_length_line_edit.blockSignals(True)
+        self.joint_length_line_edit.setText('100')
+        self.joint_length_line_edit.blockSignals(False)
+        self.left_limit_text.blockSignals(True)
+        self.left_limit_text.setText('-180')
+        self.left_limit_text.blockSignals(False)
+        self.right_limit_text.blockSignals(True)
+        self.right_limit_text.setText('180')
+        self.right_limit_text.blockSignals(False)
+        self.start_angle_text.blockSignals(True)
+        self.start_angle_text.setText('0')
+        self.start_angle_text.blockSignals(False)
+        self.robot_change_j_spin.blockSignals(True)
+        self.robot_change_j_spin.setValue(1)
+        self.robot_change_j_spin.blockSignals(False)
+        self.robot_joint_count_spin.blockSignals(True)
+        self.robot_joint_count_spin.setValue(1)
+        self.robot_joint_count_spin.blockSignals(False)
+        
     @pyqtSlot()
     def export_xml(self):
         to_xml(self.file_choose_edit.text(),self.robot,self.obstacles,self.goal_point)
@@ -156,4 +212,19 @@ class MainWindow(uiclass, baseclass):  # класс окна
         )
         #self.plot.fitInView(QRectF(0,0,1000,1000))
         self.file_choose_edit.setText(fname[0])
+
+    @pyqtSlot()
+    def open_csv_dialog(self):
+        """Слот для кнопки "Обзор"
+        открывает диалог открытия файла и записывает имя в соотвествующий виджет
+        """
+        fname = QFileDialog.getOpenFileName(
+            self,
+            "Открыть",
+            "",
+            "CSV (*.csv);; All Files (*)",
+        )
+        #self.plot.fitInView(QRectF(0,0,1000,1000))
+        self.csv_choose_edit.setText(fname[0])
+
 

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QGraphicsEllipseItem, QGraphicsItem, QGraphicsScene
-from PySide6.QtCore import QRectF, Qt, QPointF, Signal, QObject
+from PySide6.QtCore import QRectF, Qt, QPointF, Signal, QObject, Property
 from PySide6 import QtGui
 import numpy as np
 
@@ -60,7 +60,14 @@ class robot_joint:
         self.start_angle = angle
         # минус потому что viewScene отражено по оси абсцисс
         self.visuals.setRotation(-angle)
-
+    def rotate(self, angle):
+        # минус потому что viewScene отражено по оси абсцисс
+        self.visuals.setRotation(-angle)
+    
+    def reset_rotate(self):
+        # минус потому что viewScene отражено по оси абсцисс
+        self.visuals.setRotation(-self.start_angle)   
+        
     def update_left_limit(self, angle):
         self.left_angle = angle
 
@@ -87,6 +94,7 @@ class Robot_class():
         self.joints = [robot_joint(1)]
         self.joint_count = 1
         self._current_index = 0
+        self._angles = [0]
 
     def set_pos(self, x, y):
         """set robot_pos
@@ -119,6 +127,13 @@ class Robot_class():
         self.joints.pop()
         self.joint_count -= 1
 
+    def reset(self):
+        while self.joint_count>1:
+            self.pop_joint()
+        self.joints[0].update_left_limit(-180)
+        self.joints[0].update_right_limit(180)
+        self.joints[0].update_length(100)
+        self.joints[0].update_start_angle(0)
     def change_joint_number(self, number):
         """Увеличить количество звеньев. Если хотим больше, чем есть - то создаем больше.
 
@@ -160,3 +175,17 @@ class Robot_class():
             self._current_index+=1
             return self.joints[self._current_index-1]
         raise StopIteration
+    
+    def reset_animation(self):
+        for joint in self.joints:
+            joint.reset_rotate()
+            
+    def get_angles(self):
+        return self._angles
+
+    
+    def set_angles(self, angles):
+        self._angles = angles
+        for index,angle in enumerate(self._angles):
+            self.joints[index].rotate(angle)
+        

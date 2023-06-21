@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene,QGraphicsScene
 from PySide6 import QtGui
-import pyqtgraph as pg
 from datetime import datetime
 from PyQt6.QtCore import pyqtSlot
 import os

@@ -1,2 +1,4 @@
 PyQt6
 PySide6
+pyqtgraph
+numpy
