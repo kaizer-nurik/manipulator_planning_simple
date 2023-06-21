@@ -65,6 +65,7 @@ public:
     std::vector<Joint> get_joints() const {return joints;};
     std::vector<Joint> joints;
     std::vector<double> configuration;
+    private:
     double dof_;
     
 
@@ -95,10 +96,4 @@ double distance(Robot_position robot1, Robot_position robot2)
     // }
     // return std::sqrt(dist);
     return 0.0;
-}
-
-
-bool checkcollision(const Robot &robot, const std::vector<Polygon> &polygons)
-{
-    return true;
 }
