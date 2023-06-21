@@ -1,6 +1,3 @@
-[submodule "C_library_for_planing/googletest"]
-	path = C_library_for_planing/googletest
-	url = https://github.com/google/googletest
-[submodule "C_library_for_planing/rapidxml"]
-	path = C_library_for_planing/rapidxml
+[submodule "rapidxml"]
+	path = rapidxml
 	url = https://github.com/viriw/rapidxml
