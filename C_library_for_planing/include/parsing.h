@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <cmath>
 
 #include "rapidxml.hpp"
 #include "obstacles.h"
@@ -21,6 +22,7 @@ namespace xmlParser
     std::string xmlString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     xmlString.push_back('\0'); 
 
+    double pi = std::acos(-1);
     try 
 =======
     bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Robot_position &start, GoalPoint &goal)
