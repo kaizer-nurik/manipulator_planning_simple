@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include "obstacles.h"
+#include <iostream>
 
 struct Joint 
 {
@@ -82,10 +83,4 @@ double distance(Robot robot1, Robot robot2)
     // }
     // return std::sqrt(dist);
     return 0.0;
-}
-
-
-bool checkcollision(const Robot &robot, const std::vector<Polygon> &polygons)
-{
-    return true;
 }

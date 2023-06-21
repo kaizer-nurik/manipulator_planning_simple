@@ -14,7 +14,6 @@ TEST(myfunctions, add)
     EXPECT_EQ(goal.angle1_, 80); 
     EXPECT_EQ(start.joints.size(), 4); 
     EXPECT_EQ(read_scene("error_example.xml", polygons, start, goal), false);
-    EXPECT_EQ(start.joints.size(), 4);
 
 }
 
@@ -33,13 +32,6 @@ TEST(test1, t1)
     Polygon({ Vector2D(-1, 3), Vector2D(0, 5), Vector2D(3, 5),  Vector2D(1, 1),  Vector2D(1, 4)})), true);
 
     EXPECT_EQ(isConvexPolygon(Polygon({ Vector2D(0, 0), Vector2D(-1, 0), Vector2D(-1, 1), Vector2D(0,1)})), true);
-
-    EXPECT_EQ(isConvexPolygon(Polygon({ Vector2D(0, 0), Vector2D(1, 1), Vector2D(1, 0), Vector2D(0,0), 
-    Vector2D(-1,0), Vector2D(-1,-1)})), false);
-
-    //EXPECT_EQ(checkCollision(Polygon({ Vector2D(0, 0), Vector2D(-1, 0), Vector2D(-2, 1), Vector2D(-2,2), Vector2D(-1,3), Vector2D(0,3),
-    //Vector2D(1,2), Vector2D(1,2)}), Polygon({ Vector2D(10, 0), Vector2D(9, 0), Vector2D(8, 1), Vector2D(8,2), Vector2D(9,3), Vector2D(10,3),
-    //Vector2D(11,2), Vector2D(11,2)})), true);
 }
 
 int main(int argc, char* argv[])

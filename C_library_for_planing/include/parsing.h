@@ -4,7 +4,6 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <cmath>
 
 #include "rapidxml.hpp"
 #include "obstacles.h"
@@ -22,7 +21,6 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
     std::string xmlString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     xmlString.push_back('\0'); 
 
-    double pi = std::acos(-1);
     try 
     {
         rapidxml::xml_document<> doc;
@@ -51,10 +49,10 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
                     double width = std::stod(jointNode->first_node("width")->value());
                     std::cout << "width: " << width << std::endl;
 
-                    double limit1 = std::stod(jointNode->first_node("limit1")->value())*pi/180;
+                    double limit1 = std::stod(jointNode->first_node("limit1")->value());
                     std::cout << "limit1: " << limit1 << std::endl;
 
-                    double limit2 = std::stod(jointNode->first_node("limit2")->value())*pi/180;
+                    double limit2 = std::stod(jointNode->first_node("limit2")->value());
                     std::cout << "limit1: " << limit2 << std::endl;
                     start.AddJoint(length, width,  { limit1, limit2 });
                 }
@@ -68,7 +66,7 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
             angleNode; angleNode = angleNode->next_sibling("angle")) 
             {
                 std::string angleStr = angleNode->value();
-                double angle = std::stod(angleStr)*pi/180;
+                double angle = std::stod(angleStr);
                 angles.push_back(angle);
             }
             start.configuration = angles;
@@ -79,8 +77,8 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
         {
             double x = std::stod(goalNode->first_node("x")->value());
             double y = std::stod(goalNode->first_node("y")->value());
-            double angle1 = std::stod(goalNode->first_node("angle1")->value())*pi/180;
-            double angle2 = std::stod(goalNode->first_node("angle2")->value())*pi/180;
+            double angle1 = std::stod(goalNode->first_node("angle1")->value());
+            double angle2 = std::stod(goalNode->first_node("angle2")->value());
             goal.goalpoint.x = x; goal.goalpoint.y = y;
             goal.angle1_ = angle1;
             goal.angle2_ = angle2;
