@@ -11,12 +11,12 @@ double width;
 std::vector<double> limits;
 };
 
-class Robot_position
+class Robot
 {
 public:
-    Robot_position() : dof_(0) {}
+    Robot() : dof_(0) {}
 
-    Robot_position(const Robot_position& other) 
+    Robot(const Robot& other) 
     {
         for (Joint a:other.joints)
         {
@@ -24,18 +24,6 @@ public:
         }
         this->configuration = other.configuration;
     }
-    Robot_position& operator=(const Robot_position& other){
-        for (Joint a:other.joints)
-        {
-            this->AddJoint(a.length, a.width, a.limits);            
-        }
-        this->configuration = other.configuration;
-        return *this;
-    }
-
-    Robot_position(Robot_position&& _other) = default; //move constructor
-    Robot_position& operator=(Robot_position&& other) = default;//move asigment
-    ~Robot_position()= default;;//Destructor
 
     void AddJoint(double length, double width, const std::vector<double>& limits) {
         Joint joint;
@@ -47,7 +35,7 @@ public:
     }
 
     void printJointDetails() const {
-        std::cout << "Robot_position DOF: " << dof_ << std::endl;
+        std::cout << "Robot DOF: " << dof_ << std::endl;
 
         for (const auto& joint : joints)
          {
@@ -65,7 +53,6 @@ public:
     std::vector<Joint> get_joints() const {return joints;};
     std::vector<Joint> joints;
     std::vector<double> configuration;
-    private:
     double dof_;
     
 
@@ -79,13 +66,12 @@ struct GoalPoint
     double angle2_;
 
     GoalPoint(double x, double y, double angle1, double angle2): goalpoint(x, y), angle1_(angle1), angle2_(angle2){}
-    
 };
 
-double distance(Robot_position robot1, Robot_position robot2)
+double distance(Robot robot1, Robot robot2)
 {
-    // std::vector<Robot_position::Joint> joints1 = robot1.get_joints();
-    // std::vector<Robot_position::Joint> joints2 = robot2.get_joints();
+    // std::vector<Robot::Joint> joints1 = robot1.get_joints();
+    // std::vector<Robot::Joint> joints2 = robot2.get_joints();
     // double dist = 0.0;
     // if (joints1.size() == joints2.size())
     // {
@@ -96,4 +82,10 @@ double distance(Robot_position robot1, Robot_position robot2)
     // }
     // return std::sqrt(dist);
     return 0.0;
+}
+
+
+bool checkcollision(const Robot &robot, const std::vector<Polygon> &polygons)
+{
+    return true;
 }

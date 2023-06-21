@@ -3,23 +3,16 @@
 #include "geometry.h"
 
 struct Vector2D {
-    Vector2D(double xVal, double yVal) : x(xVal), y(yVal) {} //  Constructor
-    Vector2D(const Vector2D& _other) = default; // Copy constructor
-    Vector2D& operator=(const Vector2D& other) = default; // Copy asigment
-    Vector2D(Vector2D&& _other) = default; //move constructor
-    Vector2D& operator=(Vector2D&& other) = default;//move asigment
-    ~Vector2D()=default;//Destructor
     double x;
     double y;
+
+    Vector2D(double xVal, double yVal) : x(xVal), y(yVal) {}
 
     // Dot product of two vectors
     double dotProduct(const Vector2D& other) const {
         return x * other.x + y * other.y;
     }
 
-    double operator*(const Vector2D& other)const{
-        return x * other.x + y * other.y;
-    }
     // Perpendicular vector
     Vector2D perpendicular() const {
         return Vector2D(-y, x);
@@ -29,13 +22,7 @@ struct Vector2D {
 struct Polygon {
     std::vector<Vector2D> points;
 
-    Polygon(const std::vector<Vector2D>& vertexes) : points(vertexes) {}
-    Polygon(const Polygon& _other) = default; // Copy constructor
-    Polygon& operator=(const Polygon& other) = default; // Copy asigment
-    Polygon(Polygon&& _other) = default; //move constructor
-    Polygon& operator=(Polygon&& other) = default;//move asigment
-    ~Polygon()= default;//Destructor
-
+     Polygon(const std::vector<Vector2D>& vertexes) : points(vertexes) {}
     // Get the edges of the polygon
     std::vector<Vector2D> getEdges() const {
         std::vector<Vector2D> edges;
@@ -55,11 +42,7 @@ struct Projection {
     double max;
 
     Projection(double minValue, double maxValue) : min(minValue), max(maxValue) {}
-    Projection(const Projection& _other) = default; // Copy constructor
-    Projection& operator=(const Projection& other) = default; // Copy asigment
-    Projection(Projection&& _other) = default; //move constructor
-    Projection& operator=(Projection&& other) = default;//move asigment
-    ~Projection()= default;//Destructor
+
     // Check if two projections overlap
     bool overlaps(const Projection& other) const {
         return (max >= other.min) && (other.max >= min);
@@ -148,25 +131,3 @@ bool isConvexPolygon(const Polygon& p) {
     // If we didn't find any concave angles, the polygon is convex
     return true;
 }
-
-/*
-    // Create two polygons
-    Polygon polygonA;
-    polygonA.points = { Vector2D(-5, 3), Vector2D(1, 8), Vector2D(4, 5), Vector2D(4, 0), Vector2D(0, 0) };
-
-    Polygon polygonB;
-    polygonB.points = { Vector2D(2, 8), Vector2D(3, 9), Vector2D(-2, 0),  Vector2D(5, 6)};
-
-    // Check if the polygons collide
-    bool collision = checkCollision(polygonA, polygonB);
-
-    if (collision) {
-        std::cout << "Polygons collide." << std::endl;
-    }
-    else {
-        std::cout << "Polygons do not collide." << std::endl;
-    }
-
-    return 0;
-
-*/
