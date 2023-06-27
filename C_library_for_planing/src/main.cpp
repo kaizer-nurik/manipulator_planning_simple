@@ -25,9 +25,11 @@ int main(int argc, const char * argv[])
         return EXIT_FAILURE;
     }
 
-
-    //Planner planner("example.csv");
-    //planner.motionPlanning(start, goal, obstacles);
-    std::cout << goal.angle1_ << std::endl;
+    RRT planner(0.01,start.dof_,start, goal, polygons);
+    for(int i=0; i<1000000;i++){
+        planner.grow_tree();
+        std::cout<<planner.is_finished()<<std::endl;
+    
+    }
     return EXIT_SUCCESS;
 }

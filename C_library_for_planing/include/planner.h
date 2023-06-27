@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <unordered_set>
 #include <iostream>
 #include <cmath>
 #include <utility>
@@ -82,159 +83,82 @@ class Planner {
 public:
     Planner(std::string filename) : filename_(filename) {}
 
-    void AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles)
-    {
-        const int g_units = 128;
-        std::vector<double> deltas(robot.dof_, 0.0);
-        std::vector<double> config = robot.configuration;
+    void AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles);
+   
 
-        for (auto i = 0u; i < robot.configuration.size(); i++)
-        {
-            deltas[i] = (robot.joints[i].limits[0] - robot.joints[i].limits[0]) / g_units;
-        }
-        std::vector<std::vector<double>> primitivemoves;
-
-        for (auto i = 0u; i < robot.dof_; i++)
-        {
-            std::vector<double> a(robot.dof_, 0.0);
-            a[i] = deltas[i];
-            primitivemoves.push_back(a);
-            a[i] = -deltas[i];
-            primitivemoves.push_back(a);
-        }
-
-        std::priority_queue <Node, std::vector<Node>, std::greater<Node>> opened_nodes;
-        std::map<std::vector<double>, std::shared_ptr<Node>> map_pq_opened;
-        std::unordered_set<Node, NodeHash> closed_nodes;
-        Vector2D current(0.0, 0.0);
-
-        double angle = 0.0;
-        for (auto i=0u; i<robot.dof_; i++)
-        {
-            angle+=config[i];
-            current.x += robot.joints[i].length * cos(angle);
-            current.y += robot.joints[i].length * sin(angle);
-        }
-
-        Node start(config, 0.0, calculateDistance(current, goal), nullptr);
-
-        while (!opened_nodes.empty())
-        {
-            Node node = opened_nodes.top();
-            
-            if (current == goal)
-            {
-                //return reconstruct path
-            }
-            opened_nodes.pop();
-            closed_nodes.insert(node);
-            for (const auto &i:primitivemoves)
-            {
-                Node newneighbour(config+i, node.gCost+1,0, &node);
-                
-                if (closed_nodes.count(newneighbour) > 0 )
-                {
-                    continue;
-                }
-
-                if (! collide(robot, config, obstacles))
-                {
-                    
-                }
-            }
-        }
-
-        // Define the possible movements (up, down, left, right, and diagonal)
-    // const std::vector<Point> directions = {
-    //     Point(0, -1), Point(0, 1), Point(-1, 0), Point(1, 0),
-    //     Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)
-    // };
-
-    // // Create a 2D vector to store the costs (gCost, hCost)
-    // std::vector<std::vector<int>> costs(grid.size(), std::vector<int>(grid[0].size(), std::numeric_limits<int>::max()));
-
-    // // Create a 2D vector to store the parents of each cell
-    // std::vector<std::vector<Point>> parents(grid.size(), std::vector<Point>(grid[0].size(), Point(-1, -1)));
-
-    // // Create a priority queue for open nodes
-    // std::priority_queue<Node*, std::vector<Node*>, std::function<bool(Node*, Node*)>> openNodes(
-    //     [](Node* a, Node* b) { return a->getFCost() > b->getFCost(); });
-
-    // // Start node
-    // Node* startNode = new Node(start, 0, calculateDistance(start, goal), nullptr);
-    // costs[start.x][start.y] = 0;
-    // openNodes.push(startNode);
-
-    // while (!openNodes.empty()) {
-    //     Node* current = openNodes.top();
-    //     openNodes.pop();
-
-    //     if (current->position.x == goal.x && current->position.y == goal.y) {
-    //         // Reconstruct the path
-    //         std::vector<Point> path;
-    //         Node* node = current;
-    //         while (node != nullptr) {
-    //             path.push_back(node->position);
-    //             node = node->parent;
-    //         }
-    //         std::reverse(path.begin(), path.end());
-    //         return path;
-    //     }
-
-    //     for (const Point& direction : directions) {
-    //         Point next(current->position.x + direction.x, current->position.y + direction.y);
-
-    //         if (next.x < 0 || next.x >= grid.size() || next.y < 0 || next.y >= grid[0].size() || grid[next.x][next.y] == 1) {
-    //             // Skip invalid or blocked cells if checkCollide()
-    //             continue;
-    //         }
-
-    //         int newCost = current->gCost + 1; //
-
-    //         if (newCost < costs[next.x][next.y]) {
-    //             // Update the costs and parent of the next cell
-    //             costs[next.x][next.y] = newCost;
-    //             parents[next.x][next.y] = current->position;
-    //             Node* nextNode = new Node(next, newCost, calculateDistance(next, goal), current);
-    //             openNodes.push(nextNode);
-    //         }
-    //     }
-    // }
-
-    // // No path found
-    // return std::vector<Point>();
-        // Robot current(start);
-        // std::ofstream myfile;
-        // myfile.open (filename_);
-
-        // for (int i=0; i<start.get_joints().size(); i++)
-        // {
-        //     while (std::abs(current.joints[i].angle - goal.joints[i].angle)>eps)
-        //     {
-        //         current.joints[i].angle -= eps * ((current.joints[i].angle - goal.joints[i].angle > 0.0) 
-        //         - (current.joints[i].angle - goal.joints[i].angle < 0));
-        //         std::cout << current.joints[i].angle << ' ' << goal.joints[i].angle << std::endl;
-
-        //     for (int i=0; i<current.get_joints().size(); i++)
-        //     {
-        //         myfile <<  current.joints[i].angle << ',';
-        //     }
-        //     myfile << '\n';
-        //     }
-
-        //     std::cout << distance(current, goal) << std::endl;
-
-        //}
-       // myfile.close();
-
-    }
-
-    void RRT(const Robot& start, const Robot& goal, const std::vector<Polygon>& obstacles)
-    {
-
-    }
+    void RRT(const Robot& start, const Robot& goal, const std::vector<Polygon>& obstacles);
 private:
     std::string filename_;
     const double eps = 1e-3;
 };
 
+class RRT{
+public:
+    struct Tree{
+        
+        struct Node:public std::enable_shared_from_this<Node>{
+            Node(Robot _position):position(_position){};
+            Node(const Node &_other ) = delete;
+            Node(Node &&_other) = delete;
+            Node operator=(const Node &_other ) = delete;
+            Node operator=(Node &&_other ) = delete;
+            ~Node() = default;
+
+            
+            
+            void add_childen(std::shared_ptr<Node> child);
+
+            bool is_children(std::shared_ptr<Node> child);
+
+            double distance(std::shared_ptr<Node> other);
+            double distance(Robot other);
+            std::weak_ptr<Node> get_parent();
+            Robot get_position();
+            void set_parent(std::weak_ptr<Node> parent);
+            std::unordered_set<std::shared_ptr<Node>> children;
+            private:
+                std::weak_ptr<Node> _parent;
+                Robot position;
+        };
+
+        Tree(Robot _position):head(new Node(_position)){};
+        Tree(const Tree &_other ) = delete;
+        Tree(Tree &&_other) = delete;
+        Tree operator=(const Tree &_other ) = delete;
+        Tree operator=(Tree &&_other ) = delete;
+        ~Tree() = default;
+
+        std::shared_ptr<Node> head;
+    };
+
+    RRT(double _tolerance,int other_dof,const Robot& inp_start, 
+    const GoalPoint& inp_goal, const std::vector<Polygon>& inp_obstacles): 
+    tolerance(_tolerance), dof(other_dof), start(inp_start), goal(inp_goal),
+    obstacles(inp_obstacles),tree(start){};
+    RRT(const RRT &_other ) = delete;
+    RRT(RRT &&_other) = delete;
+    RRT operator=(const RRT &_other ) = delete;
+    RRT operator=(RRT &&_other ) = delete;
+    ~RRT() = default;
+
+    void grow_tree();
+    bool is_finished();
+
+
+private:
+    bool finished = false;
+    uint32_t iteration_count = 0;
+    double tolerance;
+    int dof;
+    Robot start;
+    GoalPoint goal;
+    std::vector<Polygon> obstacles;
+    std::vector<std::weak_ptr<RRT::Tree::Node>> finish_node;
+    Robot random_sample();
+    std::shared_ptr<RRT::Tree::Node> nearest_neighbour(const Robot& pos);
+    Tree tree;
+
+    std::shared_ptr<RRT::Tree::Node> make_step(const std::shared_ptr<RRT::Tree::Node> node,const Robot& pos);
+    bool is_goal(const std::shared_ptr<RRT::Tree::Node> node);
+
+};
