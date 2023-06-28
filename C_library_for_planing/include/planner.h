@@ -74,6 +74,16 @@ struct Node
     }
 };
 
+std::vector<double> calc_angles(const Robot &robot, const std::vector<int> &position, const std::vector<double> &deltas)
+{
+    std::vector<double> angles(robot.dof_, 0.0);
+    for (int j=0; j<angles.size(); j++)
+    {
+        angles[j] = robot.configuration[j] + position[j]*deltas[j];
+    }
+    return angles;
+}
+
 struct CompareNodes {
     bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const {
         // Higher priority nodes should have lower priority values
@@ -128,7 +138,7 @@ void print_vector(std::vector<T> v)
     std::cout << std::endl;
 }
 
-bool reconstruct_path(const std::shared_ptr<Node> &node, std::string filename)
+void reconstruct_path(const std::shared_ptr<Node> &node, std::string filename, const Robot &robot, const std::vector<double> &deltas)
 {
     std::vector<std::shared_ptr<Node>> path;
     auto node_ = node;
@@ -145,15 +155,15 @@ bool reconstruct_path(const std::shared_ptr<Node> &node, std::string filename)
     {
         for (size_t i = 0; i < n->position.size(); ++i)
         {
-            file << n->position[i];
-            if (i != n->position.size() - 1) {file << ",";}
+            file << robot.configuration[i] + n->position[i]*deltas[i];
+            if (i != n->position.size() - 1) {file << ",";}  
         }
         file << std::endl;
     }
     file.close();
     std::cout << "Vectors successfully written to the file: " << filename << std::endl;
-    return true;
 }
+
 
 class Planner 
 {
@@ -162,18 +172,13 @@ public:
 
     bool AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles)
     {
-        const int g_units = 40;
+        const int g_units = 220;
         std::vector<double> deltas(robot.dof_, 0.0);
-        std::vector<double> angles = robot.configuration;
-        print_vector(angles);
-        
-        std::vector<int> config(robot.dof_, 0);
-        print_vector(config);
-
         for (auto i = 0u; i < robot.configuration.size(); i++)
         {
             deltas[i] = std::abs(robot.joints[i].limits[1] - robot.joints[i].limits[0]) / g_units;
         }
+
         print_vector(deltas);
 
         std::vector<std::vector<int>> primitivemoves;
@@ -183,92 +188,71 @@ public:
             a[i] = 1;
             primitivemoves.push_back(a);
             a[i] = -1;
-            primitivemoves.push_back(a);
-            
+            primitivemoves.push_back(a);            
         }
-        // for (const auto &v:primitivemoves)
-        // {
-        //     print_vector(v);            
-        // }
-
         std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
         std::map<std::vector<int>, std::shared_ptr<Node>, CompareKey> map_pq_opened;
         std::unordered_set<std::shared_ptr<Node>, HashNode, EqualNode> closed_nodes;
 
-        Vector2D current = end_effector(robot, angles);
+        std::vector<int> config(robot.dof_, 0);
+        std::vector<double> angles = calc_angles(robot, config, deltas);
 
-        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, /*calculateDistance(current, goal)*/0, nullptr);
+        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, calculateDistance(end_effector(robot, angles), goal), nullptr);
         opened_nodes.push(start);
         map_pq_opened.emplace(start->position, start);
 
+        std::cout << "BIG ALARM:" << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).y << std::endl;
+
         while (!opened_nodes.empty())
         {
-            std::shared_ptr<Node> node = opened_nodes.top();
-            std::cout << calculateDistance(goal, end_effector(robot, angles)) << ' ' << node->getFCost()<< std::endl;
+            std::shared_ptr<Node> current = opened_nodes.top();
             opened_nodes.pop();
-            size_t numErased = map_pq_opened.erase(node->position);
-            closed_nodes.insert(node);
+            size_t numErased = map_pq_opened.erase(current->position);
+            closed_nodes.insert(current);
+            std::cout << current->gCost << ' ' << current->hCost << ' ' << current->getFCost() << std::endl;
             
-            if (current == goal)
+            if (std::abs(current->hCost) < 1e-1 )
             {
-                reconstruct_path(node,filename_);
+                reconstruct_path(current,filename_, robot, deltas);
+                angles = calc_angles(robot, current->position, deltas);
+                std::cout << "Пришел в: " << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).x << std::endl;
+                return true;
             }
 
             for (const auto &i:primitivemoves)
             {
-                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(node->position+i, node->gCost+1.0/g_units, 0.0, node);
+                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(current->position+i, current->gCost+1.0, 0.0, current);
                 simplify(newneighbour->position, g_units);
-                for (int j=0; j<angles.size(); j++)
-                {
-                    angles[j] = robot.configuration[j] + node->position[j]*deltas[j];
-                }
-                config = node->position + i;
+                angles=calc_angles(robot, newneighbour->position, deltas);
                 newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal);
                 if (collide(robot, angles, obstacles))
                 {
                     closed_nodes.insert(newneighbour);
                 }
-                if (closed_nodes.count(newneighbour) > 0)
+                if (closed_nodes.count(newneighbour) > 0) //if in closed list
                 {
                     continue;
                 }
-                bool tentative_is_better = false;
-                double tentative_g_score = 0.0;
-                if (map_pq_opened.find(newneighbour->position) == map_pq_opened.end()) //Neighbour not in opened
+                double g_score = current->gCost + 1.0;
+
+                if (map_pq_opened.find(newneighbour->position) == map_pq_opened.end() || g_score < newneighbour->gCost) //Neighbour not in opened
                 {
-                    map_pq_opened.emplace(newneighbour->position, newneighbour);
-                    opened_nodes.push(newneighbour);
-                    tentative_is_better = true;
-                    std::cout << "not in opened\n";
-                }
-                else   //Neighbour in opened
-                {
-                    tentative_g_score = node->gCost + 1.0/(g_units); //dist_between(node, newneighbour)
-                    if (tentative_g_score < node->gCost)  
-                    {
-                        tentative_is_better = true;   
-                    }
-                    else 
-                    {
-                        tentative_is_better = false;
-                    }
-                    std::cout << "in opened\n";
-                }
-                if (tentative_is_better == true)
-                {
-                    newneighbour->parent = node;
-                    newneighbour->gCost = tentative_g_score;
+                    newneighbour->gCost = g_score;
                     newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal);
-                    //std::cout << calculateDistance(end_effector(robot, newneighbour->position), goal) << std::endl;
+                    newneighbour->parent = current;
+                    if (map_pq_opened.find(newneighbour->position) == map_pq_opened.end())
+                    {
+                        map_pq_opened.emplace(newneighbour->position, newneighbour);
+                        opened_nodes.push(newneighbour);
+                    }
                 }
             }
-            if (opened_nodes.size()==1)
-            {
-                std::cout << "1\n";
-                reconstruct_path(node, filename_);
-                std::cout << "2\n";
-            }
-            //std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << std::endl;
+            // if (opened_nodes.size()==1)
+            // {
+            //     std::cout << "1\n";
+            //     reconstruct_path(current, filename_, robot, deltas);
+            //     std::cout << "2\n";
+            // }
             
 
         }        
