@@ -35,18 +35,26 @@ std::vector<T> operator*(const std::vector<T>& vec, const T& scalar) {
     return result;
 }
 
+void simplify(std::vector<int> & v, int n)
+{
+    for (auto i=0u; i<v.size(); i++)
+    {
+        v[i] = v[i]%n;
+    }
+}
+
 double calculateDistance(const Vector2D& a, const Vector2D& b) {
     return std::abs(a.x - b.x) + std::abs(a.y - b.y);
 }
 
 struct Node
 {
-    std::vector<double> position;
+    std::vector<int> position;
     double gCost;
     double hCost;
     std::shared_ptr<Node> parent;
 
-    Node(const std::vector<double>& pos, double g, double h, const std::shared_ptr<Node> &p) : position(pos), gCost(g), hCost(h), parent(p) {}
+    Node(const std::vector<int>& pos, double g, double h, const std::shared_ptr<Node> &p) : position(pos), gCost(g), hCost(h), parent(p) {}
 
     double getFCost() const {
         return gCost + hCost;
@@ -78,7 +86,7 @@ struct HashNode {
         size_t hash = 0;
         for (const auto& value : node->position) {
             // Combine hash with each value in the vector
-            hash ^= std::hash<double>()(value);
+            hash ^= std::hash<int>()(value);
         }
         return hash;
     }
@@ -87,16 +95,15 @@ struct HashNode {
 // Define an equality function for the shared pointers to nodes
 struct EqualNode {
     bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const {
-        double tolerance = 1e-6;
-        double diff;
+        bool eq = true;
         for (auto i = 0u; i < node1->position.size(); i++)
-            diff += std::abs(node1->position[i] - node1->position[i]);
-        return diff <= tolerance;
+            eq *= (node1->position[i] == node1->position[i]);
+        return eq;
     }
 };
 
 struct CompareKey {
-    bool operator()(const std::vector<double>& key1, const std::vector<double>& key2) const {
+    bool operator()(const std::vector<int>& key1, const std::vector<int>& key2) const {
         // Compare the sizes of the vectors
         if (key1.size() != key2.size()) {
             return key1.size() < key2.size();
@@ -113,153 +120,159 @@ struct CompareKey {
     }
 };
 
-void print_vector(std::vector<double> v)
+template<typename T>
+void print_vector(std::vector<T> v)
 {
     for (auto i:v)
         std::cout << i << ' ';
     std::cout << std::endl;
 }
-class Planner {
+
+bool reconstruct_path(const std::shared_ptr<Node> &node, std::string filename)
+{
+    std::vector<std::shared_ptr<Node>> path;
+    auto node_ = node;
+    while (node_ != nullptr)
+    {
+        path.push_back(node_);
+        node_ = node_->parent;
+    }
+    std::cout << "nnode\n";
+    std::reverse(path.begin(), path.end());    
+    std::ofstream file(filename);
+    // Write vectors to the CSV file
+    for (const auto& n : path)
+    {
+        for (size_t i = 0; i < n->position.size(); ++i)
+        {
+            file << n->position[i];
+            if (i != n->position.size() - 1) {file << ",";}
+        }
+        file << std::endl;
+    }
+    file.close();
+    std::cout << "Vectors successfully written to the file: " << filename << std::endl;
+    return true;
+}
+
+class Planner 
+{
 public:
     Planner(std::string filename) : filename_(filename) {}
 
     bool AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles)
     {
-        const int g_units = 128;
+        const int g_units = 40;
         std::vector<double> deltas(robot.dof_, 0.0);
-        std::vector<double> config = robot.configuration;
+        std::vector<double> angles = robot.configuration;
+        print_vector(angles);
+        
+        std::vector<int> config(robot.dof_, 0);
+        print_vector(config);
 
         for (auto i = 0u; i < robot.configuration.size(); i++)
         {
-            deltas[i] = (robot.joints[i].limits[1] - robot.joints[i].limits[0]) / g_units;
+            deltas[i] = std::abs(robot.joints[i].limits[1] - robot.joints[i].limits[0]) / g_units;
         }
-        std::cout << cos(std::acos(-1)/2) << std::endl;
-        std::vector<std::vector<double>> primitivemoves;
+        print_vector(deltas);
+
+        std::vector<std::vector<int>> primitivemoves;
         for (auto i = 0u; i < robot.dof_; i++)
         {
-            std::vector<double> a(robot.dof_, 0.0);
-            a[i] = deltas[i];
+            std::vector<int> a(robot.dof_, 0.0);
+            a[i] = 1;
             primitivemoves.push_back(a);
-            a[i] = -deltas[i];
+            a[i] = -1;
             primitivemoves.push_back(a);
             
         }
+        // for (const auto &v:primitivemoves)
+        // {
+        //     print_vector(v);            
+        // }
 
         std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
-        std::map<std::vector<double>, std::shared_ptr<Node>, CompareKey> map_pq_opened;
+        std::map<std::vector<int>, std::shared_ptr<Node>, CompareKey> map_pq_opened;
         std::unordered_set<std::shared_ptr<Node>, HashNode, EqualNode> closed_nodes;
 
-        Vector2D current = end_effector(robot, config);
+        Vector2D current = end_effector(robot, angles);
 
-        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, calculateDistance(current, goal), nullptr);
+        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, /*calculateDistance(current, goal)*/0, nullptr);
         opened_nodes.push(start);
         map_pq_opened.emplace(start->position, start);
 
         while (!opened_nodes.empty())
         {
             std::shared_ptr<Node> node = opened_nodes.top();
+            std::cout << calculateDistance(goal, end_effector(robot, angles)) << ' ' << node->getFCost()<< std::endl;
+            opened_nodes.pop();
+            size_t numErased = map_pq_opened.erase(node->position);
+            closed_nodes.insert(node);
             
             if (current == goal)
             {
-                std::vector<std::shared_ptr<Node>> path;
-                while (node != nullptr)
-                 {
-                    path.push_back(node);
-                    node = node->parent;
-                }
-                std::reverse(path.begin(), path.end());
-                 
-                 std::ofstream file(filename_);
-                // Write vectors to the CSV file
-                for (const auto& n : path) {
-                    for (size_t i = 0; i < n->position.size(); ++i) {
-                        file << n->position[i];
-                        if (i != n->position.size() - 1) {
-                            file << ",";
-                        }
-                    }
-                    file << std::endl;
-                }
-
-                file.close();
-                std::cout << "Vectors successfully written to the file: " << filename_ << std::endl;
-                return true;
+                reconstruct_path(node,filename_);
             }
 
-            opened_nodes.pop();
-            size_t numErased = map_pq_opened.erase(node->position);
-
-
-            closed_nodes.insert(node);
             for (const auto &i:primitivemoves)
             {
-                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(config+i, node->gCost+1.0, 0.0, node);
-                config = config + i;
-                print_vector(config);
-                current = end_effector(robot, config);
-                newneighbour->hCost = calculateDistance(current, goal);
-                print_vector(config);
-                if (closed_nodes.count(newneighbour) > 0 )
+                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(node->position+i, node->gCost+1.0/g_units, 0.0, node);
+                simplify(newneighbour->position, g_units);
+                for (int j=0; j<angles.size(); j++)
+                {
+                    angles[j] = robot.configuration[j] + node->position[j]*deltas[j];
+                }
+                config = node->position + i;
+                newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal);
+                if (collide(robot, angles, obstacles))
+                {
+                    closed_nodes.insert(newneighbour);
+                }
+                if (closed_nodes.count(newneighbour) > 0)
                 {
                     continue;
                 }
-
-                if (! collide(robot, config, obstacles))
+                bool tentative_is_better = false;
+                double tentative_g_score = 0.0;
+                if (map_pq_opened.find(newneighbour->position) == map_pq_opened.end()) //Neighbour not in opened
                 {
-                    double tentative_g = node->gCost + std::abs(node->gCost - newneighbour->gCost);
-                    bool tentative_is_better = false;
-                    auto it = map_pq_opened.find(newneighbour->position);
-                    if (it == map_pq_opened.end()) 
+                    map_pq_opened.emplace(newneighbour->position, newneighbour);
+                    opened_nodes.push(newneighbour);
+                    tentative_is_better = true;
+                    std::cout << "not in opened\n";
+                }
+                else   //Neighbour in opened
+                {
+                    tentative_g_score = node->gCost + 1.0/(g_units); //dist_between(node, newneighbour)
+                    if (tentative_g_score < node->gCost)  
                     {
-                        //not found
-                        map_pq_opened.emplace(newneighbour->position, newneighbour);
-                        opened_nodes.push(newneighbour);
-                        tentative_is_better = true;
-                    } 
+                        tentative_is_better = true;   
+                    }
                     else 
                     {
-                        if (tentative_g < newneighbour->gCost)
-                            tentative_is_better=true;
+                        tentative_is_better = false;
                     }
-                    if (tentative_is_better)
-                    {
-                        newneighbour->parent = node;
-                        newneighbour->gCost = tentative_g;
-                        newneighbour->hCost = calculateDistance(current, goal);
-                        
-                    }
-                    //std::cout << calculateDistance(current, goal) << std::endl;
+                    std::cout << "in opened\n";
+                }
+                if (tentative_is_better == true)
+                {
+                    newneighbour->parent = node;
+                    newneighbour->gCost = tentative_g_score;
+                    newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal);
+                    //std::cout << calculateDistance(end_effector(robot, newneighbour->position), goal) << std::endl;
                 }
             }
-        }
+            if (opened_nodes.size()==1)
+            {
+                std::cout << "1\n";
+                reconstruct_path(node, filename_);
+                std::cout << "2\n";
+            }
+            //std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << std::endl;
+            
 
-        
+        }        
     return false;
-
-    
-        // std::ofstream myfile;
-        // myfile.open (filename_);
-
-        // for (int i=0; i<start.get_joints().size(); i++)
-        // {
-        //     while (std::abs(current.joints[i].angle - goal.joints[i].angle)>eps)
-        //     {
-        //         current.joints[i].angle -= eps * ((current.joints[i].angle - goal.joints[i].angle > 0.0) 
-        //         - (current.joints[i].angle - goal.joints[i].angle < 0));
-        //         std::cout << current.joints[i].angle << ' ' << goal.joints[i].angle << std::endl;
-
-        //     for (int i=0; i<current.get_joints().size(); i++)
-        //     {
-        //         myfile <<  current.joints[i].angle << ',';
-        //     }
-        //     myfile << '\n';
-        //     }
-
-        //     std::cout << distance(current, goal) << std::endl;
-
-        //}
-       // myfile.close();
-
     }
 
     void RRT(const Robot& start, const Robot& goal, const std::vector<Polygon>& obstacles)

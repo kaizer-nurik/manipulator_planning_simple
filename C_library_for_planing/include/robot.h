@@ -74,7 +74,7 @@ bool collide(const Robot &robot, const std::vector<double> config, const std::ve
     return false;
 }
 
-Vector2D end_effector(const Robot &robot, const std::vector<double> config)
+Vector2D end_effector(const Robot &robot, const std::vector<double> &config)
 {
     Vector2D ef(0.0, 0.0);
     double angle = 0.0;

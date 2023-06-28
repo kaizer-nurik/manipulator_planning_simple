@@ -19,7 +19,7 @@ struct Vector2D {
         return Vector2D(-y, x);
     }
     bool operator==(const Vector2D& other) const {
-    double tolerance = 1e-6;
+    double tolerance = 1e-1;
     return std::sqrt((x - other.x)*(x - other.x) + (y - other.y)*(y - other.y)) <= tolerance;
 }
 };
