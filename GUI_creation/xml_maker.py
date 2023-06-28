@@ -37,16 +37,16 @@ def add_scene(root:ET.Element, obstacle: ObstacleManager):
 def add_goal_point(root:ET.Element, goal_point:GoalPoint):
     goal_point_xml = ET.SubElement(root,'goal_point')
     x = ET.SubElement(goal_point_xml,"x")
-    x.text = str(goal_point.x())
+    x.text = str(goal_point.x()/100)
     
     y = ET.SubElement(goal_point_xml,"y")
-    y.text = str(goal_point.y())
+    y.text = str(-goal_point.y()/100)
     
     angle1 = ET.SubElement(goal_point_xml,"angle1")
-    angle1.text = str(goal_point.angle() - GOAL_POINT_TRESHOLD)
+    angle1.text = str(-goal_point.angle() - GOAL_POINT_TRESHOLD)
     
     angle2 = ET.SubElement(goal_point_xml,"angle2")
-    angle2.text = str(goal_point.angle() + GOAL_POINT_TRESHOLD)    
+    angle2.text = str(-goal_point.angle() + GOAL_POINT_TRESHOLD)    
     
     
 
