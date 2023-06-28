@@ -147,7 +147,8 @@ void reconstruct_path(const std::shared_ptr<Node> &node, std::string filename, c
         path.push_back(node_);
         node_ = node_->parent;
     }
-    std::cout << "nnode\n";
+    
+
     std::reverse(path.begin(), path.end());    
     std::ofstream file(filename);
     // Write vectors to the CSV file
@@ -164,14 +165,22 @@ void reconstruct_path(const std::shared_ptr<Node> &node, std::string filename, c
     std::cout << "Vectors successfully written to the file: " << filename << std::endl;
 }
 
+double last_angle(const std::vector<double> angles)
+{
+    double angle=0.0;
+    for (int i=0; i<angles.size(); i++)
+        angle+=angles[i];
+    return fmod(angle, 2*std::acos(-1));
+}
 
 class Planner 
 {
 public:
     Planner(std::string filename) : filename_(filename) {}
 
-    bool AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles)
+    bool AStar(const Robot& robot, const GoalPoint& goalpoint, const std::vector<Polygon>& obstacles)
     {
+        Vector2D goal = goalpoint.goalpoint;
         const int g_units = 220;
         std::vector<double> deltas(robot.dof_, 0.0);
         for (auto i = 0u; i < robot.configuration.size(); i++)
@@ -197,11 +206,11 @@ public:
         std::vector<int> config(robot.dof_, 0);
         std::vector<double> angles = calc_angles(robot, config, deltas);
 
-        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, calculateDistance(end_effector(robot, angles), goal), nullptr);
+        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, calculateDistance(end_effector(robot, angles), goal) 
+        + std::abs(last_angle(angles) - goalpoint.angle1_), nullptr);
         opened_nodes.push(start);
         map_pq_opened.emplace(start->position, start);
 
-        std::cout << "BIG ALARM:" << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).y << std::endl;
 
         while (!opened_nodes.empty())
         {
@@ -209,9 +218,9 @@ public:
             opened_nodes.pop();
             size_t numErased = map_pq_opened.erase(current->position);
             closed_nodes.insert(current);
-            std::cout << current->gCost << ' ' << current->hCost << ' ' << current->getFCost() << std::endl;
+            //std::cout << current->gCost << ' ' << current->hCost << ' ' << current->getFCost() << std::endl;
             
-            if (std::abs(current->hCost) < 1e-1 )
+            if (std::abs(current->hCost) < 1e-1  && std::abs(last_angle(angles)  - goalpoint.angle1_)< goalpoint.angle2_)
             {
                 reconstruct_path(current,filename_, robot, deltas);
                 angles = calc_angles(robot, current->position, deltas);
@@ -224,7 +233,7 @@ public:
                 std::shared_ptr<Node> newneighbour = std::make_shared<Node>(current->position+i, current->gCost+1.0, 0.0, current);
                 simplify(newneighbour->position, g_units);
                 angles=calc_angles(robot, newneighbour->position, deltas);
-                newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal);
+                newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal) + std::abs(last_angle(angles)  - goalpoint.angle1_);
                 if (collide(robot, angles, obstacles))
                 {
                     closed_nodes.insert(newneighbour);
@@ -247,12 +256,6 @@ public:
                     }
                 }
             }
-            // if (opened_nodes.size()==1)
-            // {
-            //     std::cout << "1\n";
-            //     reconstruct_path(current, filename_, robot, deltas);
-            //     std::cout << "2\n";
-            // }
             
 
         }        

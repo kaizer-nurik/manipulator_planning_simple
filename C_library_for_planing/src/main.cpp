@@ -24,10 +24,13 @@ int main(int argc, const char * argv[])
     {
         return EXIT_FAILURE;
     }
-
+    double angle=0.0;
+    for (int i=0u; i<start.dof_; i++)
+        angle+=start.configuration[i];
+    std::cout << "angle:" << angle/6.28 << ' ' << goal.angle2_ << std::endl;
 
     Planner planner("trajectory.csv");
-    bool b = planner.AStar(start, goal.goalpoint, polygons);
+    bool b = planner.AStar(start, goal, polygons);
 
     //planner.motionPlanning(start, goal, obstacles);
     std::cout << std::endl;
