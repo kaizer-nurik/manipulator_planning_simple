@@ -218,7 +218,7 @@ public:
             opened_nodes.pop();
             size_t numErased = map_pq_opened.erase(current->position);
             closed_nodes.insert(current);
-            //std::cout << current->gCost << ' ' << current->hCost << ' ' << current->getFCost() << std::endl;
+            std::cout << current->gCost << ' ' << current->hCost << ' ' << current->getFCost() << std::endl;
             
             if (std::abs(current->hCost) < 1e-1  && std::abs(last_angle(angles)  - goalpoint.angle1_)< goalpoint.angle2_)
             {
@@ -234,7 +234,7 @@ public:
                 simplify(newneighbour->position, g_units);
                 angles=calc_angles(robot, newneighbour->position, deltas);
                 newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal) + std::abs(last_angle(angles)  - goalpoint.angle1_);
-                if (collide(robot, angles, obstacles))
+                if (!collide(robot, angles, obstacles))
                 {
                     closed_nodes.insert(newneighbour);
                 }
@@ -247,7 +247,7 @@ public:
                 if (map_pq_opened.find(newneighbour->position) == map_pq_opened.end() || g_score < newneighbour->gCost) //Neighbour not in opened
                 {
                     newneighbour->gCost = g_score;
-                    newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal);
+                    newneighbour->hCost = calculateDistance(end_effector(robot, angles), goal) /*+ std::abs(last_angle(angles)  - goalpoint.angle1_)*/;
                     newneighbour->parent = current;
                     if (map_pq_opened.find(newneighbour->position) == map_pq_opened.end())
                     {
