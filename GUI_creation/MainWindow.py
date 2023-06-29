@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene
 from PySide6 import QtGui
 import pyqtgraph as pg
-from PyQt6.QtCore import Qt,pyqtSlot,QTimer, QPoint, QEasingCurve, QRectF
+from PySide6.QtCore import Qt,pyqtSlot,QTimer, QPoint, QEasingCurve, QRectF
 import graphics
 from robot_class import Robot_class
 from robo_scene import Robo_scene

@@ -1,11 +1,6 @@
 from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene,QGraphicsScene
 from PySide6 import QtGui
-from datetime import datetime
-from PyQt6.QtCore import pyqtSlot
-import os
-from pathlib import Path
-from PySide6.QtCore import QRectF
-from time import sleep
+
 from robot_class import Robot_class
 
 # def draw_grid(scene:QGraphicsScene,step:int = 50):
