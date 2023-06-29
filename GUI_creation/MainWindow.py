@@ -1,6 +1,5 @@
-from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene
+from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene,QMainWindow
 from PySide6 import QtGui
-import pyqtgraph as pg
 from PySide6.QtCore import Qt,QTimer, QPoint, QEasingCurve, QRectF
 import graphics
 from robot_class import Robot_class
@@ -10,14 +9,15 @@ from goal_point import GoalPoint
 from xml_maker import to_xml
 from xml_parser import read_xml
 import numpy as np
-from scipy import interpolate
-uiclass, baseclass = pg.Qt.loadUiType(
-    "./GUI.ui")  # подгузка файла с дизайном
+# from scipy import interpolate
+from GUI import Ui_MainWindow
 
-class MainWindow(uiclass, baseclass):  # класс окна
+
+class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
     def __init__(self):
-        super().__init__()  # инициализация родительских классов
-        self.setupUi(self)  # инициализация
+        super().__init__()
+        self.setupUi(self)
+        
         #подключение к кнопке "Обзор" выбора файла
         self.scene = Robo_scene()             
 
@@ -74,23 +74,30 @@ class MainWindow(uiclass, baseclass):  # класс окна
         lock_brush = QtGui.QBrush(QtGui.QColor(230,230,203))
         self.graphicsView.setBackgroundBrush(lock_brush)
     def animate_robot(self):
-        self.anim = np.loadtxt(self.csv_choose_edit.text(),delimiter = ',')
         self.lock_view()
-        mymin,mymax = 0,10000
-        X = np.linspace(mymin,mymax,self.anim.shape[0])
-        Y = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
+        self.anim = np.loadtxt(self.csv_choose_edit.text(),delimiter = ',')
+        
+        ANIM_COUNT_INTP = 10000
 
-        x,y = np.meshgrid(Y,X)
+        axes = []
+        for i in range (self.anim.shape[1]):
+            axes.append(np.interp(np.linspace(0, 100, ANIM_COUNT_INTP), np.linspace(0, 100, self.anim.shape[0]), self.anim[:,i]))
+        self.anim_temp = np.vstack(axes).T
+        # mymin,mymax = 0,10000
+        # X = np.linspace(mymin,mymax,self.anim.shape[0])
+        # Y = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
+
+        # x,y = np.meshgrid(Y,X)
 
 
-        f = interpolate.interp2d(x,y,self.anim,kind='cubic')
+        # f = interpolate.interp2d(x,y,self.anim,kind='cubic')
 
-        # use linspace so your new range also goes from 0 to 3, with 8 intervals
-        Xnew = np.linspace(mymin,mymax,10000)
-        Ynew = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
+        # # use linspace so your new range also goes from 0 to 3, with 8 intervals
+        # Xnew = np.linspace(mymin,mymax,10000)
+        # Ynew = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
 
-        self.anim_temp = f(Ynew,Xnew)
-        print(self.anim_temp.shape)
+        # self.anim_temp = f(Ynew,Xnew)
+        # 
         self.anim_count = 0
         
         self.anim_manual_sldr.blockSignals(True)
@@ -272,3 +279,5 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.csv_choose_edit.setText(fname[0])
 
 
+
+    
