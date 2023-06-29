@@ -37,7 +37,7 @@ jobs:
       # Build python script into a stand-alone exe
       - uses: Nuitka/Nuitka-Action@main
         with:
-          script-name: main.py
+          script-name: ./GUI_creation/main.py
           access-token: ${{ secrets.NUITKA_COMMERCIAL_ACCESS_TOKEN }}
           onefile: true
           enable-plugins: pyside6
