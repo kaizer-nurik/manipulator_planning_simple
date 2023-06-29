@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication,QFileDialog,QGraphicsScene
 from PySide6 import QtGui
 import pyqtgraph as pg
-from PySide6.QtCore import Qt,pyqtSlot,QTimer, QPoint, QEasingCurve, QRectF
+from PySide6.QtCore import Qt,QTimer, QPoint, QEasingCurve, QRectF
 import graphics
 from robot_class import Robot_class
 from robo_scene import Robo_scene
@@ -115,17 +115,14 @@ class MainWindow(uiclass, baseclass):  # класс окна
             self.anim_manual_sldr.blockSignals(False)
             self.timer.stop()
             
-    @pyqtSlot(int)
     def manual_anim(self,value):
         self.robot.set_angles(tuple(self.anim[int((self.anim.shape[0]-1)*value/100)]))
         
-    @pyqtSlot()
     def reset_animation(self):
         self.unlock_view()
         self.robot.reset_animation()
         
 
-    @pyqtSlot()
     def reset_scene(self):
         self.robot.reset()
         self.obstacles.reset()
@@ -150,27 +147,22 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.robot_joint_count_spin.setValue(1)
         self.robot_joint_count_spin.blockSignals(False)
         
-    @pyqtSlot()
     def export_xml(self):
         to_xml(self.file_choose_edit.text(),self.robot,self.obstacles,self.goal_point)
         
-    @pyqtSlot()
     def goal_point_connect(self):
         print(1)
         self.goal_point.create_goal_point()
-    @pyqtSlot(int)
     def ZoomSliderChange(self,value):
         tr = self.graphicsView.transform()
         self.graphicsView.setTransform(QtGui.QTransform(value/100, 0,0, -value/100, tr.dx(), tr.dy()))
         # self.graphicsView.scale(value/100,value/100)
-    @pyqtSlot()
     def create_poli(self):
         """Слот для кнопки "Создать полигон"
         создает новый полигон. Нажимая на сцену, можно создать его  точки
         """
         self.obstacles.create_obstacle()
         
-    @pyqtSlot(int, float)
     def on_joint_angle_change_by_mouse(self,joint_num,angle):
         self.robot[joint_num-1].update_start_angle(angle)
         if (joint_num-1) == self.current_joint:
@@ -178,7 +170,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
             self.start_angle_text.setText(f"{angle:.2f}")
             self.start_angle_text.blockSignals(False)
         
-    @pyqtSlot(str)
     def change_joint_start_angle(self,text):
         try:
             self.robot[self.current_joint].update_start_angle(float(text))
@@ -186,7 +177,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
         except BaseException as e:
             self.start_angle_text.setStyleSheet("color: red;")
             print(e)
-    @pyqtSlot(str)
     def change_joint_right_limit(self,text):
         try:
             self.robot[self.current_joint].update_right_limit(float(text))
@@ -195,7 +185,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
             self.right_limit_text.setStyleSheet("color: red;")
             print(e)
                 
-    @pyqtSlot(str)
     def change_joint_left_limit(self,text):
         try:
             self.robot[self.current_joint].update_left_limit(float(text))
@@ -203,7 +192,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
         except BaseException as e:
             self.left_limit_text.setStyleSheet("color: red;")
             print(e)
-    @pyqtSlot(str)
     def change_joint_length(self,text):
         try:
             self.robot[self.current_joint].update_length(float(text))
@@ -212,7 +200,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
         except BaseException as e:
             self.joint_length_line_edit.setStyleSheet("color: red;")
             print(e)
-    @pyqtSlot(int)
     def change_robot_joints_change(self,value):
         self.current_joint = int(value)-1
         self.joint_length_line_edit.blockSignals(True)
@@ -227,7 +214,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.start_angle_text.blockSignals(True)
         self.start_angle_text.setText(f"{self.robot[value-1].start_angle:.2f}")
         self.start_angle_text.blockSignals(False)
-    @pyqtSlot(int)
     def change_robot_joints_count(self,value):
         """Change joints count according to spinbox
 
@@ -236,7 +222,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
         """
         self.robot.change_joint_number(value)
         self.robot_change_j_spin.setMaximum(value)
-    @pyqtSlot()
     def open_file_dialog(self):
         """Слот для кнопки "Обзор"
         открывает диалог сохранения файла и записывает имя в соотвествующий виджет
@@ -273,7 +258,6 @@ class MainWindow(uiclass, baseclass):  # класс окна
             self.start_angle_text.blockSignals(False)
         except BaseException as e:
             print(e)
-    @pyqtSlot()
     def open_csv_dialog(self):
         """Слот для кнопки "Обзор"
         открывает диалог открытия файла и записывает имя в соотвествующий виджет
