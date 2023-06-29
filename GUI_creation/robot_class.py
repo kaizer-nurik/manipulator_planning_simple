@@ -34,9 +34,9 @@ class Robot_joint_visuals(QGraphicsEllipseItem):
         item_angle = self.rotation()  # собственное вращение звена
         mouse_coords = event.scenePos()
         delta = mouse_coords - item_coords
-        angle = (((np.arctan2(delta.y(), delta.x())+np.pi/2) * 180 / np.pi +
+        angle = (((np.arctan2(delta.y(), delta.x())) * 180 / np.pi +
                  180 + scene_angle+item_angle) % 360)-180  # вращение, задаваемое мышью
-        self.scene().angle_changed.emit(self.joint_num, -angle)
+        self.scene().angle_changed.emit(self.joint_num, angle)
 
     def mouseReleaseEvent(self, event):
         event.ignore()  # отпустить захват событий мыши
@@ -52,21 +52,17 @@ class robot_joint:
         self.length = length
 
         self.visuals: Robot_joint_visuals = Robot_joint_visuals(
-            self.joint_num, QRectF(0, 0, self.width, self.length))
+            self.joint_num, QRectF(0, -self.width//2, self.length,self.width))
         self.set_pos(0, 0)
-        self.visuals.setTransformOriginPoint(self.width//2, self.length)
 
     def update_start_angle(self, angle):
         self.start_angle = angle
-        # минус потому что viewScene отражено по оси абсцисс
-        self.visuals.setRotation(-angle)
+        self.visuals.setRotation(angle)
     def rotate(self, angle):
-        # минус потому что viewScene отражено по оси абсцисс
-        self.visuals.setRotation(-angle)
+        self.visuals.setRotation(angle)
     
     def reset_rotate(self):
-        # минус потому что viewScene отражено по оси абсцисс
-        self.visuals.setRotation(-self.start_angle)   
+        self.visuals.setRotation(self.start_angle)   
         
     def update_left_limit(self, angle):
         self.left_angle = angle
@@ -75,14 +71,11 @@ class robot_joint:
         self.right_angle = angle
 
     def set_pos(self, x, y):
-        self.visuals.setPos(x, y-self.length)
+        self.visuals.setPos(x, y)
 
     def update_length(self, length):
-        self.visuals.setPos(self.visuals.x(), self.visuals.y()+self.length)
         self.length = length
-        self.visuals.setRect(0, 0, self.width, self.length)
-        self.visuals.setPos(self.visuals.x(), self.visuals.y()-self.length)
-        self.visuals.setTransformOriginPoint(self.width//2, self.length)
+        self.visuals.setRect(0, -self.width//2, self.length,self.width)
 
 
 
@@ -103,7 +96,7 @@ class Robot_class():
             x (float): x
             y (float): y
         """
-        self.joints[0].set_pos(x-10, y)
+        self.joints[0].set_pos(x, y)
 
     def add_joint(self, left_angle=-180, start_angle=0, right_angle=180, length=100):
         """Add joint to robot
@@ -118,6 +111,7 @@ class Robot_class():
         self.joints.append(robot_joint(
             self.joint_count, left_angle, start_angle, right_angle, length))
         if self.joint_count != 1:
+            self.joints[-1].set_pos(self.joints[-2].length,0)
             self.joints[-1].visuals.setParentItem(self.joints[-2].visuals)
 
     def pop_joint(self):

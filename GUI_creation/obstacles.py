@@ -106,7 +106,11 @@ class ObstacleManager(QObject):
         self.scene.addItem(self.obstacles[-1])
 
         self.scene.go_poli_mode(self.obstacles[-1])
-        
+    
+    def add_obstacle(self):
+        self.off_dots()
+        self.obstacles.append(Obstacle())
+        self.scene.addItem(self.obstacles[-1])
     def reset(self):
         for obs_ind in range(len(self.obstacles)):
             self.obstacles[0].setParentItem(None)

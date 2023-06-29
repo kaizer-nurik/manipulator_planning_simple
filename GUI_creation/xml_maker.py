@@ -6,7 +6,7 @@ from obstacles import ObstacleManager
 from goal_point import GoalPoint
 import xml.etree.ElementTree as ET
 
-GOAL_POINT_TRESHOLD = 5 #абсолютная погрешность угла конечной точки
+GOAL_POINT_TRESHOLD = 10 #абсолютная погрешность угла конечной точки
 def to_xml(filename: str, robot: Robot_class, obstacles: ObstacleManager, goal_point: GoalPoint):
     """Создание xml файла filename"""
     root = ET.Element('input_info')
@@ -28,10 +28,10 @@ def add_scene(root:ET.Element, obstacle: ObstacleManager):
             vertex_xml = ET.SubElement(polygon_xml, "vertex")
             
             x = ET.SubElement(vertex_xml,"x")
-            x.text = str(vertex.x())
+            x.text = str(vertex.x()/100)
             
             y = ET.SubElement(vertex_xml,"y")
-            y.text = str(vertex.y())
+            y.text = str(vertex.y()/100)
             
     
 def add_goal_point(root:ET.Element, goal_point:GoalPoint):
@@ -40,13 +40,13 @@ def add_goal_point(root:ET.Element, goal_point:GoalPoint):
     x.text = str(goal_point.x()/100)
     
     y = ET.SubElement(goal_point_xml,"y")
-    y.text = str(-goal_point.y()/100)
+    y.text = str(goal_point.y()/100)
     
     angle1 = ET.SubElement(goal_point_xml,"angle1")
-    angle1.text = str(-goal_point.angle() - GOAL_POINT_TRESHOLD)
+    angle1.text = str(+180+(-goal_point.angle()) )
     
     angle2 = ET.SubElement(goal_point_xml,"angle2")
-    angle2.text = str(-goal_point.angle() + GOAL_POINT_TRESHOLD)    
+    angle2.text = str(GOAL_POINT_TRESHOLD)    
     
     
 

@@ -80,7 +80,10 @@ class GoalPoint():
         return self.dot.y()
 
     def angle(self):
-        return self.dot.angle
+        return self.dot.angle*180/np.pi
+    
+    def set_angle(self,angle):
+        self.dot.change_angle(angle)
     
     def reset(self):
         self.dot.setVisible(False)

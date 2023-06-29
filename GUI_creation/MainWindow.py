@@ -8,7 +8,9 @@ from robo_scene import Robo_scene
 from obstacles import ObstacleManager, Obstacle
 from goal_point import GoalPoint
 from xml_maker import to_xml
+from xml_parser import read_xml
 import numpy as np
+from scipy import interpolate
 uiclass, baseclass = pg.Qt.loadUiType(
     "./GUI.ui")  # подгузка файла с дизайном
 
@@ -54,6 +56,7 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.graphicsView.setSceneRect(-5000, -5000, 10000, 10000)
         self.graphicsView.setScene(self.scene)
         self.graphicsView.centerOn(0,0)
+        self.graphicsView.scale(1, -1)
         self.timer = QTimer()
         self.timer.setInterval(20)  # msecs 100 = 1/10th sec
         self.timer.timeout.connect(self.update_anim)
@@ -61,10 +64,33 @@ class MainWindow(uiclass, baseclass):  # класс окна
         self.anim_manual_sldr.valueChanged.connect(self.manual_anim)
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
-
-
+    def unlock_view(self):
+        self.graphicsView.setInteractive(True)
+        unlock_brush = QtGui.QBrush(QtGui.QColor(255,255,255))
+        self.graphicsView.setBackgroundBrush(unlock_brush)
+        
+    def lock_view(self):
+        self.graphicsView.setInteractive(False)
+        lock_brush = QtGui.QBrush(QtGui.QColor(230,230,203))
+        self.graphicsView.setBackgroundBrush(lock_brush)
     def animate_robot(self):
         self.anim = np.loadtxt(self.csv_choose_edit.text(),delimiter = ',')
+        self.lock_view()
+        mymin,mymax = 0,10000
+        X = np.linspace(mymin,mymax,self.anim.shape[0])
+        Y = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
+
+        x,y = np.meshgrid(Y,X)
+
+
+        f = interpolate.interp2d(x,y,self.anim,kind='cubic')
+
+        # use linspace so your new range also goes from 0 to 3, with 8 intervals
+        Xnew = np.linspace(mymin,mymax,10000)
+        Ynew = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
+
+        self.anim_temp = f(Ynew,Xnew)
+        print(self.anim_temp.shape)
         self.anim_count = 0
         
         self.anim_manual_sldr.blockSignals(True)
@@ -72,7 +98,17 @@ class MainWindow(uiclass, baseclass):  # класс окна
 
 
     def update_anim(self):  
+        self.robot.set_angles(tuple(self.anim_temp[self.anim_count]))
+        
+        self.anim_count+=int(1000*self.anim_speed_sldr.value()/100)
+        self.anim_manual_sldr.setValue(int(self.anim_count/self.anim_temp.shape[0]*100))
+        if self.anim_count >= self.anim_temp.shape[0]:
+            self.anim_manual_sldr.blockSignals(False)
+            self.timer.stop()
+            
+    def update_anim_old(self):  
         self.robot.set_angles(tuple(self.anim[self.anim_count]))
+        
         self.anim_count+=int(1000*self.anim_speed_sldr.value()/100)
         self.anim_manual_sldr.setValue(int(self.anim_count/self.anim.shape[0]*100))
         if self.anim_count >= self.anim.shape[0]:
@@ -85,6 +121,7 @@ class MainWindow(uiclass, baseclass):  # класс окна
         
     @pyqtSlot()
     def reset_animation(self):
+        self.unlock_view()
         self.robot.reset_animation()
         
 
@@ -124,7 +161,7 @@ class MainWindow(uiclass, baseclass):  # класс окна
     @pyqtSlot(int)
     def ZoomSliderChange(self,value):
         tr = self.graphicsView.transform()
-        self.graphicsView.setTransform(QtGui.QTransform(value/100, 0,0, value/100, tr.dx(), tr.dy()))
+        self.graphicsView.setTransform(QtGui.QTransform(value/100, 0,0, -value/100, tr.dx(), tr.dy()))
         # self.graphicsView.scale(value/100,value/100)
     @pyqtSlot()
     def create_poli(self):
@@ -210,9 +247,32 @@ class MainWindow(uiclass, baseclass):  # класс окна
             "test",
             "XML (*.xml);; All Files (*)",
         )
+        
         #self.plot.fitInView(QRectF(0,0,1000,1000))
         self.file_choose_edit.setText(fname[0])
-
+        try:
+            read_xml(filename=fname[0], 
+                    robot=self.robot, 
+                    obstacles=self.obstacles, 
+                    goal_point=self.goal_point)
+            value = 1
+            self.robot_joint_count_spin.blockSignals(True)
+            self.robot_joint_count_spin.setValue(self.robot.joint_count)
+            self.robot_joint_count_spin.blockSignals(False)
+            self.joint_length_line_edit.blockSignals(True)
+            self.joint_length_line_edit.setText(str(self.robot[value-1].length))
+            self.joint_length_line_edit.blockSignals(False)
+            self.left_limit_text.blockSignals(True)
+            self.left_limit_text.setText(f"{self.robot[value-1].left_angle:.2f}")
+            self.left_limit_text.blockSignals(False)
+            self.right_limit_text.blockSignals(True)
+            self.right_limit_text.setText(f"{self.robot[value-1].right_angle:.2f}")
+            self.right_limit_text.blockSignals(False)
+            self.start_angle_text.blockSignals(True)
+            self.start_angle_text.setText(f"{self.robot[value-1].start_angle:.2f}")
+            self.start_angle_text.blockSignals(False)
+        except BaseException as e:
+            print(e)
     @pyqtSlot()
     def open_csv_dialog(self):
         """Слот для кнопки "Обзор"
