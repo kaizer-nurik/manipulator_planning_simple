@@ -31,9 +31,14 @@ int main(int argc, const char * argv[])
 
     Planner planner("trajectory.csv");
     bool b = planner.AStar(start, goal, polygons);
+    //bool b = planner.coll_test(start, polygons);
+    std::cout << b << std::endl;
 
     //planner.motionPlanning(start, goal, obstacles);
-    std::cout << std::endl;
-    std::cout << b << std::endl;
+    //std::cout << std::endl;
+    //std::cout << b << std::endl;
+
+    //std::cout << "polygons_collide: " << polygons_collide(Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)}), 
+    //Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)})) << std::endl;
     return EXIT_SUCCESS;
 }

@@ -73,7 +73,7 @@ Projection projectPolygon(const Polygon& polygon, const Vector2D& axis) {
 }
 
 // Check if two polygons collide using the Separating Axis Theorem (SAT)
-bool checkCollision(const Polygon& polygonA, const Polygon& polygonB) {  // true -- not collide, false -- collide
+bool polygons_collide(const Polygon& polygonA, const Polygon& polygonB) {  // true -- not collide, false -- collide
     std::vector<Vector2D> edgesA = polygonA.getEdges();
     std::vector<Vector2D> edgesB = polygonB.getEdges();
 
