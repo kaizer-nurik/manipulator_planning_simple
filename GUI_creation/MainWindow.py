@@ -68,6 +68,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.graphicsView.setInteractive(True)
         unlock_brush = QtGui.QBrush(QtGui.QColor(255,255,255))
         self.graphicsView.setBackgroundBrush(unlock_brush)
+        self.graphicsView.setScene(self.scene)
+        self.robot_joint_count_spin.setValue(1)
         
     def lock_view(self):
         self.graphicsView.setInteractive(False)
@@ -75,10 +77,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.graphicsView.setBackgroundBrush(lock_brush)
     def animate_robot(self):
         self.lock_view()
-        self.anim = np.loadtxt(self.csv_choose_edit.text(),delimiter = ',')
-        
-        ANIM_COUNT_INTP = 10000
+        self.anim_scene = Robo_scene()             
 
+        self.current_joint=0
+        self.anim_robot = Robot_class()
+        self.anim_robot.change_joint_number(1)
+        self.anim_obstacles = ObstacleManager(self.poli_x_text,self.poli_y_text,self.poly_list,self.anim_scene)
+        self.anim_goal_point = GoalPoint(self.anim_scene)
+        graphics.draw_robot(self.anim_scene,self.anim_robot)
+        self.graphicsView.setScene(self.anim_scene)
+        csv = read_xml(filename=self.csv_choose_edit.text(), 
+                    robot=self.anim_robot, 
+                    obstacles=self.anim_obstacles, 
+                    goal_point=self.anim_goal_point,
+                    csv = True)
+        value = 1
+        self.robot_joint_count_spin.blockSignals(True)
+        self.robot_joint_count_spin.setValue(self.anim_robot.joint_count)
+        self.robot_joint_count_spin.blockSignals(False)
+        self.joint_length_line_edit.blockSignals(True)
+        self.joint_length_line_edit.setText(str(self.anim_robot[value-1].length))
+        self.joint_length_line_edit.blockSignals(False)
+        self.left_limit_text.blockSignals(True)
+        self.left_limit_text.setText(f"{self.anim_robot[value-1].left_angle:.2f}")
+        self.left_limit_text.blockSignals(False)
+        self.right_limit_text.blockSignals(True)
+        self.right_limit_text.setText(f"{self.anim_robot[value-1].right_angle:.2f}")
+        self.right_limit_text.blockSignals(False)
+        self.start_angle_text.blockSignals(True)
+        self.start_angle_text.setText(f"{self.anim_robot[value-1].start_angle:.2f}")
+        self.start_angle_text.blockSignals(False)
+    
+        self.anim = np.loadtxt(csv.split('\n'),delimiter = ',')
+        if len(self.anim.shape) ==1:
+            self.anim =self.anim.reshape(self.anim.shape[0],1)
+        ANIM_COUNT_INTP = 10000
         axes = []
         for i in range (self.anim.shape[1]):
             axes.append(np.interp(np.linspace(0, 100, ANIM_COUNT_INTP), np.linspace(0, 100, self.anim.shape[0]), self.anim[:,i]))
@@ -105,7 +138,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
 
 
     def update_anim(self):  
-        self.robot.set_angles(tuple(self.anim_temp[self.anim_count]))
+        self.anim_robot.set_angles(tuple(self.anim_temp[self.anim_count]))
         
         self.anim_count+=int(1000*self.anim_speed_sldr.value()/100)
         self.anim_manual_sldr.setValue(int(self.anim_count/self.anim_temp.shape[0]*100))
@@ -113,17 +146,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             self.anim_manual_sldr.blockSignals(False)
             self.timer.stop()
             
-    def update_anim_old(self):  
-        self.robot.set_angles(tuple(self.anim[self.anim_count]))
-        
-        self.anim_count+=int(1000*self.anim_speed_sldr.value()/100)
-        self.anim_manual_sldr.setValue(int(self.anim_count/self.anim.shape[0]*100))
-        if self.anim_count >= self.anim.shape[0]:
-            self.anim_manual_sldr.blockSignals(False)
-            self.timer.stop()
+
             
     def manual_anim(self,value):
-        self.robot.set_angles(tuple(self.anim[int((self.anim.shape[0]-1)*value/100)]))
+        self.anim_robot.set_angles(tuple(self.anim[int((self.anim.shape[0]-1)*value/100)]))
         
     def reset_animation(self):
         self.unlock_view()
