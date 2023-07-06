@@ -32,14 +32,14 @@ int main(int argc, const char * argv[])
     for (int i=0u; i<start.dof_; i++)
         angle+=start.configuration[i];
     std::cout << "angle:" << angle/6.28 << ' ' << goal.angle2_ << std::endl;
-
-    Planner planner("trajectory.csv");
+    std::cout << goal.goalpoint.x << ' ' << goal.goalpoint.y << std::endl;
+    Planner planner("example.xml", "trajectory.xml");
     bool b = planner.AStar(start, goal, polygons);
     //bool b = planner.coll_test(start, polygons);
     std::cout << b << std::endl;
 
-    std::string filename = argv[1];
-    run_benchmark(filename, 100);
+    //std::string filename = argv[1];
+    //run_benchmark("example.xml", "trajectory.xml", 100, start, polygons, goal);
 
     //std::cout << "polygons_collide: " << polygons_collide(Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)}), 
     //Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)})) << std::endl;
