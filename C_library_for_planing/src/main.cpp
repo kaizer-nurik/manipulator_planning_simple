@@ -1,18 +1,22 @@
+#include <chrono>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <memory>
 #include "rapidxml.hpp"
+#include "rapidxml_print.hpp"
 #include "obstacles.h"
 #include "robot.h"
 #include "parsing.h"
 #include "planner.h"
 #include "geometry.h"
+#include "benchmark.h"
 #include <vector>
 
 
 int main(int argc, const char * argv[])
  {
+    Timer<std::chrono::milliseconds> t("timer");
     std::vector<Polygon> polygons;
     Robot start = Robot();
     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
@@ -34,9 +38,8 @@ int main(int argc, const char * argv[])
     //bool b = planner.coll_test(start, polygons);
     std::cout << b << std::endl;
 
-    //planner.motionPlanning(start, goal, obstacles);
-    //std::cout << std::endl;
-    //std::cout << b << std::endl;
+    std::string filename = argv[1];
+    run_benchmark(filename, 100);
 
     //std::cout << "polygons_collide: " << polygons_collide(Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)}), 
     //Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)})) << std::endl;
