@@ -143,42 +143,38 @@ void reconstruct_path(const std::shared_ptr<Node> &node, std::string input_filen
         path_csv.append("\n");
     }
     file.close();
-    std::cout << "Vectors successfully written to the file: " << "trajectory.csv" << std::endl;
 
-    // reading xml
-    std::ifstream sourceFile(input_filename, std::ios::binary);
-    if (sourceFile.is_open()) {
-    // Открываем целевой файл для записи
-    std::ofstream targetFile(output_filename, std::ios::binary);
+    std::ifstream inputFile(input_filename);
+    std::ofstream outputFile(output_filename);
 
-    if (targetFile.is_open()) {
-        // Копируем содержимое исходного файла в целевой файл
-        targetFile << sourceFile.rdbuf();
-        targetFile.close();
-    } 
-    sourceFile.close();
-    } 
-    std::ofstream ffile(output_filename, std::ios::app);
-
-    if (ffile.is_open()) 
+    if (inputFile.is_open() && outputFile.is_open())
     {
-        ffile << "<csv>" << path_csv <<"</csv>";
-        ffile.close();
-
-        std::cout << "Данные успешно добавлены в файл." << std::endl;
-    } else {
-        std::cerr << "Не удалось открыть файл для дозаписи." << std::endl;
+        std::string line;
+        while (std::getline(inputFile, line)) 
+        { 
+            if (line == "</input_info>") continue;
+            outputFile << line << std::endl;
+        }
+        outputFile << "<csv>" << path_csv <<"</csv>";
+        outputFile << "</input_info>" << std::endl;
+        inputFile.close();  
+        outputFile.close(); 
     }
-
-    std::cout << "XML file created successfully." << std::endl;
+    else { std::cerr << "Error." << std::endl;}
 }
 
+double periodic(double n, double L)
+{
+    if (n>=0.0) return fmod(n + L, 2*L) - L;
+    else return fmod(n + L, 2*L) + L;
+}
 
 void simplify(std::vector<int> & v, int n)
 {
     for (auto i=0u; i<v.size(); i++)
     {
-        v[i] = v[i] % (n+1);
+        if (v[i] >= 0)  v[i] = (v[i] + n)%(2*n) - n;
+        else v[i] = (v[i] + n)%(2*n) + n;
     }
 }
 
@@ -205,8 +201,9 @@ double last_angle(const std::vector<double> angles)
 {
     double angle=0.0;
     for (int i=0; i<angles.size(); i++)
-        angle+=angles[i];
-    return fmod(angle, std::acos(-1));
+       { angle+=angles[i];
+       }
+    return periodic(angle, std::acos(-1));
 }
 
 class Planner 
@@ -216,8 +213,14 @@ public:
 
     double heuristic(const Robot &robot, const GoalPoint &goalpoint, const std::vector<double> &angles)
     {
-        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint) + 0.01 *std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.01 *std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
     }
+    double gcost(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
+    {
+        return 1.0;//calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));
+    }
+
+    
     bool AStar(const Robot& robot, const GoalPoint& goalpoint, const std::vector<Polygon>& obstacles)
     {
         Vector2D goal = goalpoint.goalpoint;
@@ -244,7 +247,7 @@ public:
         std::vector<int> config(robot.dof_, 0);
         std::vector<double> angles = calc_angles(robot, config, deltas); 
 
-        double h = std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        double h = std::abs(periodic(last_angle(angles), std::acos(-1)) - goalpoint.angle1_);
         std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, heuristic(robot, goalpoint, angles) , nullptr);
         opened_nodes.push(start);
         map_pq_opened.emplace(start->position, start);
@@ -259,21 +262,23 @@ public:
             closed_nodes.insert(current);
             auto currxy = end_effector(robot, calc_angles(robot, current->position, deltas));
 
-            //std::cout << current->gCost << ' ' << current->hCost  << ' ' << calculateDistance(currxy, goal) << ' ' << std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_) <<  std::endl;
+           std::cout << current->gCost << ' ' << current->hCost  << ' ' << calculateDistance(currxy, goal) << ' ' << std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_) <<  std::endl;
             angles = calc_angles(robot, current->position, deltas);
+            std::vector<double> curr_angles = calc_angles(robot, current->position, deltas);
             
-            if (std::abs(current->hCost) < 0.1)// && std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_)<goalpoint.angle2_)
+            if (std::abs(current->hCost) < 0.01 )//&& std::abs(last_angle(angles) - goalpoint.angle1_)<goalpoint.angle2_)
             {
                 reconstruct_path(current,input_filename_, output_filename_, robot, deltas);
                 angles = calc_angles(robot, current->position, deltas);
-                std::cout << "Пришел в: " << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).y << " angle: "<< angles.back()*180/std::acos(-1) << std::endl;
+                std::cout << "Пришел в: " << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).y << 
+                " angle: "<< last_angle(angles) << "  "<< angles.back()*180/std::acos(-1) << std::endl;
                 return true;
             }
 
             for (const auto &i:primitivemoves)
             {
                 std::shared_ptr<Node> newneighbour = std::make_shared<Node>(current->position+i, 0.0, 0.0, current);
-                simplify(newneighbour->position, g_units);
+                //simplify(newneighbour->position, 2*g_units);
                 angles = calc_angles(robot, newneighbour->position, deltas);
                 newneighbour->hCost = heuristic(robot, goalpoint, angles);
                 if  (collide(robot, angles, obstacles))
@@ -286,7 +291,7 @@ public:
                 {
                     continue;
                 }
-                double g_score = current->gCost + 1.0;  //calculateDistance2(end_effector(robot, calc_angles(robot, current->position, deltas)), end_effector(robot, angles)); //tentative
+                double g_score = current->gCost + gcost(robot,  angles, curr_angles);   //tentative
                 auto it = map_pq_opened.find(newneighbour->position);
                 if (it == map_pq_opened.end()) //Neighbour not in opened
                 {
