@@ -12,6 +12,7 @@
 #include <utility>
 #include <algorithm>
 #include <fstream>
+#include "benchmark.h"
 
 template<typename T>
 std::vector<T> operator+(const std::vector<T>& vec1, const std::vector<T>& vec2) {
@@ -82,12 +83,24 @@ struct HashNode {
 };
 
 // Define an equality function for the shared pointers to nodes
-struct EqualNode {
-    bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const {
-        bool eq = true;
-        for (auto i = 0u; i < node1->position.size(); i++)
-            eq *= (node1->position[i] == node1->position[i]);
-        return eq;
+struct EqualNode
+{
+    bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const
+     {
+         if (node1->position.size() != node2->position.size()) 
+         {
+            return false;
+        }
+
+        for (size_t i = 0; i < node1->position.size(); i++) 
+        {
+            if (node1->position[i] != node2->position[i]) 
+            {
+                return false;
+            }
+        }
+
+    return true;
     }
 };
 
@@ -173,8 +186,8 @@ void simplify(std::vector<int> & v, int n)
 {
     for (auto i=0u; i<v.size(); i++)
     {
-        if (v[i] >= 0)  v[i] = (v[i] + n)%(2*n) - n;
-        else v[i] = (v[i] + n)%(2*n) + n;
+        if (v[i] >= 0)  v[i] = (v[i] + n) % (2 * n) - n;
+        if (v[i] <=-n)  v[i] = (v[i] + n) % (2 * n) + n;
     }
 }
 
@@ -206,6 +219,24 @@ double last_angle(const std::vector<double> angles)
     return periodic(angle, std::acos(-1));
 }
 
+void generateVectors(std::vector<std::vector<int>>& result, std::vector<int>& current, int index) 
+/*
+    vector<vector<int>> vectors;
+    vector<int> current(3);
+    generateVectors(vectors, current, 0);
+*/
+{
+    if (index == current.size()) {
+        result.push_back(current);
+        return;
+    }
+
+    for (int i = -1; i <= 1; i++) {
+        current[index] = i;
+        generateVectors(result, current, index + 1);
+    }
+}
+
 class Planner 
 {
 public:
@@ -215,22 +246,29 @@ public:
     {
         return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.01 *std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
     }
-    double gcost(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
+    double geuristic(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
     {
-        return 1.0;//calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));
+        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));
     }
 
     
     bool AStar(const Robot& robot, const GoalPoint& goalpoint, const std::vector<Polygon>& obstacles)
     {
-        Vector2D goal = goalpoint.goalpoint;
+        Timer<std::chrono::seconds> tt("a-star");
 
-        const int g_units = 360; // mesh fineness [-angle1, angle2] -- 2g_units
+        Vector2D goal = goalpoint.goalpoint;
+        
+        const int g_units = 15; // mesh fineness [-angle1, angle2] -- 2g_units
         std::vector<double> deltas(robot.dof_, 0.0);
+
         for (auto i = 0u; i < robot.configuration.size(); i++)
         {
             deltas[i] = std::abs(robot.joints[i].limits[1] - robot.joints[i].limits[0]) / (2*g_units);
         }
+        // std::vector<std::vector<int>> primitivemoves;
+        // std::vector<int> current(robot.dof_);
+        // generateVectors(primitivemoves, current, 0);
+
         std::vector<std::vector<int>> primitivemoves;
         for (auto i = 0u; i < robot.dof_; i++)
         {
@@ -240,6 +278,8 @@ public:
             a[i] = -1;
             primitivemoves.push_back(a);            
         }
+
+        
         std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
         std::map<std::vector<int>, std::shared_ptr<Node>, CompareKey> map_pq_opened;
         std::unordered_set<std::shared_ptr<Node>, HashNode, EqualNode> closed_nodes;
@@ -247,70 +287,83 @@ public:
         std::vector<int> config(robot.dof_, 0);
         std::vector<double> angles = calc_angles(robot, config, deltas); 
 
-        double h = std::abs(periodic(last_angle(angles), std::acos(-1)) - goalpoint.angle1_);
         std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, heuristic(robot, goalpoint, angles) , nullptr);
         opened_nodes.push(start);
         map_pq_opened.emplace(start->position, start);
         Vector2D startPoint = end_effector(robot,angles);
+        int NODES = 1;
 
 
         while (!opened_nodes.empty())
         {
             std::shared_ptr<Node> current = opened_nodes.top();
             opened_nodes.pop();
-            size_t numErased = map_pq_opened.erase(current->position);
+            map_pq_opened.erase(current->position);
+
             closed_nodes.insert(current);
             auto currxy = end_effector(robot, calc_angles(robot, current->position, deltas));
 
-           std::cout << current->gCost << ' ' << current->hCost  << ' ' << calculateDistance(currxy, goal) << ' ' << std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_) <<  std::endl;
+            //std::cout << current->getFCost() << ' ' << current->gCost << ' ' << current->hCost  << std::endl;
+            std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << std::endl;
+            
             angles = calc_angles(robot, current->position, deltas);
+            
+            //std:: cout << angles[0]*180/std::acos(-1) << ',' << angles[1]*180/std::acos(-1) << ',' << angles[2]*180/std::acos(-1) << std::endl;
             std::vector<double> curr_angles = calc_angles(robot, current->position, deltas);
             
-            if (std::abs(current->hCost) < 0.01 )//&& std::abs(last_angle(angles) - goalpoint.angle1_)<goalpoint.angle2_)
+            if (std::abs(current->hCost) < 0.2 )//&& std::abs(last_angle(angles) - goalpoint.angle1_)<goalpoint.angle2_)
             {
                 reconstruct_path(current,input_filename_, output_filename_, robot, deltas);
                 angles = calc_angles(robot, current->position, deltas);
                 std::cout << "Пришел в: " << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).y << 
-                " angle: "<< last_angle(angles) << "  "<< angles.back()*180/std::acos(-1) << std::endl;
+                " angle: "<< last_angle(angles) << "  "<< angles.back()*180/std::acos(-1) << " opened nodes: " << NODES << std::endl;
                 return true;
             }
 
             for (const auto &i:primitivemoves)
             {
                 std::shared_ptr<Node> newneighbour = std::make_shared<Node>(current->position+i, 0.0, 0.0, current);
-                //simplify(newneighbour->position, 2*g_units);
+                simplify(newneighbour->position, g_units);
                 angles = calc_angles(robot, newneighbour->position, deltas);
                 newneighbour->hCost = heuristic(robot, goalpoint, angles);
+
                 if  (collide(robot, angles, obstacles))
                 {
                     //closed_nodes.insert(newneighbour);
-                    std::cout << "collision" << std::endl;
+                    //std::cout << "collision" << std::endl;
                     continue;
                 }
-                if (closed_nodes.count(newneighbour) > 0) //if in closed list
+                if (closed_nodes.count(newneighbour) != 0) //if in closed list
                 {
                     continue;
                 }
-                double g_score = current->gCost + gcost(robot,  angles, curr_angles);   //tentative
+
+                double g_score = current->gCost + geuristic(robot,  angles, curr_angles);   //tentative
                 auto it = map_pq_opened.find(newneighbour->position);
-                if (it == map_pq_opened.end()) //Neighbour not in opened
+
+
+                if (it == map_pq_opened.end()) //Neighbour not in opened => add neighbor
                 {
                     newneighbour->hCost = heuristic(robot, goalpoint, angles);
                     newneighbour->gCost = g_score;
                     newneighbour->parent = current;
                     map_pq_opened.emplace(newneighbour->position, newneighbour);
-                    opened_nodes.push(newneighbour);   
+                    opened_nodes.push(newneighbour);
+                    NODES++;   
                 }
-                else if (g_score < it->second->gCost) // optimization
+                if (g_score < it->second->gCost && it != map_pq_opened.end()) // optimization
                 {
                     it->second->gCost = g_score;
                     it->second->hCost = heuristic(robot, goalpoint, angles);
                     it->second->parent = current;
                 }
             }
-        }        
+        }  
+    std::cout << "OPENED NODES " << NODES << std::endl;      
     return false;
     }
+
+
 
     bool coll_test(const Robot& robot, const std::vector<Polygon>& obstacles)
     {

@@ -43,19 +43,12 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
                 for (rapidxml::xml_node<>* jointNode = jointsNode->first_node("joint"); 
                 jointNode; jointNode = jointNode->next_sibling("joint")) 
                 {    
-                    int number = std::stoi(jointNode->first_attribute("number")->value());   
-                                 
+                    int number    = std::stoi(jointNode->first_attribute("number")->value());                                   
                     double length = std::stod(jointNode->first_attribute("length")->value());
-                    std::cout << "Link Length: " << length << std::endl;
-
-                    double width = std::stod(jointNode->first_attribute("width")->value());
-                    std::cout << "width: " << width << std::endl;
-
+                    double width  = std::stod(jointNode->first_attribute("width")->value());
                     double limit1 = std::stod(jointNode->first_attribute("limit_min")->value()) * pi / 180.0;
-                    std::cout << "limit1: " << limit1 << std::endl;
-
                     double limit2 = std::stod(jointNode->first_attribute("limit_max")->value())* pi / 180.0;
-                    std::cout << "limit2: " << limit2 << std::endl;
+
                     start.AddJoint(length, width,  { limit1, limit2 });
                 }
             }
@@ -112,6 +105,7 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
         std::cerr << "Failed to parse XML: " << e.what() << std::endl;
         return false;
     }
+    std::cout << "SCENE READED\n";
 
     return true;
 }
