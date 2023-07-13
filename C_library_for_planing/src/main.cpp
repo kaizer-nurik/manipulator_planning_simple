@@ -25,11 +25,15 @@ int main(int argc, const char * argv[])
         return EXIT_FAILURE;
     }
 
-    RRT planner(0.01,start.dof_,start, goal, polygons);
-    for(int i=0; i<1000000;i++){
+    RRT planner(10,start.dof_,start, goal, polygons);
+    for(int i=0; i<10000;i++){
         planner.grow_tree();
-        std::cout<<planner.is_finished()<<std::endl;
+        //std::cout<<i<<planner.is_finished()<<std::endl;
+        if (planner.is_finished()){
+            break;
+        }
     
     }
+    planner.save("example.csv","example.xml",argv[1]);
     return EXIT_SUCCESS;
 }

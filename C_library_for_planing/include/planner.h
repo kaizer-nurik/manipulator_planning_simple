@@ -10,27 +10,36 @@
 #include <iostream>
 #include <cmath>
 #include <utility>
+#include <string>
+#include <deque>
+#include <random>
+#include <assert.h>
+#define RRT_GOAL_POINT_PROBABILITY 0.1
 
 struct Node
 {
     std::vector<double> position;
     double gCost;
     double hCost;
-    Node* parent;
+    Node *parent;
 
-    Node() {};
-    Node(const std::vector<double>& pos, double g, double h, Node* p) : position(pos), gCost(g), hCost(h), parent(p) {}
+    Node(){};
+    Node(const std::vector<double> &pos, double g, double h, Node *p) : position(pos), gCost(g), hCost(h), parent(p) {}
 
-    double getFCost() const {
+    double getFCost() const
+    {
         return gCost + hCost;
     }
-    bool operator<(const Node& other) const {
+    bool operator<(const Node &other) const
+    {
         return getFCost() < other.getFCost();
     }
-    bool operator>(const Node& other) const {
+    bool operator>(const Node &other) const
+    {
         return getFCost() > other.getFCost();
     }
-    bool operator==(const Node& other) const {
+    bool operator==(const Node &other) const
+    {
         double tolerance = 1e-6;
         double diff;
         for (auto i = 0u; i < position.size(); i++)
@@ -39,10 +48,13 @@ struct Node
     }
 };
 
-struct NodeHash {
-    size_t operator()(const Node& node) const {
+struct NodeHash
+{
+    size_t operator()(const Node &node) const
+    {
         size_t hash = 0;
-        for (const auto& value : node.position) {
+        for (const auto &value : node.position)
+        {
             // Combine hash with each value in the vector
             hash ^= std::hash<double>()(value);
         }
@@ -50,62 +62,35 @@ struct NodeHash {
     }
 };
 
-
-
-template<typename T>
-std::vector<T> operator+(const std::vector<T>& vec1, const std::vector<T>& vec2) {
-    std::vector<T> result;
-    if (vec1.size() != vec2.size()) {
-        std::cout << "Ошибка: векторы имеют разные размеры!" << std::endl;
-        return result;
-    }
-    for (std::size_t i = 0; i < vec1.size(); ++i) {
-        result.push_back(vec1[i] + vec2[i]);
-    }
-    return result;
-}
-
-template<typename T>
-std::vector<T> operator*(const std::vector<T>& vec, const T& scalar) {
-    std::vector<T> result;
-    for (const T& value : vec) {
-        result.push_back(value * scalar);
-    }
-
-    return result;
-}
-
-double calculateDistance(const Vector2D& a, const Vector2D& b) {
-    return std::abs(a.x - b.x) + std::abs(a.y - b.y);
-}
-
-class Planner {
+class Planner
+{
 public:
     Planner(std::string filename) : filename_(filename) {}
 
-    void AStar(const Robot& robot, const Vector2D& goal, const std::vector<Polygon>& obstacles);
-   
+    void AStar(const Robot &robot, const Vector2D &goal, const std::vector<Polygon> &obstacles);
 
-    void RRT(const Robot& start, const Robot& goal, const std::vector<Polygon>& obstacles);
+    void RRT(const Robot &start, const Robot &goal, const std::vector<Polygon> &obstacles);
+
 private:
     std::string filename_;
     const double eps = 1e-3;
 };
 
-class RRT{
+class RRT
+{
 public:
-    struct Tree{
-        
-        struct Node:public std::enable_shared_from_this<Node>{
-            Node(Robot _position):position(_position){};
-            Node(const Node &_other ) = delete;
+    struct Tree
+    {
+
+        struct Node : public std::enable_shared_from_this<Node>
+        {
+            Node(Robot _position) : position(_position){};
+            Node(const Node &_other) = delete;
             Node(Node &&_other) = delete;
-            Node operator=(const Node &_other ) = delete;
-            Node operator=(Node &&_other ) = delete;
+            Node operator=(const Node &_other) = delete;
+            Node operator=(Node &&_other) = delete;
             ~Node() = default;
 
-            
-            
             void add_childen(std::shared_ptr<Node> child);
 
             bool is_children(std::shared_ptr<Node> child);
@@ -116,49 +101,87 @@ public:
             Robot get_position();
             void set_parent(std::weak_ptr<Node> parent);
             std::unordered_set<std::shared_ptr<Node>> children;
-            private:
-                std::weak_ptr<Node> _parent;
-                Robot position;
+
+        private:
+            std::weak_ptr<Node> _parent;
+            Robot position;
         };
 
-        Tree(Robot _position):head(new Node(_position)){};
-        Tree(const Tree &_other ) = delete;
+        Tree(Robot _position) : head(new Node(_position)){};
+        Tree(const Tree &_other) = delete;
         Tree(Tree &&_other) = delete;
-        Tree operator=(const Tree &_other ) = delete;
-        Tree operator=(Tree &&_other ) = delete;
+        Tree operator=(const Tree &_other) = delete;
+        Tree operator=(Tree &&_other) = delete;
         ~Tree() = default;
 
         std::shared_ptr<Node> head;
     };
 
-    RRT(double _tolerance,int other_dof,const Robot& inp_start, 
-    const GoalPoint& inp_goal, const std::vector<Polygon>& inp_obstacles): 
-    tolerance(_tolerance), dof(other_dof), start(inp_start), goal(inp_goal),
-    obstacles(inp_obstacles),tree(start){};
-    RRT(const RRT &_other ) = delete;
+    RRT(double _tolerance, int other_dof, const Robot &inp_start,
+        const GoalPoint &inp_goal, const std::vector<Polygon> &inp_obstacles) : tolerance(_tolerance), dof(other_dof), start(inp_start), goal(inp_goal),
+                                                                                obstacles(inp_obstacles), tree(start), distance_from_closest(goal.distance(start, start.configuration)), probability_gen(0.0, 1.0)
+    {
+        std::random_device rd;
+        std::mt19937 gen1(rd());
+        gen = gen1;
+
+        for (int i = 0; i < dof; i++)
+        {
+            std::uniform_real_distribution<> dis(start.joints[i].limits[0], start.joints[i].limits[1]);
+            random_gen.push_back(dis);
+        }
+        Vector2D intermediate_goal = goal.goalpoint;
+        intermediate_goal.x -= start.joints[dof - 1].length * std::cos(goal.angle1_ * 3.1415 / 180);
+        intermediate_goal.y -= start.joints[dof - 1].length * std::sin(goal.angle1_ * 3.1415 / 180);
+        Robot pos = start;
+        pos.configuration[dof - 1 ] = goal.angle1_;
+        for(int i=3;i<=10;i++)
+        sample_all_goals(end_configurations, pos, 0, intermediate_goal, i/10.0);
+        //TODO: добавить проверку решений с помощью ПЗК
+        for (Robot config:end_configurations){
+            for(auto angle:config.configuration){
+                std::cout<< angle<<" ";
+            }
+            std::cout<<std::endl;
+        }
+    }
+
+    RRT(const RRT &_other) = delete;
     RRT(RRT &&_other) = delete;
-    RRT operator=(const RRT &_other ) = delete;
-    RRT operator=(RRT &&_other ) = delete;
+    RRT operator=(const RRT &_other) = delete;
+    RRT operator=(RRT &&_other) = delete;
     ~RRT() = default;
 
     void grow_tree();
-    bool is_finished();
+    void expand_to_goal();
+    void expand_to_random();
+    bool is_finished() const;
+    void save(const std::string out_filename_csv, const std::string out_filename_xml, const std::string in_filename) const;
+    void sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Vector2D intermediate_goal, double length_koef);
+    Robot get_end_config_sample();
 
+    std::deque<std::vector<double>> get_path() const;
 
 private:
     bool finished = false;
     uint32_t iteration_count = 0;
     double tolerance;
+    std::vector<std::uniform_real_distribution<>> random_gen;
+    std::uniform_real_distribution<> probability_gen;
+    std::mt19937 gen;
     int dof;
     Robot start;
     GoalPoint goal;
+    float goal_bias = 0.1;
     std::vector<Polygon> obstacles;
     std::vector<std::weak_ptr<RRT::Tree::Node>> finish_node;
     Robot random_sample();
-    std::shared_ptr<RRT::Tree::Node> nearest_neighbour(const Robot& pos);
+    std::shared_ptr<RRT::Tree::Node> nearest_neighbour(const Robot &pos);
     Tree tree;
-
-    std::shared_ptr<RRT::Tree::Node> make_step(const std::shared_ptr<RRT::Tree::Node> node,const Robot& pos);
+    std::shared_ptr<RRT::Tree::Node> closest_to_goal_node = tree.head;
+    float distance_from_closest;
+    void save_tree();
+    std::shared_ptr<RRT::Tree::Node> make_step(const std::shared_ptr<RRT::Tree::Node> node, const Robot &pos);
     bool is_goal(const std::shared_ptr<RRT::Tree::Node> node);
-
+    std::vector<Robot> end_configurations;
 };

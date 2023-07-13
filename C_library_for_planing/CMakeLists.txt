@@ -15,31 +15,36 @@ add_executable(mytests "./test/mytests.cpp") # add this executable
 include(GoogleTest)
 gtest_discover_tests(mytests) # discovers tests by asking the compiled test executable to enumerate its tests
 
+set(LIB_SOURCE_FILES "./src/obstacles.cpp")
 set(LIB_HEADERS_FILES "./include/obstacles.h")
-add_library(obstacles STATIC ${LIB_HEADERS_FILES}) 
+add_library(obstacles STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
 set_target_properties(obstacles PROPERTIES LINKER_LANGUAGE CXX)
 
+set(LIB_SOURCE_FILES "./src/planner.cpp")
 set(LIB_HEADERS_FILES "./include/planner.h")
-add_library(planner STATIC ${LIB_HEADERS_FILES}) 
+add_library(planner STATIC   ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
 set_target_properties(planner PROPERTIES LINKER_LANGUAGE CXX)
 
 set(LIB_HEADERS_FILES "./include/robot.h")
-add_library(robot STATIC ${LIB_HEADERS_FILES})
+set(LIB_SOURCE_FILES "./src/robot.cpp")
+add_library(robot STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES})
 set_target_properties(robot PROPERTIES LINKER_LANGUAGE CXX) 
 
 set(LIB_HEADERS_FILES "./include/parsing.h")
-add_library(parsing STATIC ${LIB_HEADERS_FILES}) 
+set(LIB_HEADERS_FILES "./include/parsing.h")
+add_library(parsing STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
 set_target_properties(parsing PROPERTIES LINKER_LANGUAGE CXX)
 
 file(GLOB sources "./rapidxml/*.hpp")
-add_library(rapidxml STATIC ${sources}) 
+set(LIB_SOURCE_FILES "./src/rapidxml.cpp")
+add_library(rapidxml STATIC ${sources} ${LIB_SOURCE_FILES}) 
 set_target_properties(rapidxml PROPERTIES LINKER_LANGUAGE CXX)
 
-include_directories(./rapidxml ./include)
+include_directories(./rapidxml ./include ./googletest)
 
 add_executable(main "./src/main.cpp")
-target_link_libraries(main obstacles robot parsing rapidxml)
-target_link_libraries(mytests gtest robot parsing rapidxml)   
+target_link_libraries(main  robot parsing planner rapidxml obstacles)
+target_link_libraries(mytests gtest robot parsing planner rapidxml obstacles)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
 
 
@@ -48,4 +53,3 @@ SET(CMAKE_CXX_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage")
 SET(CMAKE_C_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage")
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 endif()
-

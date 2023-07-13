@@ -17,78 +17,20 @@ class Robot
 public:
     Robot() : dof_(0) {}
 
-    Robot(const Robot& other) 
-    {
-        for (Joint a:other.joints)
-        {
-            this->AddJoint(a.length, a.width, a.limits);            
-        }
-        this->configuration = other.configuration;
-    }
+    Robot(const Robot& other) ;
 
-    void AddJoint(double length, double width, const std::vector<double>& limits) {
-        Joint joint;
-        joint.length = length;
-        joint.width = width;
-        joint.limits = limits;
-        joints.push_back(joint);
-        dof_++;
-    }
+    void AddJoint(double length, double width, const std::vector<double>& limits);
 
-    void printJointDetails() const {
-        std::cout << "Robot DOF: " << dof_ << std::endl;
-
-        for (const auto& joint : joints)
-         {
-            std::cout << "Joint length: " << joint.length << std::endl;
-            std::cout << "Joint width: " << joint.width << std::endl;
-            std::cout << "Joint limits: ";
-            
-            for (const auto& limit : joint.limits) {
-                std::cout << limit << " ";
-            }
-
-            std::cout << std::endl;
-        }
-    }
+    void printJointDetails() const ;
     std::vector<Joint> get_joints() const {return joints;};
     std::vector<Joint> joints;
     std::vector<double> configuration;
     double dof_;
-    Robot operator-(Robot const rhs) const{
-        Robot result(*this);
-        for (int joint_index = 0; joint_index<result.configuration.size(); joint_index++){
-            result.configuration[joint_index] = result.configuration[joint_index] - rhs.configuration[joint_index];
-        }
-        return result;
+    Robot operator-(Robot const rhs) const;
+    Robot operator+(Robot const rhs) const;
 
-    }
-    Robot operator+(Robot const rhs) const{
-        Robot result(*this);
-        for (int joint_index = 0; joint_index<result.configuration.size(); joint_index++){
-            result.configuration[joint_index] = result.configuration[joint_index] + rhs.configuration[joint_index];
-        }
-        return result;
-
-    }
-
-    Robot operator/(double const rhs) const{
-        Robot result(*this);
-        for (int joint_index = 0; joint_index<result.configuration.size(); joint_index++){
-            result.configuration[joint_index] = result.configuration[joint_index] / rhs ;
-        }
-        return result;
-
-    }
-
-    Robot operator*(double const rhs) const{
-        Robot result(*this);
-        for (int joint_index = 0; joint_index<result.configuration.size(); joint_index++){
-            result.configuration[joint_index] = result.configuration[joint_index] * rhs ;
-        }
-        return result;
-
-    }
+    Robot operator/(double const rhs) const;
+    Robot operator*(double const rhs) const;
 
 };
 
@@ -97,25 +39,13 @@ struct GoalPoint
     Vector2D goalpoint;
     double angle1_;
     double angle2_;
-    double delta = 0.1;
-    bool is_goal(double x, double y, double angle){return (((x-goalpoint.x)*(x-goalpoint.x)) < delta) && (((y-goalpoint.y)*(y-goalpoint.y)) < delta) && angle>angle1_ && angle>angle2_;};
+    double delta = 0.0001;
+    bool is_goal(double x, double y, double angle);
+    float distance(const Robot &robot, const std::vector<double> config) const;
     GoalPoint(double x, double y, double angle1, double angle2): goalpoint(x, y), angle1_(angle1), angle2_(angle2){};
 };
 
-bool collide(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons)
-{
-    return false;
-}
+Vector2D end_effector(const Robot &robot, const std::vector<double> config);
 
-Vector2D end_effector(const Robot &robot, const std::vector<double> config)
-{
-    Vector2D ef(0.0, 0.0);
-    double angle = 0.0;
-    for (auto i=0u; i<robot.dof_; i++)
-    {
-        angle+=config[i];
-        ef.x += robot.joints[i].length * cos(angle);
-        ef.y += robot.joints[i].length * sin(angle);
-    }
-    return ef;
-}
+bool collide(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons);
+float fix_fmod(float angle);
