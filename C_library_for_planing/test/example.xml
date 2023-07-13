@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint>
+        <length> 1.2 </length>
+        <width> 0.1 </width>
+        <limit1> -180.0 </limit1>
+        <limit2> 180.0 </limit2>
+      </joint>
+      <joint>
+        <length> 1.2 </length>
+        <width> 0.1 </width>
+        <limit1> -180.0 </limit1>
+        <limit2> 180.0 </limit2>
+      </joint>
+      <joint>
+        <length> 1.2 </length>
+        <width> 0.1 </width>
+        <limit1> -180.0 </limit1>
+        <limit2> 180.0 </limit2>
+      </joint>
+      <joint>
+        <length> 1.2 </length>
+        <width> 0.1 </width>
+        <limit1> -180.0 </limit1>
+        <limit2> 180.0 </limit2>
+      </joint>
+    </joints>
+  </robot_info>
+
+  <start_configuration>
+    <angle> 18 </angle>
+    <angle> 36 </angle>
+    <angle> 54 </angle>
+    <angle> 72 </angle>
+  </start_configuration>
+
+  <goal_point>
+    <x> 10 </x>
+    <y> 10 </y>
+    <angle1> 80 </angle1>
+    <angle2> 90 </angle2>
+  </goal_point>
+
+  <scene>
+    <polygon>
+      <vertex>
+        <x> 1 </x>
+        <y> 1 </y>
+      </vertex>
+      <vertex>
+        <x> 2 </x>
+        <y> 3 </y>
+      </vertex>
+      <vertex>
+        <x> 4 </x>
+        <y> 2 </y>
+      </vertex>      
+    </polygon>
+
+    <polygon>
+      <vertex>
+        <x> 0 </x>
+        <y> 4 </y>
+      </vertex>
+      <vertex>
+        <x> 0 </x>
+        <y> 5 </y>
+      </vertex>
+      <vertex>
+        <x> 1 </x>
+        <y> 5 </y>
+      </vertex>   
+      <vertex>
+        <x> 1 </x>
+        <y> 4 </y>
+      </vertex>    
+    </polygon>
+
+    <polygon>
+      <vertex>
+        <x> -2 </x>
+        <y> 3 </y>
+      </vertex>
+      <vertex>
+        <x> -2 </x>
+        <y> 4 </y>
+      </vertex>
+      <vertex>
+        <x> 2 </x>
+        <y> 5 </y>
+      </vertex>   
+      <vertex>
+        <x> 3 </x>
+        <y> 5 </y>
+      </vertex>
+      <vertex>
+        <x> 3 </x>
+        <y> 4 </y>
+      </vertex>     
+    </polygon>
+
+  </scene>
+</input_info>
