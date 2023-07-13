@@ -3,6 +3,7 @@ from PySide6.QtCore import QRectF, Qt, QPointF, Signal, QObject
 from PySide6 import QtGui
 import numpy as np
 from  PySide6 import QtCore
+import obstacles
 class Robo_scene(QGraphicsScene):
     angle_changed = Signal(int, float)
 
@@ -56,3 +57,9 @@ class Robo_scene(QGraphicsScene):
         super().mouseReleaseEvent(event)
         if self.goal_point_manager is not None:
             self.goal_point_manager = None
+
+    def keyPressEvent(self, event):
+        super().keyPressEvent(event)
+        if isinstance(self.focusItem(),obstacles.Obstacle):
+            if event.matches(QtGui.QKeySequence.Delete):
+                self.focusItem().suicide()

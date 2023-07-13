@@ -43,9 +43,10 @@ class Dot(QGraphicsEllipseItem):
     
     
 class Obstacle(QGraphicsPolygonItem):
-    def __init__(self,*args,**kwargs):
+    def __init__(self,manager,*args,**kwargs):
         
         super().__init__(*args,**kwargs)
+        self.manager = manager
         self.dots_visible=True
         self.fig = QPolygonF()
         obs_pen = QtGui.QPen(QtGui.Qt.black)
@@ -86,6 +87,12 @@ class Obstacle(QGraphicsPolygonItem):
         self.set_dots_visible(True)
     def focusOutEvent(self,event):
         self.set_dots_visible(False)
+        
+    def suicide(self):
+        self.manager.delete(self)
+        
+
+                
 
 class ObstacleManager(QObject):
     def __init__(self,X_line_edit, Y_line_edit,poli_list,scene):
@@ -102,21 +109,27 @@ class ObstacleManager(QObject):
             
     def create_obstacle(self):
         self.off_dots()
-        self.obstacles.append(Obstacle())
+        self.obstacles.append(Obstacle(self))
         self.scene.addItem(self.obstacles[-1])
 
         self.scene.go_poli_mode(self.obstacles[-1])
     
     def add_obstacle(self):
         self.off_dots()
-        self.obstacles.append(Obstacle())
+        self.obstacles.append(Obstacle(self))
         self.scene.addItem(self.obstacles[-1])
     def reset(self):
         for obs_ind in range(len(self.obstacles)):
             self.obstacles[0].setParentItem(None)
             self.scene.removeItem(self.obstacles[0])
             self.obstacles.pop(0)
-        
+
+    def delete(self,obstacle_to_delete):
+        for index, obstacle in enumerate(self.obstacles):
+            if obstacle is obstacle_to_delete:
+                self.obstacles[index].setParentItem(None)
+                self.scene.removeItem(self.obstacles[index])
+                self.obstacles.pop(index)
     def __iter__(self):
         self._current_index = 0
         return self
@@ -126,6 +139,8 @@ class ObstacleManager(QObject):
             self._current_index+=1
             return Polygon(self.obstacles[self._current_index-1].polygon())
         raise StopIteration
+    
+
 
 class Polygon():
     """Вспомогательный итератор для полигонов, для упрощения кода
