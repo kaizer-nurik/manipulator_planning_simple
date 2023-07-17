@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <fstream>
 #include "benchmark.h"
+#include "../json-develop/include/nlohmann/json.hpp"
 
 template<typename T>
 std::vector<T> operator+(const std::vector<T>& vec1, const std::vector<T>& vec2) {
@@ -64,14 +65,16 @@ struct Node
     }
 };
 
-struct CompareNodes {
+struct CompareNodes
+ {
     bool operator()(const std::shared_ptr<Node>& node1, const std::shared_ptr<Node>& node2) const {
         // Higher priority nodes should have lower priority values
         return node1->getFCost() > node2->getFCost();
     }
 };
 
-struct HashNode {
+struct HashNode 
+{
     size_t operator()(const std::shared_ptr<Node>& node) const {
         size_t hash = 0;
         for (const auto& value : node->position) {
@@ -104,21 +107,23 @@ struct EqualNode
     }
 };
 
-struct CompareKey {
-    bool operator()(const std::vector<int>& key1, const std::vector<int>& key2) const {
-        // Compare the sizes of the vectors
-        if (key1.size() != key2.size()) {
+struct CompareKey
+ {
+    bool operator()(const std::vector<int>& key1, const std::vector<int>& key2) const
+     {
+        if (key1.size() != key2.size())
+         {
             return key1.size() < key2.size();
         }
 
-        // Compare the elements of the vectors element-wise
-        for (size_t i = 0; i < key1.size(); ++i) {
+        for (size_t i = 0; i < key1.size(); ++i)
+         {
             if (key1[i] != key2[i]) {
                 return key1[i] < key2[i];
             }
         }
 
-        return false; // Both keys are equal
+        return false;
     }
 };
 
@@ -237,6 +242,30 @@ void generateVectors(std::vector<std::vector<int>>& result, std::vector<int>& cu
     }
 }
 
+
+void writeDataToJson(int test,  int g_units, double coord_tolerance, double angle_tolerance, double time, double coll_check_percentage, int opened_nodes, int closed_nodes, double g_cost, int turn_numbers,  const std::string& filename) {
+    nlohmann::json j;
+    j["_number"] = test;
+    j["g_units"] = g_units;
+    j["coord_tolerance"] = coord_tolerance;
+    j["total_time"] = time;
+    j["coll_check_percentage"] = coll_check_percentage;
+    j["opened_nodes"] = opened_nodes;
+    j["closed_nodes"] = closed_nodes;
+    j["g_cost"] = g_cost;
+    j["turn_number"] = turn_numbers;
+
+    std::ofstream file(filename, std::ios::app);
+
+    if (file.is_open()) {
+        file << j.dump(4);  // Use dump(4) for indentation
+        //std::cout << "Data has been written to the file." << std::endl;
+        file.close();
+    } else {
+        std::cout << "Unable to open the file." << std::endl;
+    }
+}
+
 class Planner 
 {
 public:
@@ -244,7 +273,7 @@ public:
 
     double heuristic(const Robot &robot, const GoalPoint &goalpoint, const std::vector<double> &angles)
     {
-        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.01 *std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.8 *std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
     }
     double geuristic(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
     {
@@ -252,13 +281,16 @@ public:
     }
 
     
-    bool AStar(const Robot& robot, const GoalPoint& goalpoint, const std::vector<Polygon>& obstacles)
+    bool AStar(const Robot& robot, const GoalPoint& goalpoint, const std::vector<Polygon>& obstacles, std::map<std::string, double> &dictionary)
     {
-        Timer<std::chrono::seconds> tt("a-star");
+        Timer t("a-star");
+        Timer tt("coll_check");
+        double time=0.0;
 
         Vector2D goal = goalpoint.goalpoint;
         
         const int g_units = 15; // mesh fineness [-angle1, angle2] -- 2g_units
+        double coord_tolerance = 0.1;
         std::vector<double> deltas(robot.dof_, 0.0);
 
         for (auto i = 0u; i < robot.configuration.size(); i++)
@@ -291,7 +323,9 @@ public:
         opened_nodes.push(start);
         map_pq_opened.emplace(start->position, start);
         Vector2D startPoint = end_effector(robot,angles);
-        int NODES = 1;
+        int NODES = 0;
+        int Nodes_closed = 0;
+        int n_turns = 0;
 
 
         while (!opened_nodes.empty())
@@ -301,25 +335,38 @@ public:
             map_pq_opened.erase(current->position);
 
             closed_nodes.insert(current);
+            Nodes_closed++;
             auto currxy = end_effector(robot, calc_angles(robot, current->position, deltas));
 
             //std::cout << current->getFCost() << ' ' << current->gCost << ' ' << current->hCost  << std::endl;
             std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << std::endl;
+            if (opened_nodes.size()>50'000) return false;
             
             angles = calc_angles(robot, current->position, deltas);
             
             //std:: cout << angles[0]*180/std::acos(-1) << ',' << angles[1]*180/std::acos(-1) << ',' << angles[2]*180/std::acos(-1) << std::endl;
             std::vector<double> curr_angles = calc_angles(robot, current->position, deltas);
             
-            if (std::abs(current->hCost) < 0.2 )//&& std::abs(last_angle(angles) - goalpoint.angle1_)<goalpoint.angle2_)
+            if (std::abs(current->hCost) < coord_tolerance) // && std::abs(last_angle(angles) - goalpoint.angle1_)<goalpoint.angle2_)
             {
                 reconstruct_path(current,input_filename_, output_filename_, robot, deltas);
                 angles = calc_angles(robot, current->position, deltas);
                 std::cout << "Пришел в: " << end_effector(robot, angles).x << ' ' << end_effector(robot, angles).y << 
                 " angle: "<< last_angle(angles) << "  "<< angles.back()*180/std::acos(-1) << " opened nodes: " << NODES << std::endl;
+
+                dictionary["g_units"] = g_units;
+                dictionary["coord_tolerance"] = coord_tolerance;
+                dictionary["angle_tolerance"] = goalpoint.angle2_;
+                dictionary["time"] = t.getElapsedTime();
+                dictionary["coll_check_percentage"] = time/t.getElapsedTime() * 100;
+                dictionary["opened_nodes"] = NODES;
+                dictionary["closed_nodes"] = Nodes_closed;
+                dictionary["g_cost"] = current->gCost;
+                dictionary["turn_numbers"] = n_turns;
+            
                 return true;
             }
-
+            n_turns++;
             for (const auto &i:primitivemoves)
             {
                 std::shared_ptr<Node> newneighbour = std::make_shared<Node>(current->position+i, 0.0, 0.0, current);
@@ -327,7 +374,11 @@ public:
                 angles = calc_angles(robot, newneighbour->position, deltas);
                 newneighbour->hCost = heuristic(robot, goalpoint, angles);
 
-                if  (collide(robot, angles, obstacles))
+                tt.start();
+                bool flag = collide(robot, angles, obstacles);
+                time+=tt.getElapsedTime();
+                tt.pause();
+                if  (flag)
                 {
                     //closed_nodes.insert(newneighbour);
                     //std::cout << "collision" << std::endl;

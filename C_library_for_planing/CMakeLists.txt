@@ -43,11 +43,15 @@ file(GLOB sources "./rapidxml/*.hpp")
 add_library(rapidxml STATIC ${sources}) 
 set_target_properties(rapidxml PROPERTIES LINKER_LANGUAGE CXX)
 
-include_directories(./rapidxml ./include)
+file(GLOB sources "./json-develop/include/nlohmann/*.hpp")
+add_library(json STATIC ${sources}) 
+set_target_properties(json PROPERTIES LINKER_LANGUAGE CXX)
+
+include_directories(./rapidxml ./json-develop/include ./include)
 
 add_executable(main "./src/main.cpp")
-target_link_libraries(main obstacles robot parsing rapidxml)
-target_link_libraries(mytests gtest robot parsing rapidxml)   
+target_link_libraries(main obstacles robot parsing rapidxml json)
+target_link_libraries(mytests gtest robot parsing rapidxml json)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
 
 
