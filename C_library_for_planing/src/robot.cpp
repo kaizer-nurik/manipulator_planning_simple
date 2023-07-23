@@ -1,6 +1,7 @@
 #include "robot.h"
 #include <assert.h>
 #include "../include/obstacles.h"
+#include <cmath>
 Robot::Robot(const Robot &other)
 {
     for (Joint a : other.joints)
@@ -90,8 +91,7 @@ bool GoalPoint::is_goal(const double& x, const double& y, const double& angle) c
     // std::cout<<(x )<<" "<<(y )<<" "<<std::abs(fix_fmod(angle))<<" "<<goalpoint.x<<" "<<goalpoint.y<<std::endl;
     // std::cout<<(x - goalpoint.x)<<" "<<(y - goalpoint.y)<<" "<<std::abs(fix_fmod(angle)-angle1_)<<std::endl;
      return (
-        ((x - goalpoint.x) * (x - goalpoint.x)) < delta) && 
-        (((y - goalpoint.y) * (y - goalpoint.y)) < delta)
+        std::sqrt(((x - goalpoint.x) * (x - goalpoint.x))+((y - goalpoint.y) * (y - goalpoint.y))) < delta)
         && (std::abs(fix_fmod(angle)-angle1_) < angle2_); };
 
 Vector2D end_effector(const Robot &robot, const std::vector<double>& config)
