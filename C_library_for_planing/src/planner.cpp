@@ -315,13 +315,7 @@ std::shared_ptr<RRT::Tree::Node> RRT::make_step(const std::shared_ptr<RRT::Tree:
 bool RRT::is_goal(std::shared_ptr<RRT::Tree::Node> node)
 {
     Robot pos = (*node).get_position();
-    Vector2D q = end_effector(pos, pos.configuration);
-    double angle = 0.0;
-    for (auto i = 0u; i < pos.dof_; i++)
-    {
-        angle += pos.configuration[i];
-    }
-    return goal.is_goal(q.x, q.y, angle);
+    return goal.is_goal(pos);
 }
 template <typename T>
 bool is_uninitialized(std::weak_ptr<T> const &weak)

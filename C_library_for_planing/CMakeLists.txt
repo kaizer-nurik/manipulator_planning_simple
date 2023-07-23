@@ -45,10 +45,15 @@ set(LIB_HEADERS_FILES "./include/file_saver.h")
 add_library(file_saver STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
 set_target_properties(file_saver PROPERTIES LINKER_LANGUAGE CXX)
 
+set(LIB_SOURCE_FILES "./src/inverse_kinematics.cpp")
+set(LIB_HEADERS_FILES "./include/inverse_kinematics.h")
+add_library(inverse_kinematics STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
+set_target_properties(inverse_kinematics PROPERTIES LINKER_LANGUAGE CXX)
+
 include_directories(./rapidxml ./include ./googletest)
 
 add_executable(main "./src/main.cpp")
-target_link_libraries(main file_saver robot parsing planner rapidxml obstacles )
+target_link_libraries(main inverse_kinematics file_saver robot parsing planner rapidxml obstacles )
 target_link_libraries(mytests gtest robot parsing planner rapidxml obstacles)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
 

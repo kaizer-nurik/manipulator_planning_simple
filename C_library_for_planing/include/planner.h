@@ -14,6 +14,7 @@
 #include <deque>
 #include <random>
 #include <assert.h>
+#include "inverse_kinematics.h"
 #define RRT_GOAL_POINT_PROBABILITY 0.1
 
 struct Node
@@ -130,21 +131,14 @@ public:
             std::uniform_real_distribution<> dis(start.joints[i].limits[0], start.joints[i].limits[1]);
             random_gen.push_back(dis);
         }
-        Vector2D intermediate_goal = goal.goalpoint;
-        intermediate_goal.x -= start.joints[dof - 1].length * std::cos(goal.angle1_ * 3.1415 / 180);
-        intermediate_goal.y -= start.joints[dof - 1].length * std::sin(goal.angle1_ * 3.1415 / 180);
-        Robot pos = start;
-        pos.configuration[dof - 1] = goal.angle1_;
-        for (int i = 3; i <= 10; i++)
-        {
-            sample_all_goals(end_configurations, pos, 0, intermediate_goal, i / 10.0);
-        }
+        InverseKinematics::sample_all_goals(end_configurations,start,goal,obstacles);
         // TODO: добавить проверку решений с помощью ПЗК
 
         if (end_configurations.size() == 0)
         {
             throw std::invalid_argument("No solution found for goal configuration.");
         }
+        std::cout<<"Inverse Kinematics solved, got "<<end_configurations.size()<<" solutions"<<std::endl;
     }
 
     RRT(const RRT &_other) = delete;

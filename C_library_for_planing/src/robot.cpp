@@ -86,15 +86,15 @@ float fix_fmod(float angle){
     return fmod(angle + 180, 360) + 180;
 
 }
-bool GoalPoint::is_goal(double x, double y, double angle) {
+bool GoalPoint::is_goal(const double& x, const double& y, const double& angle) const{
     // std::cout<<(x )<<" "<<(y )<<" "<<std::abs(fix_fmod(angle))<<" "<<goalpoint.x<<" "<<goalpoint.y<<std::endl;
     // std::cout<<(x - goalpoint.x)<<" "<<(y - goalpoint.y)<<" "<<std::abs(fix_fmod(angle)-angle1_)<<std::endl;
      return (
         ((x - goalpoint.x) * (x - goalpoint.x)) < delta) && 
-        (((y - goalpoint.y) * (y - goalpoint.y)) < delta);}
-        //&& (std::abs(fix_fmod(angle)-angle1_) < angle2_); };
+        (((y - goalpoint.y) * (y - goalpoint.y)) < delta)
+        && (std::abs(fix_fmod(angle)-angle1_) < angle2_); };
 
-Vector2D end_effector(const Robot &robot, const std::vector<double> config)
+Vector2D end_effector(const Robot &robot, const std::vector<double>& config)
 {
     Vector2D ef(0.0, 0.0);
     double angle = 0.0;
@@ -161,4 +161,15 @@ bool collide(const Robot &robot, const std::vector<double> angles, const std::ve
 float GoalPoint::distance(const Robot &robot, const std::vector<double> config) const{
     Vector2D coords = end_effector(robot,config);
     return std::sqrt((coords.x-goalpoint.x)*(coords.x-goalpoint.x)+(coords.y-goalpoint.y)*(coords.y-goalpoint.y));
+}
+
+
+bool GoalPoint::is_goal(const Robot& pos)const{
+    Vector2D q = end_effector(pos, pos.configuration);
+    double angle = 0.0;
+    for (auto i = 0u; i < pos.dof_; i++)
+    {
+        angle += pos.configuration[i];
+    }
+    return is_goal(q.x, q.y, angle);
 }
