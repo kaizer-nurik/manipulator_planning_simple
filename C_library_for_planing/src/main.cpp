@@ -9,7 +9,7 @@
 #include "planner.h"
 #include "geometry.h"
 #include <vector>
-
+#include "file_saver.h"
 
 int main(int argc, const char * argv[])
  {
@@ -34,6 +34,13 @@ int main(int argc, const char * argv[])
         }
     
     }
-    planner.save("example.csv","example.xml",argv[1]);
+
+    FileSaver::save_csv<double>("output.csv",planner.get_path(),planner.get_dof());
+
+    // Функция, Записывающая csv файл в xml под <csv></csv>
+    FileSaver::save_csv_to_xml<double>("output.xml",argv[1],planner.get_path(),planner.get_dof());
+
+    // Функция, сохраняющая дерево из rrt для визуализации в питоне.
+    FileSaver::save_rrt_tree("rrt_tree.csv", planner.get_tree());
     return EXIT_SUCCESS;
 }

@@ -134,15 +134,16 @@ public:
         intermediate_goal.x -= start.joints[dof - 1].length * std::cos(goal.angle1_ * 3.1415 / 180);
         intermediate_goal.y -= start.joints[dof - 1].length * std::sin(goal.angle1_ * 3.1415 / 180);
         Robot pos = start;
-        pos.configuration[dof - 1 ] = goal.angle1_;
-        for(int i=3;i<=10;i++)
-        sample_all_goals(end_configurations, pos, 0, intermediate_goal, i/10.0);
-        //TODO: добавить проверку решений с помощью ПЗК
-        for (Robot config:end_configurations){
-            for(auto angle:config.configuration){
-                std::cout<< angle<<" ";
-            }
-            std::cout<<std::endl;
+        pos.configuration[dof - 1] = goal.angle1_;
+        for (int i = 3; i <= 10; i++)
+        {
+            sample_all_goals(end_configurations, pos, 0, intermediate_goal, i / 10.0);
+        }
+        // TODO: добавить проверку решений с помощью ПЗК
+
+        if (end_configurations.size() == 0)
+        {
+            throw std::invalid_argument("No solution found for goal configuration.");
         }
     }
 
@@ -153,16 +154,17 @@ public:
     ~RRT() = default;
 
     void grow_tree();
-    void expand_to_goal();
-    void expand_to_random();
+    
     bool is_finished() const;
-    void save(const std::string out_filename_csv, const std::string out_filename_xml, const std::string in_filename) const;
-    void sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Vector2D intermediate_goal, double length_koef);
-    Robot get_end_config_sample();
-
-    std::deque<std::vector<double>> get_path() const;
+    Tree& get_tree();    
+    int get_dof() const;
+    std::vector<double> get_path() const;
 
 private:
+    void expand_to_goal();
+    void expand_to_random();
+    void sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Vector2D intermediate_goal, double length_koef);
+    Robot get_end_config_sample();
     bool finished = false;
     uint32_t iteration_count = 0;
     double tolerance;
@@ -172,7 +174,7 @@ private:
     int dof;
     Robot start;
     GoalPoint goal;
-    float goal_bias = 0.1;
+    float goal_bias = 0.3;
     std::vector<Polygon> obstacles;
     std::vector<std::weak_ptr<RRT::Tree::Node>> finish_node;
     Robot random_sample();

@@ -40,10 +40,15 @@ set(LIB_SOURCE_FILES "./src/rapidxml.cpp")
 add_library(rapidxml STATIC ${sources} ${LIB_SOURCE_FILES}) 
 set_target_properties(rapidxml PROPERTIES LINKER_LANGUAGE CXX)
 
+set(LIB_SOURCE_FILES "./src/file_saver.cpp")
+set(LIB_HEADERS_FILES "./include/file_saver.h")
+add_library(file_saver STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
+set_target_properties(file_saver PROPERTIES LINKER_LANGUAGE CXX)
+
 include_directories(./rapidxml ./include ./googletest)
 
 add_executable(main "./src/main.cpp")
-target_link_libraries(main  robot parsing planner rapidxml obstacles)
+target_link_libraries(main file_saver robot parsing planner rapidxml obstacles )
 target_link_libraries(mytests gtest robot parsing planner rapidxml obstacles)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
 

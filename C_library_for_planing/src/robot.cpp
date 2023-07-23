@@ -87,8 +87,8 @@ float fix_fmod(float angle){
 
 }
 bool GoalPoint::is_goal(double x, double y, double angle) {
-    std::cout<<(x )<<" "<<(y )<<" "<<std::abs(fix_fmod(angle))<<" "<<goalpoint.x<<" "<<goalpoint.y<<std::endl;
-    std::cout<<(x - goalpoint.x)<<" "<<(y - goalpoint.y)<<" "<<std::abs(fix_fmod(angle)-angle1_)<<std::endl;
+    // std::cout<<(x )<<" "<<(y )<<" "<<std::abs(fix_fmod(angle))<<" "<<goalpoint.x<<" "<<goalpoint.y<<std::endl;
+    // std::cout<<(x - goalpoint.x)<<" "<<(y - goalpoint.y)<<" "<<std::abs(fix_fmod(angle)-angle1_)<<std::endl;
      return (
         ((x - goalpoint.x) * (x - goalpoint.x)) < delta) && 
         (((y - goalpoint.y) * (y - goalpoint.y)) < delta);}
@@ -146,7 +146,7 @@ bool collide(const Robot &robot, const std::vector<double> angles, const std::ve
             }
         }
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
     for (int i=0; i<joints.size(); i++)
     {
         for (int j=0; j<joints.size(); j++)

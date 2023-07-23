@@ -12,7 +12,6 @@
 #include <map>
 #include <stdexcept>
 #include <assert.h>
-
 // из-за числовой нестабильности чисел с плавающей запятой
 // Возможны случаи, когда косинус равен не 1, а 1.000001 и т. д.
 #define COS_TOLERANCE 0.00000001
@@ -37,14 +36,7 @@ bool RRT::Tree::Node::is_children(std::shared_ptr<Node> child)
 
 double RRT::Tree::Node::distance(std::shared_ptr<Node> other)
 {
-    std::vector<double> n1 = get_position().configuration;
-    std::vector<double> n2 = (*other).get_position().configuration;
-    double result = 0;
-    for (int i = 0; i < n1.size(); i++)
-    {
-        result += (n1[i] - n2[i]) * (n1[i] - n2[i]);
-    }
-    return result;
+    return this->distance(other->get_position());
 }
 
 double RRT::Tree::Node::distance(Robot other)
@@ -87,7 +79,6 @@ void RRT::grow_tree()
     {
         expand_to_random();
     }
-    save_tree();
     iteration_count++;
 }
 
@@ -174,15 +165,16 @@ void RRT::sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Ve
 
         sample.configuration[depth] = angle_2;
     }
-    if ((sample.configuration[depth]  < sample.joints[depth].limits[0])||(sample.configuration[depth]  > sample.joints[depth].limits[1]))
+    if ((sample.configuration[depth] < sample.joints[depth].limits[0]) || (sample.configuration[depth] > sample.joints[depth].limits[1]))
     {
         return;
     }
     if (depth == (dof - 2))
     {
         sample.configuration[dof - 1] -= curr_angle + sample.configuration[dof - 2];
-        if(!collide(sample, sample.configuration, obstacles)){
-        answers.push_back(sample);
+        if (!collide(sample, sample.configuration, obstacles))
+        {
+            answers.push_back(sample);
         }
         return;
     }
@@ -202,14 +194,22 @@ void RRT::sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Ve
 
 Robot RRT::get_end_config_sample()
 {
-    if (end_configurations.size())
+    return end_configurations[std::floor(end_configurations.size() * probability_gen(gen) * 0.99)];
+}
+Robot RRT::random_sample()
+{
+    Robot sample = Robot(start);
+
+    for (int i = 0; i < start.configuration.size(); i++)
     {
-        return end_configurations[std::floor(end_configurations.size() * probability_gen(gen) * 0.99)];
+
+        sample.configuration[i] = random_gen[i](gen);
     }
-    throw std::invalid_argument("No solution found for goal configuration.");
+    return sample;
 }
 void RRT::expand_to_goal()
 {
+    // Берём случайную финишную точку и стремимся к ней, пока можем.
     Robot sample_goal_config = get_end_config_sample();
     std::shared_ptr<RRT::Tree::Node> nearest_node = nearest_neighbour(sample_goal_config);
     std::shared_ptr<RRT::Tree::Node> next_node = nearest_node;
@@ -228,6 +228,7 @@ void RRT::expand_to_goal()
         finish_node.push_back(next_node);
     }
 }
+
 void RRT::expand_to_random()
 {
     Robot random_position = random_sample();
@@ -236,11 +237,6 @@ void RRT::expand_to_random()
     if (next_node)
     {
         nearest_node->add_childen(next_node);
-        // for (int i = 0; i < dof; i++)
-        // {
-        //     std::cout << (*next_node).get_position().configuration[i] << ' ';
-        // }
-        // std::cout << std::endl;
         if (is_goal(next_node))
         {
             finished = true;
@@ -251,18 +247,6 @@ void RRT::expand_to_random()
 bool RRT::is_finished() const
 {
     return finished;
-}
-
-Robot RRT::random_sample()
-{
-    Robot sample = Robot(start);
-
-    for (int i = 0; i < start.configuration.size(); i++)
-    {
-
-        sample.configuration[i] = random_gen[i](gen);
-    }
-    return sample;
 }
 
 std::shared_ptr<RRT::Tree::Node> RRT::nearest_neighbour(const Robot &pos)
@@ -302,39 +286,32 @@ std::shared_ptr<RRT::Tree::Node> RRT::make_step(const std::shared_ptr<RRT::Tree:
     // }
     // std::cout << (*node).distance(pos) << std::endl;
     Robot delta;
-    if ((*node).distance(pos) != 0)
+    if ((*node).distance(pos) != 0) // защита от деления на 0
     {
         delta = (pos - (*node).get_position()) / (*node).distance(pos); // нормированный вектор от ноды по рандомной позиции
     }
     else
     {
 
-            std::shared_ptr<RRT::Tree::Node> null_node;
-            return null_node;
-
+        std::shared_ptr<RRT::Tree::Node> null_node;
+        return null_node;
     }
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    // std::uniform_real_distribution<> dis(0.1, tolerance);
-    // for (auto angle : delta.configuration)
-    // {
 
-    //     assert(!std::isnan(angle));
-    // }
     Robot new_pose = (*node).get_position() + delta * tolerance; // dis(gen);
-    if (node->distance(new_pose) > node->distance(pos))
+    if (node->distance(new_pose) > node->distance(pos))          // если шаг дальше, чем точка, то урезаем до точки
     {
         new_pose = pos;
     }
     if (collide(new_pose, new_pose.configuration, obstacles))
     {
-        std::cout<<"aaaaa"<<std::endl;
         std::shared_ptr<RRT::Tree::Node> null_node;
         return null_node;
     }
+
     std::shared_ptr<RRT::Tree::Node> new_node(new RRT::Tree::Node(new_pose));
     return new_node;
 }
+
 bool RRT::is_goal(std::shared_ptr<RRT::Tree::Node> node)
 {
     Robot pos = (*node).get_position();
@@ -352,10 +329,11 @@ bool is_uninitialized(std::weak_ptr<T> const &weak)
     using wt = std::weak_ptr<T>;
     return !weak.owner_before(wt{}) && !wt{}.owner_before(weak);
 }
-std::deque<std::vector<double>> RRT::get_path() const
+std::vector<double> RRT::get_path() const
 {
-    std::deque<std::vector<double>> path;
+    std::vector<double> path;
     std::weak_ptr<RRT::Tree::Node> node = finish_node[0];
+
     if (std::shared_ptr<RRT::Tree::Node> spt = node.lock())
     {
         while (!is_uninitialized<RRT::Tree::Node>(spt->get_parent()))
@@ -363,98 +341,23 @@ std::deque<std::vector<double>> RRT::get_path() const
             node = spt->get_parent();
             if (std::shared_ptr<RRT::Tree::Node> nspt = node.lock())
             {
-                path.push_front(nspt->get_position().configuration);
+                for (int joint_index = dof-1; joint_index >= 0; joint_index--)
+                {
+                    path.push_back(nspt->get_position().configuration[joint_index]);
+                }
             }
             spt = node.lock();
         }
+        std::reverse(path.begin(), path.end());
     }
     return path;
 }
 
-void RRT::save_tree()
+RRT::Tree &RRT::get_tree()
 {
-    std::deque<std::shared_ptr<RRT::Tree::Node>> need_visit;
-    std::map<std::shared_ptr<RRT::Tree::Node>, int> node2ind;
-    need_visit.push_back(tree.head);
-    int node_ind = 0;
-
-    node2ind[tree.head] = 0;
-    std::ofstream ofs("tree.csv", std::ofstream::out);
-    ofs << 0 << "," << tree.head->get_position().configuration[0] << "," << tree.head->get_position().configuration[1] << "," << 0 << std::endl;
-    while (need_visit.size() > 0)
-    {
-        int curr_parent = node2ind[need_visit[0]];
-        for (auto child : (*need_visit[0]).children)
-        {
-            need_visit.push_back(child);
-            node_ind++;
-            node2ind[child] = node_ind;
-            ofs << node_ind << "," << child->get_position().configuration[0] << "," << child->get_position().configuration[1] << "," << curr_parent << std::endl;
-        }
-        need_visit.pop_front();
-    }
-    ofs.close();
+    return tree;
 }
-void RRT::save(const std::string out_filename_csv, const std::string out_filename_xml, const std::string in_filename) const
+int RRT::get_dof() const
 {
-    std::deque<std::vector<double>> path = this->get_path();
-    std::ofstream ofs(out_filename_csv, std::ofstream::out);
-    std::string path_csv = "";
-    for (int i = 0; i < path.size(); i++)
-    {
-        if (dof == 1)
-        {
-            ofs << std::to_string(path[i][0]) << '\n';
-            path_csv += std::to_string(path[i][0]) + '\n';
-        }
-        else
-        {
-            for (int j = 0; j < dof - 1; j++)
-            {
-                ofs << std::to_string(path[i][j]) << ",";
-                path_csv += std::to_string(path[i][j]) + ',';
-            }
-            ofs << path[i][dof - 1] << '\n';
-            path_csv += std::to_string(path[i][dof - 1]) + '\n';
-        }
-    }
-    ofs.close();
-
-    std::ifstream sourceFile(in_filename);
-    std::ofstream targetFile(out_filename_xml, std::ofstream::out);
-    if (sourceFile.is_open())
-    {
-        int line_count = std::count(std::istreambuf_iterator<char>(sourceFile),
-                                    std::istreambuf_iterator<char>(), '\n');
-        sourceFile.seekg(0, std::ios_base::beg);
-        // Открываем целевой файл для записи
-
-        if (targetFile.is_open())
-        {
-            // Копируем содержимое исходного файла в целевой файл
-            for (int i = 0; i < line_count; i++)
-            {
-                std::string line = "";
-                std::getline(sourceFile, line);
-                targetFile << line << std::endl;
-            }
-        }
-
-        sourceFile.close();
-    }
-
-    if (targetFile.is_open())
-    {
-        targetFile << "<csv>" << path_csv << "</csv>" << std::endl;
-        targetFile << "</input_info>";
-        targetFile.close();
-
-        std::cout << "Данные успешно добавлены в файл." << std::endl;
-    }
-    else
-    {
-        std::cerr << "Не удалось открыть файл для дозаписи." << std::endl;
-    }
-
-    std::cout << "XML file created successfully." << std::endl;
+    return dof;
 }
