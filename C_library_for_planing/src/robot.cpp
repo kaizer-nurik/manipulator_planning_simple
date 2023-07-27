@@ -149,14 +149,14 @@ bool collide(const Robot &robot, const std::vector<double> angles, const std::ve
         }
     }
     // std::cout << std::endl;
-    for (int i=0; i<joints.size(); i++)
-    {
-        for (int j=0; j<joints.size(); j++)
-        {
-            if (std::abs(j-i)<2) continue;
-            if (polygons_collide(joints[i], joints[j])) return true;
-        }
-    }
+    // for (int i=0; i<joints.size(); i++)
+    // {
+    //     for (int j=0; j<joints.size(); j++)
+    //     {
+    //         if (std::abs(j-i)<2) continue;
+    //         if (polygons_collide(joints[i], joints[j])) return true;
+    //     }
+    // }
     return flag;
 }
 

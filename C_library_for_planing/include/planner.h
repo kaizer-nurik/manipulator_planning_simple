@@ -131,7 +131,7 @@ public:
             std::uniform_real_distribution<> dis(start.joints[i].limits[0], start.joints[i].limits[1]);
             random_gen.push_back(dis);
         }
-        InverseKinematics::sample_all_goals_parallel(end_configurations,start,goal,obstacles,2.0,10.0,1.0);
+        InverseKinematics::sample_all_goals(end_configurations,start,goal,obstacles,5);
         // TODO: добавить проверку решений с помощью ПЗК
 
         if (end_configurations.size() == 0)
