@@ -25,7 +25,7 @@ void test_IK(const uint8_t max_joint, const uint8_t max_iter){
     std::mt19937 gen(rd());
     std::vector<std::uniform_real_distribution<>> random_gen;
     std::uniform_real_distribution<> dis(-180,180);
-    std::uniform_real_distribution<> dis_length(1,5);
+    std::uniform_real_distribution<> dis_length(0.1,5);
     for (int i = 0; i < max_joint; i++)
     {
 
@@ -35,7 +35,7 @@ void test_IK(const uint8_t max_joint, const uint8_t max_iter){
         Robot sample;
         for (int joint_count = 0; joint_count <= i; joint_count++)
         {
-            sample.AddJoint(1, 0.2, {-180, 180});
+            sample.AddJoint(dis_length(gen), 0.2, {-180, 180});
             sample.configuration.push_back(0);
         }
         std::cout<<"joint number "<< i+1<<std::endl;
@@ -62,7 +62,7 @@ void test_IK(const uint8_t max_joint, const uint8_t max_iter){
         goal.angle1_ = angle;
 
         
-        InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
+        InverseKinematics::sample_all_goals_parallel(end_configurations, sample, goal, polygons, 3);
         
         ASSERT_GT(end_configurations.size(), 0);
 

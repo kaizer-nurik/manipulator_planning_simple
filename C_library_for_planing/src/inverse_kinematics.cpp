@@ -13,6 +13,15 @@
 
 namespace
 {
+    struct Robot_and_layer_info{
+        Robot pos;
+        double curr_angle = 0;
+        Vector2D last = Vector2D(0.0, 0.0);
+        Robot_and_layer_info(const Robot p):pos(p){};
+        Robot_and_layer_info(const Robot p,Robot_and_layer_info other):pos(p), curr_angle(other.curr_angle), last(other.last){};
+
+    };
+
     double acos_with_tolerance(const double &value, const double &tolerance)
     {
         double angle = std::acos(value);
@@ -149,17 +158,27 @@ namespace
         }
     }
 
-    void calculate_curr_angle_parallel(Robot current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot> &layer, std::mutex &queue_mutex)
+    void calculate_curr_angle_parallel(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot_and_layer_info> &layer, std::mutex &queue_mutex)
     {
         remaining_length *= length_coef;
-        std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, depth, goal, remaining_length);
+        std::pair<std::pair<double, double>, bool> result = get_angle(current_sample.pos, depth, goal, remaining_length);
 
         if (result.second)
         {
+            current_sample.pos.configuration[depth] = fix_fmod(result.first.first);
+            Robot_and_layer_info second_answer = current_sample;
 
-            current_sample.configuration[depth] = fix_fmod(result.first.first);
-            Robot second_answer = current_sample;
-            second_answer.configuration[depth] = fix_fmod(result.first.second);
+            current_sample.curr_angle += current_sample.pos.configuration[depth];
+            current_sample.last.x += current_sample.pos.joints[depth].length * std::cos(current_sample.curr_angle * M_PI / 180.0);
+            current_sample.last.y += current_sample.pos.joints[depth].length * std::sin(current_sample.curr_angle * M_PI / 180.0);
+            
+            
+            
+            second_answer.pos.configuration[depth] = fix_fmod(result.first.second);
+            second_answer.curr_angle += second_answer.pos.configuration[depth];
+            second_answer.last.x += second_answer.pos.joints[depth].length * std::cos(second_answer.curr_angle * M_PI / 180.0);
+            second_answer.last.y += second_answer.pos.joints[depth].length * std::sin(second_answer.curr_angle * M_PI / 180.0);
+
 
             std::lock_guard<std::mutex> lock(queue_mutex);
 
@@ -167,27 +186,61 @@ namespace
             layer.push_back(second_answer);
         }
     };
-    void compute_layer(std::deque<Robot> &layer, std::mutex &queue_mutex, const int layer_start_index, const int layer_end_index, Robot sample, const double from, const double to, const double step, int depth, GoalPoint goal, double remaining_joint_length)
+    void sample_by_length_parallel(std::deque<Robot_and_layer_info> &layer, std::mutex &queue_mutex, const int layer_start_index, const int layer_end_index, Robot sample, const uint8_t sample_rate, int depth, GoalPoint goal, double remaining_length)
     {
-        for (int layer_index = layer_start_index; layer_index < layer_end_index; layer_index++)
+        if (sample_rate == 1)
         {
-            queue_mutex.lock();
-            Robot current_sample = *(layer.begin());
-            layer.pop_front();
-            queue_mutex.unlock();
-            for (double length_coef = from; length_coef <= to; length_coef += step)
+            for (int layer_index = layer_start_index; layer_index < layer_end_index; layer_index++)
             {
-                calculate_curr_angle_parallel(current_sample, depth, goal, remaining_joint_length, length_coef / 10.0, layer, queue_mutex);
+                queue_mutex.lock();
+                Robot_and_layer_info current_sample = layer[0];
+                layer.pop_front();
+                queue_mutex.unlock();
+
+                calculate_curr_angle_parallel(current_sample, depth, goal, remaining_length, 1, layer, queue_mutex);
+            }
+        }
+        else
+        {
+
+            for (int layer_index = layer_start_index; layer_index < layer_end_index; layer_index++)
+            {
+                queue_mutex.lock();
+                Robot_and_layer_info current_sample = layer[0];
+                layer.pop_front();
+                queue_mutex.unlock();
+
+                
+
+
+                double current_joint_length = current_sample.pos.joints[depth].length;
+                Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle * M_PI / 180.0), current_joint_length * std::sin(current_sample.curr_angle * M_PI / 180.0));
+                Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
+                double dist_to_goal = vector_to_goal.length();
+
+                double from = (dist_to_goal - current_joint_length) / remaining_length;
+                from = (from < 0) ? 0 : from;
+                from = (from > 1) ? 1 : from;
+                double to = (dist_to_goal + current_joint_length) / remaining_length;
+                to = (to < 0) ? 0 : to;
+                to = (to > 1) ? 1 : to;
+                double step = (to - from) / sample_rate;
+                step = (from + step * (sample_rate + 1) > to) ? step : 1; // случай, когда from = to и step = 0
+
+                for (double length_coef = from; length_coef <= to; length_coef += step)
+                {
+                    calculate_curr_angle_parallel(current_sample, depth, goal, remaining_length, length_coef, layer, queue_mutex);
+                }
             }
         }
     }
 
-    void get_solutions_parralel(const std::deque<Robot> &layer, std::vector<Robot> &answers, const GoalPoint goal, const std::vector<Polygon> obstacles, std::mutex &answers_mutex, std::mutex &queue_mutex, const int layer_start_index, const int layer_end_index)
+    void get_solutions_parralel(const std::deque<Robot_and_layer_info> &layer, std::vector<Robot> &answers, const GoalPoint goal, const std::vector<Polygon> obstacles, std::mutex &answers_mutex, std::mutex &queue_mutex, const int layer_start_index, const int layer_end_index)
     {
         for (int layer_index = layer_start_index; layer_index < layer_end_index; layer_index++)
         {
             queue_mutex.lock();
-            Robot current_sample = layer[layer_index];
+            Robot current_sample = layer[layer_index].pos;
             queue_mutex.unlock();
             std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, current_sample.dof_ - 1, goal, 0);
             if (!result.second)
@@ -241,13 +294,13 @@ namespace
         double dist_to_goal = vector_to_goal.length();
 
         double from = (dist_to_goal - current_joint_length) / remaining_length;
-        from = (from<0)? 0:from;
-        from = (from>1)? 1:from;
+        from = (from < 0) ? 0 : from;
+        from = (from > 1) ? 1 : from;
         double to = (dist_to_goal + current_joint_length) / remaining_length;
-        to = (to<0)? 0:to;
-        to = (to>1)? 1:to;
+        to = (to < 0) ? 0 : to;
+        to = (to > 1) ? 1 : to;
         double step = (to - from) / sample_rate;
-        step = (from + step * (sample_rate+1) > to)? step:1; // случай, когда from = to и step = 0
+        step = (from + step * (sample_rate + 1) > to) ? step : 1; // случай, когда from = to и step = 0
         for (double length_coef = from; length_coef <= to; length_coef += step)
         {
             calculate_curr_angle(current_sample, depth, goal, remaining_length, length_coef, layer);
@@ -282,7 +335,7 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
         layer_size = layer.size();
         depth_global++;
     }
-    
+
     if (sample.dof_ > 2)
     {
         layer_size = layer.size();
@@ -291,12 +344,12 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
         {
             Robot current_sample = layer[0];
             calculate_curr_angle(layer[0], depth_global, intermediate_goal, sample.joints[sample.dof_ - 2].length, 1, layer);
-            
+
             layer.pop_front();
         }
         depth_global++;
     }
-    
+
     if (sample.dof_ > 1)
     {
         layer_size = layer.size();
@@ -317,85 +370,108 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
     return answers;
 }
 
-// std::vector<Robot> InverseKinematics::sample_all_goals_parallel(std::vector<Robot> &answers, Robot pos, const GoalPoint &goal, const std::vector<Polygon> &obstacles, const double from, const double to, const double step)
-// {
-//     /*
-//     Идём по-слойно, начиная с 1 звена, и заканчивая последним. при обработке каждого звена набираем "слой", то есть множество
-//     вариантов при различных коэффициентах длин. И при обработке звена будем проходится по слою и добавлять новый.
-//     */
-//     int processor_count = std::thread::hardware_concurrency(); // количество доступных ядер процессора
-//     std::cout << "processors count:" << processor_count << std::endl;
-//     if (processor_count == 0)
-//     {
+std::vector<Robot> InverseKinematics::sample_all_goals_parallel(std::vector<Robot> &answers, Robot pos, const GoalPoint &goal, const std::vector<Polygon> &obstacles, const uint8_t sample_rate)
+{
+    /*
+    Идём по-слойно, начиная с 1 звена, и заканчивая последним. при обработке каждого звена набираем "слой", то есть множество
+    вариантов при различных коэффициентах длин. И при обработке звена будем проходится по слою и добавлять новый.
+    */
+    int processor_count = std::thread::hardware_concurrency(); // количество доступных ядер процессора
+    std::cout << "processors count:" << processor_count << std::endl;
+    if (processor_count == 0)
+    {
 
-//         processor_count = 4; // Если вернул 0, то это значит он не смог определить
-//     }
-//     std::vector<std::thread> threads;
-//     std::mutex queue_mutex;
-//     std::mutex answers_mutex;
-//     threads.reserve(processor_count);
-//     Robot sample = pos;
-//     double remaining_joint_length = get_remaining_joint_length(sample, 0);
+        processor_count = 4; // Если вернул 0, то это значит он не смог определить
+    }
+    std::vector<std::thread> threads;
+    std::mutex queue_mutex;
+    std::mutex answers_mutex;
+    threads.reserve(processor_count);
 
-//     std::deque<Robot> layer;
-//     layer.push_back(sample);
-//     int layer_size = 1;
-//     // проходимся по всем звеньям, кроме последнего (так как у него фиксированная длина)
-//     for (int depth = 0; depth < sample.dof_ - 2; depth++)
-//     {
-//         for (int thread_count = 0; thread_count < processor_count; thread_count++)
-//         {
-//             int layer_start_index = (layer_size * thread_count) / processor_count;
-//             int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
+    Robot sample = pos;
+    GoalPoint intermediate_goal = change_goal_to_last_joint(sample, goal);                  // получаем промежуточную цель в виде начала 6 звена
+    double remaining_joint_length = get_remaining_joint_length(sample, 2, sample.dof_ - 1); // получаем оставшуюся длину от 2 звена до предпоследнего
+    int depth_global = 0;
+    std::deque<Robot_and_layer_info> layer;
+    layer.push_back(sample);
+    int layer_size = layer.size();
+    // проходимся по всем звеньям, кроме последнего (так как у него фиксированная длина)
+    for (int depth = 0; depth < sample.dof_ - 3; depth++)
+    {
+        for (int thread_count = 0; thread_count < processor_count; thread_count++)
+        {
+            int layer_start_index = (layer_size * thread_count) / processor_count;
+            int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
 
-//             threads.emplace_back(std::thread(compute_layer, std::ref(layer), std::ref(queue_mutex), layer_start_index, layer_end_index, sample, from, to, step, depth, goal, remaining_joint_length));
-//         }
-//         for (int thread_count = 0; thread_count < processor_count; thread_count++)
-//         {
-//             threads[thread_count].join();
-//         }
-//         threads.clear();
-//         remaining_joint_length -= sample.joints[depth + 1].length;
-//         layer_size = layer.size();
-//     }
+            threads.emplace_back(std::thread(sample_by_length_parallel, std::ref(layer), std::ref(queue_mutex), layer_start_index, layer_end_index, sample, sample_rate, depth, intermediate_goal, remaining_joint_length));
+        }
+        for (int thread_count = 0; thread_count < processor_count; thread_count++)
+        {
+            threads[thread_count].join();
+        }
+        threads.clear();
+        depth_global++;
+        remaining_joint_length -= sample.joints[depth + 1].length;
+        layer_size = layer.size();
+    }
 
-//     // слой при последнем звене по сути есть наши решения, нужно лишь просчитать угол последнего звена и посмотреть, достигается ли цель
-//     int depth = sample.dof_ - 2;
-//     remaining_joint_length = sample.joints[sample.dof_ - 1].length;
-//     layer_size = layer.size();
-//     for (auto l : layer)
-//     {
-//         std::cout << l.dof_ << std::endl;
-//     }
-//     std::cout << layer_size << std::endl;
-//     for (int thread_count = 0; thread_count < processor_count; thread_count++)
-//     {
-//         int layer_start_index = (layer_size * thread_count) / processor_count;
-//         int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
+    if (sample.dof_ > 2)
+    {
+        layer_size = layer.size();
+        // Cлучай, когда у нас отсаётся одно звено. Тогда не надо менять коэффициент длины
+        for (int thread_count = 0; thread_count < processor_count; thread_count++)
+        {
+            int layer_start_index = (layer_size * thread_count) / processor_count;
+            int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
 
-//         threads.emplace_back(std::thread(compute_layer, std::ref(layer), std::ref(queue_mutex), layer_start_index, layer_end_index, sample, 10.0, 10.0, 1.0, depth, goal, remaining_joint_length));
-//     }
-//     for (int thread_count = 0; thread_count < processor_count; thread_count++)
-//     {
-//         threads[thread_count].join();
-//     }
-//     threads.clear();
+            threads.emplace_back(std::thread(sample_by_length_parallel, std::ref(layer), std::ref(queue_mutex), layer_start_index, layer_end_index, sample, 1, depth_global, intermediate_goal, sample.joints[sample.dof_ - 2].length));
+        }
+        for (int thread_count = 0; thread_count < processor_count; thread_count++)
+        {
+            threads[thread_count].join();
+        }
+        threads.clear();
 
-//     layer_size = layer.size();
-//     // теперь в layers остались лишь решения ОКЗ. Надо выделить те, которые соответствуют нашим требованиям
+        depth_global++;
+    }
 
-//     for (int thread_count = 0; thread_count < processor_count; thread_count++)
-//     {
-//         int layer_start_index = (layer_size * thread_count) / processor_count;
-//         int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
+    if (sample.dof_ > 1)
+    {
+        layer_size = layer.size();
+        // Cлучай, когда у нас отсаётся одно звено. Тогда не надо менять коэффициент длины
+        for (int thread_count = 0; thread_count < processor_count; thread_count++)
+        {
+            int layer_start_index = (layer_size * thread_count) / processor_count;
+            int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
 
-//         threads.emplace_back(std::thread(get_solutions_parralel, std::ref(layer), std::ref(answers), goal, obstacles, std::ref(answers_mutex), std::ref(queue_mutex), layer_start_index, layer_end_index));
-//     }
-//     for (int thread_count = 0; thread_count < processor_count; thread_count++)
-//     {
-//         threads[thread_count].join();
-//     }
-//     threads.clear();
+            threads.emplace_back(std::thread(sample_by_length_parallel, std::ref(layer), std::ref(queue_mutex), layer_start_index, layer_end_index, sample, 1, depth_global, intermediate_goal, 0));
+        }
+        for (int thread_count = 0; thread_count < processor_count; thread_count++)
+        {
+            threads[thread_count].join();
+        }
+        threads.clear();
 
-//     return answers;
-// }
+        depth_global++;
+
+    
+    }
+
+    layer_size = layer.size();
+    // теперь в layers остались лишь решения ОКЗ. Надо выделить те, которые соответствуют нашим требованиям
+
+    for (int thread_count = 0; thread_count < processor_count; thread_count++)
+    {
+        int layer_start_index = (layer_size * thread_count) / processor_count;
+        int layer_end_index = ((thread_count + 1) != processor_count) ? ((layer_size * (thread_count + 1)) / processor_count) : layer_size;
+
+        threads.emplace_back(std::thread(get_solutions_parralel, std::ref(layer), std::ref(answers), goal, obstacles, std::ref(answers_mutex), std::ref(queue_mutex), layer_start_index, layer_end_index));
+    }
+    for (int thread_count = 0; thread_count < processor_count; thread_count++)
+    {
+        threads[thread_count].join();
+    }
+    threads.clear();
+
+    return answers;
+}
