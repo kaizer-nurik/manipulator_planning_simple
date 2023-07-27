@@ -49,4 +49,4 @@ struct GoalPoint
 Vector2D end_effector(const Robot &robot, const std::vector<double>& config);
 
 bool collide(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons);
-float fix_fmod(float angle);
+double fix_fmod(double angle);

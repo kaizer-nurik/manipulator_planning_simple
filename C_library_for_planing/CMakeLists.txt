@@ -10,10 +10,10 @@ add_subdirectory(googletest) # add googletest subdirectory
 
 include_directories(googletest/include) # this is so we can #include <gtest/gtest.h>
 
-add_executable(mytests "./test/mytests.cpp") # add this executable
+add_executable(test_IK "./test/test_IK.cpp") # add this executable
 
 include(GoogleTest)
-gtest_discover_tests(mytests) # discovers tests by asking the compiled test executable to enumerate its tests
+gtest_discover_tests(test_IK) # discovers tests by asking the compiled test executable to enumerate its tests
 
 set(LIB_SOURCE_FILES "./src/obstacles.cpp")
 set(LIB_HEADERS_FILES "./include/obstacles.h")
@@ -50,12 +50,16 @@ set(LIB_HEADERS_FILES "./include/inverse_kinematics.h")
 add_library(inverse_kinematics STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
 set_target_properties(inverse_kinematics PROPERTIES LINKER_LANGUAGE CXX)
 
+
+find_package (Threads)
+
 include_directories(./rapidxml ./include ./googletest)
 
 add_executable(main "./src/main.cpp")
-target_link_libraries(main inverse_kinematics file_saver robot parsing planner rapidxml obstacles )
-target_link_libraries(mytests gtest robot parsing planner rapidxml obstacles)   
+target_link_libraries(main Threads::Threads inverse_kinematics file_saver robot parsing planner rapidxml obstacles )
+target_link_libraries(test_IK Threads::Threads inverse_kinematics  gtest robot parsing planner rapidxml obstacles)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
+
 
 
 if(ENABLE_GCOV)

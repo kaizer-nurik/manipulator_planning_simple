@@ -80,19 +80,21 @@ Robot Robot::operator*(double const rhs) const
     }
     return result;
 }
-float fix_fmod(float angle){
-    if (angle > 0){
-        return fmod(angle + 180, 360) - 180;
-    }
-    return fmod(angle + 180, 360) + 180;
+double fix_fmod(double angle){
+    double angle_from_0_to_360 = angle - 360.0 * floor( angle / 360.0 );
+
+    if (angle_from_0_to_360 > 180){
+        angle_from_0_to_360 -= 360;
+    }  
+    return angle_from_0_to_360;
 
 }
 bool GoalPoint::is_goal(const double& x, const double& y, const double& angle) const{
     // std::cout<<(x )<<" "<<(y )<<" "<<std::abs(fix_fmod(angle))<<" "<<goalpoint.x<<" "<<goalpoint.y<<std::endl;
     // std::cout<<(x - goalpoint.x)<<" "<<(y - goalpoint.y)<<" "<<std::abs(fix_fmod(angle)-angle1_)<<std::endl;
-     return (
+     return ((
         std::sqrt(((x - goalpoint.x) * (x - goalpoint.x))+((y - goalpoint.y) * (y - goalpoint.y))) < delta)
-        && (std::abs(fix_fmod(angle)-angle1_) < angle2_); };
+        && (std::abs(fix_fmod(angle-angle1_)) < angle2_) );};
 
 Vector2D end_effector(const Robot &robot, const std::vector<double>& config)
 {
@@ -101,8 +103,8 @@ Vector2D end_effector(const Robot &robot, const std::vector<double>& config)
     for (auto i = 0u; i < robot.dof_; i++)
     {
         angle += config[i];
-        ef.x += robot.joints[i].length * std::cos((angle) * 3.1415 / 180);
-        ef.y += robot.joints[i].length * std::sin((angle) * 3.1415 / 180);
+        ef.x += robot.joints[i].length * std::cos((angle) * M_PI / 180.0);
+        ef.y += robot.joints[i].length * std::sin((angle) * M_PI / 180.0);
     }
     // std::cout<<ef.x<<' '<<ef.y<<std::endl;
     return ef;
@@ -119,17 +121,17 @@ bool collide(const Robot &robot, const std::vector<double> angles, const std::ve
     {
         //std::cout << x0 << ' ' << y0 << ' ' << robot.dof_ << ' ';
         angle += angles[i];
-        double x1 = x0 - sin(angle*3.1415/180)*robot.joints[i].width/2;
-        double y1 = y0 + cos(angle*3.1415/180)*robot.joints[i].width/2;
-        double x2 = x0 - sin(angle*3.1415/180)*robot.joints[i].width/2 + cos(angle*3.1415/180)*robot.joints[i].length;
-        double y2 = y0 + cos(angle*3.1415/180)*robot.joints[i].width/2 + sin(angle*3.1415/180)*robot.joints[i].length;
-        double x3 = x0 + sin(angle*3.1415/180)*robot.joints[i].width/2 + cos(angle*3.1415/180)*robot.joints[i].length;
-        double y3 = y0 - cos(angle*3.1415/180)*robot.joints[i].width/2 + sin(angle*3.1415/180)*robot.joints[i].length;
-        double x4 = x0 + sin(angle*3.1415/180)*robot.joints[i].width/2;
-        double y4 = y0 - cos(angle*3.1415/180)*robot.joints[i].width/2;
+        double x1 = x0 - sin(angle*M_PI/180.0)*robot.joints[i].width/2;
+        double y1 = y0 + cos(angle*M_PI/180.0)*robot.joints[i].width/2;
+        double x2 = x0 - sin(angle*M_PI/180.0)*robot.joints[i].width/2 + cos(angle*M_PI/180.0)*robot.joints[i].length;
+        double y2 = y0 + cos(angle*M_PI/180.0)*robot.joints[i].width/2 + sin(angle*M_PI/180.0)*robot.joints[i].length;
+        double x3 = x0 + sin(angle*M_PI/180.0)*robot.joints[i].width/2 + cos(angle*M_PI/180.0)*robot.joints[i].length;
+        double y3 = y0 - cos(angle*M_PI/180.0)*robot.joints[i].width/2 + sin(angle*M_PI/180.0)*robot.joints[i].length;
+        double x4 = x0 + sin(angle*M_PI/180.0)*robot.joints[i].width/2;
+        double y4 = y0 - cos(angle*M_PI/180.0)*robot.joints[i].width/2;
         joints.push_back(Polygon({Vector2D(x1, y1), Vector2D(x2, y2), Vector2D(x3, y3), Vector2D(x4, y4)}));
-        x0+=cos(angle*3.1415/180)*robot.joints[i].length;
-        y0+=sin(angle*3.1415/180)*robot.joints[i].length;
+        x0+=cos(angle*M_PI/180.0)*robot.joints[i].length;
+        y0+=sin(angle*M_PI/180.0)*robot.joints[i].length;
         
     }
     //std::cout << joints.size() << ' ' << poligons.size() << std::endl;
