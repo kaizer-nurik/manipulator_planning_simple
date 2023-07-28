@@ -273,11 +273,11 @@ public:
 
     double heuristic(const Robot &robot, const GoalPoint &goalpoint, const std::vector<double> &angles)
     {
-        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.8 *std::abs(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.1 * std::sqrt(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
     }
     double geuristic(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
     {
-        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));
+        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));// + 0.1 * std::sqrt(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
     }
 
     

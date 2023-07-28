@@ -26,17 +26,19 @@ struct Vector2D {
 
 struct Polygon {
     std::vector<Vector2D> points;
-
-     Polygon(const std::vector<Vector2D>& vertexes) : points(vertexes) {}
-    // Get the edges of the polygon
-    std::vector<Vector2D> getEdges() const {
-        std::vector<Vector2D> edges;
+    std::vector<Vector2D> edges;
+     Polygon(const std::vector<Vector2D>& vertexes) : points(vertexes) 
+     {
         int numPoints = points.size();
-        for (int i = 0; i < numPoints; i++) {
+        for (int i = 0; i < numPoints; i++)
+        {
             const Vector2D& p1 = points[i];
             const Vector2D& p2 = points[(i + 1) % numPoints];
             edges.push_back(Vector2D(p2.x - p1.x, p2.y - p1.y));
         }
+     }
+    // Get the edges of the polygon
+    std::vector<Vector2D> getEdges() const {  
         return edges;
     }
 };
@@ -74,11 +76,9 @@ Projection projectPolygon(const Polygon& polygon, const Vector2D& axis) {
 
 // Check if two polygons collide using the Separating Axis Theorem (SAT)
 bool polygons_collide(const Polygon& polygonA, const Polygon& polygonB) {  // true -- not collide, false -- collide
-    std::vector<Vector2D> edgesA = polygonA.getEdges();
-    std::vector<Vector2D> edgesB = polygonB.getEdges();
 
     // Check for overlapping projections on each axis of polygon A
-    for (const Vector2D& edge : edgesA) {
+    for (const Vector2D& edge : polygonA.edges) {
         Vector2D axis = edge.perpendicular();
         Projection projectionA = projectPolygon(polygonA, axis);
         Projection projectionB = projectPolygon(polygonB, axis);
@@ -89,7 +89,7 @@ bool polygons_collide(const Polygon& polygonA, const Polygon& polygonB) {  // tr
     }
 
     // Check for overlapping projections on each axis of polygon B
-    for (const Vector2D& edge : edgesB) {
+    for (const Vector2D& edge : polygonB.edges) {
         Vector2D axis = edge.perpendicular();
         Projection projectionA = projectPolygon(polygonA, axis);
         Projection projectionB = projectPolygon(polygonB, axis);

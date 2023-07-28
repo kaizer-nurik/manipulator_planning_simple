@@ -64,7 +64,7 @@ int main(int argc, const char * argv[])
     std::string line = "./dataset/scene1/";  //"./dataset/scene1/scene_1_test_1.xml"
    std::string line2 =  "scene_1_test_";
     int successes = 0;
-    for (int i=30; i<=50; i++)
+    for (int i=1; i<=50; i++)
     {        
         std::vector<Polygon> polygons;
         Robot start = Robot();
