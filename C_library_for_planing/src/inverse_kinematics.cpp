@@ -13,13 +13,13 @@
 
 namespace
 {
-    struct Robot_and_layer_info{
+    struct Robot_and_layer_info
+    {
         Robot pos;
         double curr_angle = 0;
         Vector2D last = Vector2D(0.0, 0.0);
-        Robot_and_layer_info(const Robot p):pos(p){};
-        Robot_and_layer_info(const Robot p,Robot_and_layer_info other):pos(p), curr_angle(other.curr_angle), last(other.last){};
-
+        Robot_and_layer_info(Robot p, Robot_and_layer_info other) : pos(p), curr_angle(other.curr_angle), last(other.last){};
+        Robot_and_layer_info(Robot p, Vector2D other_last, double other_angle) : pos(p), curr_angle(other_angle), last(other_last){};
     };
 
     double acos_with_tolerance(const double &value, const double &tolerance)
@@ -60,20 +60,12 @@ namespace
     }
 
     // если нашелся угол, то bool = true
-    std::pair<std::pair<double, double>, bool> get_angle(Robot current_sample, const int &depth, const GoalPoint &goal, double remaining_length)
+    std::pair<std::pair<double, double>, bool> get_angle(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length)
     {
-        double curr_angle = 0;
-        Vector2D last(0, 0);
-        for (int joint_count = 0; joint_count < depth; joint_count++)
-        {
-            curr_angle += current_sample.configuration[joint_count];
-            last.x += current_sample.joints[joint_count].length * std::cos(curr_angle * M_PI / 180.0);
-            last.y += current_sample.joints[joint_count].length * std::sin(curr_angle * M_PI / 180.0);
-        }
 
-        double current_joint_length = current_sample.joints[depth].length;
-        Vector2D curr_vector(current_joint_length * std::cos(curr_angle * M_PI / 180.0), current_joint_length * std::sin(curr_angle * M_PI / 180.0));
-        Vector2D vector_to_goal(goal.goalpoint.x - last.x, goal.goalpoint.y - last.y);
+        double current_joint_length = current_sample.pos.joints[depth].length;
+        Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle * M_PI / 180.0), current_joint_length * std::sin(current_sample.curr_angle * M_PI / 180.0));
+        Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
         double dist_to_goal = vector_to_goal.length();
 
         if ((goal.delta < dist_to_goal - (current_joint_length + remaining_length)) ||       // Условие, когда цель дальше, чем область достижения манипулятора
@@ -116,52 +108,10 @@ namespace
         return std::pair<std::pair<double, double>, bool>(std::pair<double, double>(angle_2 + angle_1, angle_2 - angle_1), true);
     };
 
-    void calculate_curr_angle(Robot current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot> &layer)
+    void calculate_curr_angle(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot_and_layer_info> &layer)
     {
         remaining_length *= length_coef;
         std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, depth, goal, remaining_length);
-
-        if (result.second)
-        {
-            current_sample.configuration[depth] = fix_fmod(result.first.first);
-            layer.push_back(current_sample);
-
-            current_sample.configuration[depth] = fix_fmod(result.first.second);
-            layer.push_back(current_sample);
-        }
-    };
-
-    void get_solutions(const std::deque<Robot> &layer, std::vector<Robot> &answers, const GoalPoint &goal, const std::vector<Polygon> &obstacles)
-    {
-        for (Robot current_sample : layer)
-        {
-            std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, current_sample.dof_ - 1, goal, 0);
-            if (!result.second)
-            {
-                continue;
-            }
-            // Находим угол последнего звена
-            current_sample.configuration[current_sample.dof_ - 1] = fix_fmod(result.first.first);
-            // проверяем, дошли ли,
-            if (!goal.is_goal(current_sample))
-            {
-                continue;
-            }
-            // проверяем на коллизию
-            if (collide(current_sample, current_sample.configuration, obstacles))
-            {
-                continue;
-            }
-            // Сохраняем
-
-            answers.push_back(current_sample);
-        }
-    }
-
-    void calculate_curr_angle_parallel(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot_and_layer_info> &layer, std::mutex &queue_mutex)
-    {
-        remaining_length *= length_coef;
-        std::pair<std::pair<double, double>, bool> result = get_angle(current_sample.pos, depth, goal, remaining_length);
 
         if (result.second)
         {
@@ -171,14 +121,62 @@ namespace
             current_sample.curr_angle += current_sample.pos.configuration[depth];
             current_sample.last.x += current_sample.pos.joints[depth].length * std::cos(current_sample.curr_angle * M_PI / 180.0);
             current_sample.last.y += current_sample.pos.joints[depth].length * std::sin(current_sample.curr_angle * M_PI / 180.0);
-            
-            
-            
+
             second_answer.pos.configuration[depth] = fix_fmod(result.first.second);
             second_answer.curr_angle += second_answer.pos.configuration[depth];
             second_answer.last.x += second_answer.pos.joints[depth].length * std::cos(second_answer.curr_angle * M_PI / 180.0);
             second_answer.last.y += second_answer.pos.joints[depth].length * std::sin(second_answer.curr_angle * M_PI / 180.0);
 
+            layer.push_back(current_sample);
+            layer.push_back(second_answer);
+        }
+    };
+
+    void get_solutions(const std::deque<Robot_and_layer_info> &layer, std::vector<Robot> &answers, const GoalPoint &goal, const std::vector<Polygon> &obstacles)
+    {
+        for (Robot_and_layer_info current_sample : layer)
+        {
+            std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, current_sample.pos.dof_ - 1, goal, 0);
+            if (!result.second)
+            {
+                continue;
+            }
+            // Находим угол последнего звена
+            current_sample.pos.configuration[current_sample.pos.dof_ - 1] = fix_fmod(result.first.first);
+            // проверяем, дошли ли,
+            if (!goal.is_goal(current_sample.pos))
+            {
+                continue;
+            }
+            // проверяем на коллизию
+            if (collide(current_sample.pos, current_sample.pos.configuration, obstacles))
+            {
+                continue;
+            }
+            // Сохраняем
+
+            answers.push_back(current_sample.pos);
+        }
+    }
+
+    void calculate_curr_angle_parallel(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot_and_layer_info> &layer, std::mutex &queue_mutex)
+    {
+        remaining_length *= length_coef;
+        std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, depth, goal, remaining_length);
+
+        if (result.second)
+        {
+            current_sample.pos.configuration[depth] = fix_fmod(result.first.first);
+            Robot_and_layer_info second_answer = current_sample;
+
+            current_sample.curr_angle += current_sample.pos.configuration[depth];
+            current_sample.last.x += current_sample.pos.joints[depth].length * std::cos(current_sample.curr_angle * M_PI / 180.0);
+            current_sample.last.y += current_sample.pos.joints[depth].length * std::sin(current_sample.curr_angle * M_PI / 180.0);
+
+            second_answer.pos.configuration[depth] = fix_fmod(result.first.second);
+            second_answer.curr_angle += second_answer.pos.configuration[depth];
+            second_answer.last.x += second_answer.pos.joints[depth].length * std::cos(second_answer.curr_angle * M_PI / 180.0);
+            second_answer.last.y += second_answer.pos.joints[depth].length * std::sin(second_answer.curr_angle * M_PI / 180.0);
 
             std::lock_guard<std::mutex> lock(queue_mutex);
 
@@ -210,9 +208,6 @@ namespace
                 layer.pop_front();
                 queue_mutex.unlock();
 
-                
-
-
                 double current_joint_length = current_sample.pos.joints[depth].length;
                 Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle * M_PI / 180.0), current_joint_length * std::sin(current_sample.curr_angle * M_PI / 180.0));
                 Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
@@ -240,28 +235,28 @@ namespace
         for (int layer_index = layer_start_index; layer_index < layer_end_index; layer_index++)
         {
             queue_mutex.lock();
-            Robot current_sample = layer[layer_index].pos;
+            Robot_and_layer_info current_sample = layer[layer_index];
             queue_mutex.unlock();
-            std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, current_sample.dof_ - 1, goal, 0);
+            std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, current_sample.pos.dof_ - 1, goal, 0);
             if (!result.second)
             {
                 continue;
             }
             // Находим угол последнего звена
-            current_sample.configuration[current_sample.dof_ - 1] = fix_fmod(result.first.first);
+            current_sample.pos.configuration[current_sample.pos.dof_ - 1] = fix_fmod(result.first.first);
             // проверяем, дошли ли,
-            if (!goal.is_goal(current_sample))
+            if (!goal.is_goal(current_sample.pos))
             {
                 continue;
             }
             // проверяем на коллизию
-            if (collide(current_sample, current_sample.configuration, obstacles))
+            if (collide(current_sample.pos, current_sample.pos.configuration, obstacles))
             {
                 continue;
             }
             // Сохраняем
             answers_mutex.lock();
-            answers.push_back(current_sample);
+            answers.push_back(current_sample.pos);
             answers_mutex.unlock();
         }
     }
@@ -277,33 +272,33 @@ namespace
         return intermediate_goal;
     }
 
-    void sample_by_length(Robot current_sample, const int &depth, const GoalPoint &goal, double remaining_length, std::deque<Robot> &layer, const u_int8_t sample_rate)
+    void sample_by_length(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length, std::deque<Robot_and_layer_info> &layer, const u_int8_t sample_rate)
     {
-        double curr_angle = 0;
-        Vector2D last(0, 0);
-        for (int joint_count = 0; joint_count < depth; joint_count++)
+
+        if (sample_rate == 1)
         {
-            curr_angle += current_sample.configuration[joint_count];
-            last.x += current_sample.joints[joint_count].length * std::cos(curr_angle * M_PI / 180.0);
-            last.y += current_sample.joints[joint_count].length * std::sin(curr_angle * M_PI / 180.0);
+            calculate_curr_angle(current_sample, depth, goal, remaining_length, 1, layer);
         }
-
-        double current_joint_length = current_sample.joints[depth].length;
-        Vector2D curr_vector(current_joint_length * std::cos(curr_angle * M_PI / 180.0), current_joint_length * std::sin(curr_angle * M_PI / 180.0));
-        Vector2D vector_to_goal(goal.goalpoint.x - last.x, goal.goalpoint.y - last.y);
-        double dist_to_goal = vector_to_goal.length();
-
-        double from = (dist_to_goal - current_joint_length) / remaining_length;
-        from = (from < 0) ? 0 : from;
-        from = (from > 1) ? 1 : from;
-        double to = (dist_to_goal + current_joint_length) / remaining_length;
-        to = (to < 0) ? 0 : to;
-        to = (to > 1) ? 1 : to;
-        double step = (to - from) / sample_rate;
-        step = (from + step * (sample_rate + 1) > to) ? step : 1; // случай, когда from = to и step = 0
-        for (double length_coef = from; length_coef <= to; length_coef += step)
+        else
         {
-            calculate_curr_angle(current_sample, depth, goal, remaining_length, length_coef, layer);
+
+            double current_joint_length = current_sample.pos.joints[depth].length;
+            Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle * M_PI / 180.0), current_joint_length * std::sin(current_sample.curr_angle * M_PI / 180.0));
+            Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
+            double dist_to_goal = vector_to_goal.length();
+
+            double from = (dist_to_goal - current_joint_length) / remaining_length;
+            from = (from < 0) ? 0 : from;
+            from = (from > 1) ? 1 : from;
+            double to = (dist_to_goal + current_joint_length) / remaining_length;
+            to = (to < 0) ? 0 : to;
+            to = (to > 1) ? 1 : to;
+            double step = (to - from) / sample_rate;
+            step = (from + step * (sample_rate + 1) > to) ? step : 1; // случай, когда from = to и step = 0
+            for (double length_coef = from; length_coef <= to; length_coef += step)
+            {
+                calculate_curr_angle(current_sample, depth, goal, remaining_length, length_coef, layer);
+            }
         }
     }
 }
@@ -319,15 +314,15 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
     GoalPoint intermediate_goal = change_goal_to_last_joint(sample, goal);                  // получаем промежуточную цель в виде начала 6 звена
     double remaining_joint_length = get_remaining_joint_length(sample, 2, sample.dof_ - 1); // получаем оставшуюся длину от 2 звена до предпоследнего
     int depth_global = 0;
-    std::deque<Robot> layer;
-    layer.push_back(sample);
+    std::deque<Robot_and_layer_info> layer;
+    layer.emplace_back(sample, Vector2D(0,0),0);
     int layer_size = layer.size();
     // проходимся по всем звеньям, кроме предпоследнего (так как у него фиксированная длина)
     for (int depth = 0; depth < sample.dof_ - 3; depth++)
     {
         for (int layer_index = 0; layer_index < layer_size; layer_index++)
         {
-            Robot current_sample = layer[0];
+            Robot_and_layer_info current_sample = layer[0];
             sample_by_length(current_sample, depth, intermediate_goal, remaining_joint_length, layer, sample_rate);
             layer.pop_front();
         }
@@ -342,7 +337,7 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
         // Cлучай, когда у нас отсаётся одно звено. Тогда не надо менять коэффициент длины
         for (int layer_index = 0; layer_index < layer_size; layer_index++)
         {
-            Robot current_sample = layer[0];
+            Robot_and_layer_info current_sample = layer[0];
             calculate_curr_angle(layer[0], depth_global, intermediate_goal, sample.joints[sample.dof_ - 2].length, 1, layer);
 
             layer.pop_front();
@@ -356,7 +351,7 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
         // Cлучай, когда у нас отсаётся одно звено. Тогда не надо менять коэффициент длины
         for (int layer_index = 0; layer_index < layer_size; layer_index++)
         {
-            Robot current_sample = layer[0];
+            Robot_and_layer_info current_sample = layer[0];
 
             calculate_curr_angle(current_sample, depth_global, intermediate_goal, 0, 1, layer);
 
@@ -393,7 +388,7 @@ std::vector<Robot> InverseKinematics::sample_all_goals_parallel(std::vector<Robo
     double remaining_joint_length = get_remaining_joint_length(sample, 2, sample.dof_ - 1); // получаем оставшуюся длину от 2 звена до предпоследнего
     int depth_global = 0;
     std::deque<Robot_and_layer_info> layer;
-    layer.push_back(sample);
+    layer.emplace_back(sample,Vector2D(0,0),0);
     int layer_size = layer.size();
     // проходимся по всем звеньям, кроме последнего (так как у него фиксированная длина)
     for (int depth = 0; depth < sample.dof_ - 3; depth++)
@@ -453,8 +448,6 @@ std::vector<Robot> InverseKinematics::sample_all_goals_parallel(std::vector<Robo
         threads.clear();
 
         depth_global++;
-
-    
     }
 
     layer_size = layer.size();
