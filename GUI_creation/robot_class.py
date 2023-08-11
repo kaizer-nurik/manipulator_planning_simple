@@ -76,6 +76,11 @@ class robot_joint:
     def update_length(self, length):
         self.length = length
         self.visuals.setRect(0, -self.width//2, self.length,self.width)
+        children = self.visuals.childItems()
+        for child in children:
+            child.setPos(self.length,0)
+
+        
 
 
 
