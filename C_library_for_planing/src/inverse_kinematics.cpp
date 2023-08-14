@@ -24,13 +24,13 @@ namespace
 
     double acos_with_tolerance(const double &value, const double &tolerance)
     {
-        double angle = std::acos(value);
-        if (std::isnan(angle)) // случай, когда выражение под косинусом больше по модулю, чем 1
+        double angle = 0;
+        if (std::abs(value) < 1){
+            angle = std::acos(value);
+        }
+        else// случай, когда выражение под косинусом больше по модулю, чем 1
         {
-            if ((std::abs(value) - 1) > tolerance) // когда выходим за точность
-            {
-                assert(false);
-            }
+
             if (value > 0)
             {
                 angle = 0; // cos = 1
@@ -69,7 +69,7 @@ namespace
         double dist_to_goal = vector_to_goal.length();
 
         if ((goal.delta < dist_to_goal - (current_joint_length + remaining_length)) ||       // Условие, когда цель дальше, чем область достижения манипулятора
-            (dist_to_goal + goal.delta < std::abs(current_joint_length - remaining_length))) // Условие, когда цель слижком близко и манипулятор не может так дотянутся
+            ( goal.delta < remaining_length - (dist_to_goal + current_joint_length) )) // Условие, когда цель слижком близко и манипулятор не может так дотянутся
         {
             return std::pair<std::pair<double, double>, bool>(std::pair<double, double>(0, 0), false);
         }
@@ -79,18 +79,19 @@ namespace
         {
             double triangle_angle_cos = -(remaining_length * remaining_length - current_joint_length * current_joint_length - dist_to_goal * dist_to_goal) / (2 * dist_to_goal * current_joint_length);
             angle_1 = acos_with_tolerance(triangle_angle_cos, COS_TOLERANCE);
-
             double full_angle_cos = (curr_vector.dotProduct(vector_to_goal) / (dist_to_goal * current_joint_length));
             angle_2 = acos_with_tolerance(full_angle_cos, COS_TOLERANCE);
+            
 
             double orientation = curr_vector.x * vector_to_goal.y - curr_vector.y * vector_to_goal.x; // определение направления вращения по ориентации оси вращения вектора Z(вниз или вверх)
             if (orientation < 0)                                                                      // если вектора коллинеарны, то angle_2 = 0, а orientation = 0, деление на 0
             {
                 angle_2 *= -1;
             }
-
             angle_2 = angle_2 * 180.0 / M_PI; // в угол
             angle_1 = angle_1 * 180.0 / M_PI; // в угол
+            // std::cout<<"depth= "<<depth<<"cos1= "<< triangle_angle_cos<< "angle1= " << angle_1 <<"cos2= "<< full_angle_cos << "angle_2= " << angle_2 << "orientation=" << orientation<<std::endl;
+
         }
         // проверим угол на соответсвие лимитов
         // if ((angle_2 < current_sample.joints[depth].limits[0]) || (angle_2 > current_sample.joints[depth].limits[1]))
