@@ -18,6 +18,8 @@ namespace FileSaver
 
     // Функция, сохраняющая дерево из rrt для визуализации в питоне.
     void save_rrt_tree(const std::string &output_filename, const RRT::Tree &tree);
+    void write_end_config_to_csv(std::string filename, std::vector<Robot> IK_res);
+    void write_map_to_json(std::string filename, std::map<std::string,std::string> &stats);
 
     
 }

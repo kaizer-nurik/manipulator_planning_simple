@@ -5,7 +5,6 @@
 #include <exception>
 #include <algorithm>
 
-
 // Функция, сохраняющая дерево из rrt для визуализации в питоне.
 void FileSaver::save_rrt_tree(const std::string &output_filename, const RRT::Tree &tree)
 {
@@ -16,7 +15,7 @@ void FileSaver::save_rrt_tree(const std::string &output_filename, const RRT::Tre
     int node_ind = 0;
 
     node2ind[tree.head] = 0;
-    std::ofstream ofs(output_filename, std::ofstream::out);
+    std::ofstream ofs(output_filename, std::ofstream::out | std::ofstream::trunc);
     if (ofs.fail())
     {
         throw std::system_error(errno, std::system_category(), "failed to open csv to save tree: " + output_filename);
@@ -35,4 +34,54 @@ void FileSaver::save_rrt_tree(const std::string &output_filename, const RRT::Tre
         need_visit.pop_front();
     }
     ofs.close();
+}
+
+void FileSaver::write_end_config_to_csv(std::string filename, std::vector<Robot> IK_res)
+{
+    std::ofstream file(filename, std::ofstream::out | std::ofstream::trunc);
+
+    if (file.fail())
+    {
+        std::cout << "Unable to open the file." << std::endl;
+        return;
+    }
+
+    for (auto answer : IK_res)
+    {
+        file << answer.configuration[0];
+        for (auto angle = answer.configuration.begin() + 1; angle <= answer.configuration.end(); angle++)
+        {
+            file << "," << *angle;
+        }
+        file << std::endl;
+    }
+}
+void FileSaver::write_map_to_json(std::string filename, std::map<std::string, std::string> &stats)
+{
+
+    std::ofstream file(filename, std::ofstream::out | std::ofstream::trunc);
+
+    if (file.fail())
+    {
+        std::cout << "Unable to open the file." << std::endl;
+        return;
+    }
+
+    file << "{" << std::endl;
+    int curr_size = 1;
+    for (auto [key, value] : stats)
+    {
+        if (curr_size < stats.size())
+        {
+            file << "\"" + key + "\":" + "\"" + value + "\"," << std::endl;
+        }
+
+        else
+        {
+            file << "\"" + key + "\":" + "\"" + value  + "\""<< std::endl;
+        }
+        curr_size++;
+    }
+    file << "}" << std::endl;
+    file.close();
 }

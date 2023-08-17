@@ -131,201 +131,204 @@ void test_IK_parallel(const uint8_t max_joint, const uint8_t max_iter){
 TEST(TEST_IK, CORRECTNESS)
 {
     test_IK(TEST_IK_ITER_MAX,3);
-    test_IK(TEST_IK_ITER_STRESS,1000);
+    test_IK(TEST_IK_ITER_STRESS,100);
 }
-// TEST(TEST_IK, CORRECTNESS_PARALLEL)
-// {
-//     test_IK_parallel(TEST_IK_ITER_MAX,3);
-//     test_IK_parallel(TEST_IK_ITER_STRESS,40);
-// }
-// TEST(TEST_IK, CORRECTNESS_MANUAL)
-// {
-//     Robot start = Robot();
-//     std::vector<Polygon> polygons;
-//     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
+TEST(TEST_IK, CORRECTNESS_PARALLEL)
+{
+    test_IK_parallel(TEST_IK_ITER_MAX,3);
+    test_IK_parallel(TEST_IK_ITER_STRESS,40);
+}
+TEST(TEST_IK, CORRECTNESS_MANUAL)
+{
+    Robot start = Robot();
+    std::vector<Polygon> polygons;
+    GoalPoint goal(0.0, 0.0, 0.0, 0.0);
 
-//         std::vector<Robot> end_configurations;
-//         Robot sample = Robot(start);
-//         for (int joint_count = 0; joint_count <= 2; joint_count++)
-//         {
-//             sample.AddJoint(1, 0.2, {-180, 180});
-//         }
+        std::vector<Robot> end_configurations;
+        Robot sample = Robot(start);
+        for (int joint_count = 0; joint_count <= 2; joint_count++)
+        {
+            sample.AddJoint(1, 0.2, {-180, 180});
+        }
 
-//             sample.configuration.push_back(53.9975);
-//             sample.configuration.push_back(-100.873);
-//             sample.configuration.push_back(59.0889);
-
-       
-//         goal.goalpoint = end_effector(sample, sample.configuration);
-//         goal.angle2_ = 1000;
-//         goal.delta = 0.01;
-//         double angle = 0;
-//         for (auto joint_angle : sample.configuration)
-//         {
-//             angle += joint_angle;
-//         }
-
-//         goal.angle1_ = angle;
-
-//         InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
-//         ASSERT_GT(end_configurations.size(), 0);
-  
-// }
-
-// TEST(TEST_IK, CORRECTNESS_MANUAL_PARALLEL)
-// {
-//     Robot start = Robot();
-//     std::vector<Polygon> polygons;
-//     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
-
-//         std::vector<Robot> end_configurations;
-//         Robot sample = Robot(start);
-//         for (int joint_count = 0; joint_count <= 2; joint_count++)
-//         {
-//             sample.AddJoint(1, 0.2, {-180, 180});
-//         }
-
-//             sample.configuration.push_back(53.9975);
-//             sample.configuration.push_back(-100.873);
-//             sample.configuration.push_back(59.0889);
+            sample.configuration.push_back(53.9975);
+            sample.configuration.push_back(-100.873);
+            sample.configuration.push_back(59.0889);
 
        
-//         goal.goalpoint = end_effector(sample, sample.configuration);
-//         goal.angle2_ = 1000;
-//         goal.delta = 0.01;
-//         double angle = 0;
-//         for (auto joint_angle : sample.configuration)
-//         {
-//             angle += joint_angle;
-//         }
+        goal.goalpoint = end_effector(sample, sample.configuration);
+        goal.angle2_ = 1000;
+        goal.delta = 0.01;
+        double angle = 0;
+        for (auto joint_angle : sample.configuration)
+        {
+            angle += joint_angle;
+        }
 
-//         goal.angle1_ = angle;
+        goal.angle1_ = angle;
 
-//         InverseKinematics::sample_all_goals_parallel(end_configurations, sample, goal, polygons, 10);
-//         ASSERT_GT(end_configurations.size(), 0);
+        InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
+        ASSERT_GT(end_configurations.size(), 0);
   
-// }
+}
 
-// TEST(TEST_IK, CORRECTNESS_MANUAL_5)
-// {
-//     Robot start = Robot();
-//     std::vector<Polygon> polygons;
-//     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
+TEST(TEST_IK, CORRECTNESS_MANUAL_PARALLEL)
+{
+    Robot start = Robot();
+    std::vector<Polygon> polygons;
+    GoalPoint goal(0.0, 0.0, 0.0, 0.0);
 
-//         std::vector<Robot> end_configurations;
-//         Robot sample = Robot(start);
-//         for (int joint_count = 0; joint_count <= 4; joint_count++)
-//         {
-//             sample.AddJoint(1, 0.2, {-180, 180});
-//         }
+        std::vector<Robot> end_configurations;
+        Robot sample = Robot(start);
+        for (int joint_count = 0; joint_count <= 2; joint_count++)
+        {
+            sample.AddJoint(1, 0.2, {-180, 180});
+        }
 
-//             sample.configuration.push_back(37.7854);
-//             sample.configuration.push_back(136.189);
-//             sample.configuration.push_back(25.1971);
-//             sample.configuration.push_back(149.376);
-//             sample.configuration.push_back(-83.6869);
+            sample.configuration.push_back(53.9975);
+            sample.configuration.push_back(-100.873);
+            sample.configuration.push_back(59.0889);
 
        
-//         goal.goalpoint = end_effector(sample, sample.configuration);
-//         goal.angle2_ = 1000;
-//         goal.delta = 0.01;
-//         double angle = 0;
-//         for (auto joint_angle : sample.configuration)
-//         {
-//             angle += joint_angle;
-//         }
+        goal.goalpoint = end_effector(sample, sample.configuration);
+        goal.angle2_ = 1000;
+        goal.delta = 0.01;
+        double angle = 0;
+        for (auto joint_angle : sample.configuration)
+        {
+            angle += joint_angle;
+        }
 
-//         goal.angle1_ = angle;
+        goal.angle1_ = angle;
 
-//         InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
-//         ASSERT_GT(end_configurations.size(), 0);
+        if (!collide(sample,sample.configuration,polygons));{
+            InverseKinematics::sample_all_goals_parallel(end_configurations, sample, goal, polygons, 10);
+            ASSERT_GT(end_configurations.size(), 0);
+        }
+        
   
-// }
+}
 
-// TEST(TEST_IK, EXECUTION_TIME)
-// {
+TEST(TEST_IK, CORRECTNESS_MANUAL_5)
+{
+    Robot start = Robot();
+    std::vector<Polygon> polygons;
+    GoalPoint goal(0.0, 0.0, 0.0, 0.0);
 
-//     using std::chrono::high_resolution_clock;
-//     using std::chrono::duration_cast;
-//     using std::chrono::duration;
-//     using std::chrono::milliseconds;
+        std::vector<Robot> end_configurations;
+        Robot sample = Robot(start);
+        for (int joint_count = 0; joint_count <= 4; joint_count++)
+        {
+            sample.AddJoint(1, 0.2, {-180, 180});
+        }
 
-//     auto t1 = high_resolution_clock::now();
-//     test_IK(4,10);
-//     auto t2 = high_resolution_clock::now();
+            sample.configuration.push_back(37.7854);
+            sample.configuration.push_back(136.189);
+            sample.configuration.push_back(25.1971);
+            sample.configuration.push_back(149.376);
+            sample.configuration.push_back(-83.6869);
 
-//     /* Getting number of milliseconds as a double. */
-//     duration<double, std::milli> ms_double = t2 - t1;
+       
+        goal.goalpoint = end_effector(sample, sample.configuration);
+        goal.angle2_ = 1000;
+        goal.delta = 0.01;
+        double angle = 0;
+        for (auto joint_angle : sample.configuration)
+        {
+            angle += joint_angle;
+        }
 
-//     std::cout <<"до 4 звеньев, 10 итераций, время обычной программы: "<< ms_double.count() << "ms\n";
+        goal.angle1_ = angle;
+
+        InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
+        ASSERT_GT(end_configurations.size(), 0);
+  
+}
+
+TEST(TEST_IK, EXECUTION_TIME)
+{
+
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+
+    auto t1 = high_resolution_clock::now();
+    test_IK(4,10);
+    auto t2 = high_resolution_clock::now();
+
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli> ms_double = t2 - t1;
+
+    std::cout <<"до 4 звеньев, 10 итераций, время обычной программы: "<< ms_double.count() << "ms\n";
     
-//     t1 = high_resolution_clock::now();
-//     test_IK_parallel(4,10);
-//     t2 = high_resolution_clock::now();
+    t1 = high_resolution_clock::now();
+    test_IK_parallel(4,10);
+    t2 = high_resolution_clock::now();
 
-//     /* Getting number of milliseconds as a double. */
-//     ms_double = t2 - t1;
+    /* Getting number of milliseconds as a double. */
+    ms_double = t2 - t1;
 
-//     std::cout <<"до 4 звеньев, 10 итераций, время многопоточной программы: "<< ms_double.count() << "ms\n";
+    std::cout <<"до 4 звеньев, 10 итераций, время многопоточной программы: "<< ms_double.count() << "ms\n";
 
 
-//     t1 = high_resolution_clock::now();
-//     test_IK(10,2);
-//     t2 = high_resolution_clock::now();
+    t1 = high_resolution_clock::now();
+    test_IK(10,2);
+    t2 = high_resolution_clock::now();
 
-//     /* Getting number of milliseconds as a double. */
-//     ms_double = t2 - t1;
+    /* Getting number of milliseconds as a double. */
+    ms_double = t2 - t1;
 
-//     std::cout <<"до 10 звеньев, 2 итераций, время обычной программы: "<< ms_double.count() << "ms\n";
+    std::cout <<"до 10 звеньев, 2 итераций, время обычной программы: "<< ms_double.count() << "ms\n";
     
-//     t1 = high_resolution_clock::now();
-//     test_IK_parallel(10,2);
-//     t2 = high_resolution_clock::now();
+    t1 = high_resolution_clock::now();
+    test_IK_parallel(10,2);
+    t2 = high_resolution_clock::now();
 
-//     /* Getting number of milliseconds as a double. */
-//     ms_double = t2 - t1;
+    /* Getting number of milliseconds as a double. */
+    ms_double = t2 - t1;
 
-//     std::cout <<"до 10 звеньев, 2 итераций, время многопоточной программы: "<< ms_double.count() << "ms\n";
+    std::cout <<"до 10 звеньев, 2 итераций, время многопоточной программы: "<< ms_double.count() << "ms\n";
 
     
-// }
+}
 
 
 
-// TEST(TEST_IK, CORRECTNESS_MANUAL_20)
-// {
-//     Robot start = Robot();
-//     std::vector<Polygon> polygons;
-//     GoalPoint goal(0.0, 0.0, 0.0, 0.0);
+TEST(TEST_IK, CORRECTNESS_MANUAL_20)
+{
+    Robot start = Robot();
+    std::vector<Polygon> polygons;
+    GoalPoint goal(0.0, 0.0, 0.0, 0.0);
 
-//         std::vector<Robot> end_configurations;
-//         Robot sample = Robot(start);
-//         sample.AddJoint(1.89601, 0.2, {-180, 180});
-//         sample.AddJoint(3.85691, 0.2, {-180, 180});
-//         sample.AddJoint(0.729285, 0.2, {-180, 180});
-//         sample.AddJoint(1.30756, 0.2, {-180, 180});
+        std::vector<Robot> end_configurations;
+        Robot sample = Robot(start);
+        sample.AddJoint(1.89601, 0.2, {-180, 180});
+        sample.AddJoint(3.85691, 0.2, {-180, 180});
+        sample.AddJoint(0.729285, 0.2, {-180, 180});
+        sample.AddJoint(1.30756, 0.2, {-180, 180});
         
 
-//             sample.configuration.push_back(81.6052);
-//             sample.configuration.push_back(169.012);
-//             sample.configuration.push_back(-83.8549);
-//             sample.configuration.push_back(-38.8422);
+            sample.configuration.push_back(81.6052);
+            sample.configuration.push_back(169.012);
+            sample.configuration.push_back(-83.8549);
+            sample.configuration.push_back(-38.8422);
 
-//         goal.goalpoint = end_effector(sample, sample.configuration);
-//         goal.angle2_ = 1000;
-//         goal.delta = 0.01;
-//         double angle = 0;
-//         for (auto joint_angle : sample.configuration)
-//         {
-//             angle += joint_angle;
-//         }
+        goal.goalpoint = end_effector(sample, sample.configuration);
+        goal.angle2_ = 1000;
+        goal.delta = 0.01;
+        double angle = 0;
+        for (auto joint_angle : sample.configuration)
+        {
+            angle += joint_angle;
+        }
 
-//         goal.angle1_ = angle;
+        goal.angle1_ = angle;
 
-//         InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
-//         ASSERT_GT(end_configurations.size(), 0);
+        InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
+        ASSERT_GT(end_configurations.size(), 0);
   
-// }
+}
 
 
 

@@ -15,8 +15,9 @@
 #include <random>
 #include <assert.h>
 #include "inverse_kinematics.h"
+#include <chrono>
 #define RRT_GOAL_POINT_PROBABILITY 0.1
-
+using namespace std::literals;   
 struct Node
 {
     std::vector<double> position;
@@ -80,6 +81,25 @@ private:
 class RRT
 {
 public:
+    struct Stat
+    {
+
+        unsigned long long number_of_nodes = 1;
+        unsigned long long number_of_goal_expanding_nodes = 0;
+        unsigned long long number_of_random_nodes = 0;
+        unsigned long long number_of_denied_nodes_random = 0;
+        unsigned long long number_of_denied_nodes_goal = 0;
+        unsigned long long number_of_IK_results = 0;
+        double time_of_IK_results = 0;
+        double time_of_collision_check_in_IK = 0;
+        unsigned long long number_of_collision_check_in_IK = 0;
+        double time_of_collision_check = 0;
+        unsigned long long number_of_collision_check = 0;
+        double time_of_nn_check = 0;
+        unsigned long long number_of_nn_check = 0;
+
+        void to_map(std::map<std::string, std::string> *inp_stats);
+    };
     struct Tree
     {
 
@@ -119,9 +139,10 @@ public:
     };
 
     RRT(double _tolerance, int other_dof, const Robot &inp_start,
-        const GoalPoint &inp_goal, const std::vector<Polygon> &inp_obstacles) : tolerance(_tolerance), dof(other_dof), start(inp_start), goal(inp_goal),
-                                                                                obstacles(inp_obstacles), tree(start), distance_from_closest(goal.distance(start, start.configuration)), probability_gen(0.0, 1.0)
+        const GoalPoint &inp_goal, const std::vector<Polygon> &inp_obstacles, std::map<std::string, std::string> &inp_stats) : tolerance(_tolerance), dof(other_dof), start(inp_start), goal(inp_goal),
+                                                                                                                               obstacles(inp_obstacles), tree(start), distance_from_closest(goal.distance(start, start.configuration)), probability_gen(0.0, 1.0), stats_map(&inp_stats)
     {
+
         std::random_device rd;
         std::mt19937 gen1(rd());
         gen = gen1;
@@ -131,14 +152,21 @@ public:
             std::uniform_real_distribution<> dis(start.joints[i].limits[0], start.joints[i].limits[1]);
             random_gen.push_back(dis);
         }
-        InverseKinematics::sample_all_goals(end_configurations,start,goal,obstacles,10);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 10);
+        auto t2 = std::chrono::high_resolution_clock::now();
+        stats.time_of_IK_results = (t2 - t1)/1ns;
+        stats.number_of_collision_check_in_IK = ik_stats.number_of_collision_check;
+        stats.time_of_collision_check_in_IK = ik_stats.time_of_collision_check;
+        stats.number_of_IK_results = end_configurations.size();
+
         // TODO: добавить проверку решений с помощью ПЗК
 
         if (end_configurations.size() == 0)
         {
             throw std::invalid_argument("No solution found for goal configuration.");
         }
-        std::cout<<"Inverse Kinematics solved, got "<<end_configurations.size()<<" solutions"<<std::endl;
+        std::cout << "Inverse Kinematics solved, got " << end_configurations.size() << " solutions" << std::endl;
     }
 
     RRT(const RRT &_other) = delete;
@@ -148,13 +176,18 @@ public:
     ~RRT() = default;
 
     void grow_tree();
-    
+    std::vector<Robot> get_end_configurations() const;
+
     bool is_finished() const;
-    Tree& get_tree();    
+    Tree &get_tree();
     int get_dof() const;
     std::vector<double> get_path() const;
+    void export_stats();
 
 private:
+    std::shared_ptr<RRT::Tree::Node> nearest_neighbour_stats(const Robot &pos);
+    bool collide_stats(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons);
+
     void expand_to_goal();
     void expand_to_random();
     void sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Vector2D intermediate_goal, double length_koef);
@@ -180,4 +213,7 @@ private:
     std::shared_ptr<RRT::Tree::Node> make_step(const std::shared_ptr<RRT::Tree::Node> node, const Robot &pos);
     bool is_goal(const std::shared_ptr<RRT::Tree::Node> node);
     std::vector<Robot> end_configurations;
+
+    RRT::Stat stats;
+    std::map<std::string, std::string> *stats_map;
 };

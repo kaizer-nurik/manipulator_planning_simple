@@ -12,10 +12,57 @@
 #include <map>
 #include <stdexcept>
 #include <assert.h>
+#include <chrono>
 // из-за числовой нестабильности чисел с плавающей запятой
 // Возможны случаи, когда косинус равен не 1, а 1.000001 и т. д.
 #define COS_TOLERANCE 0.00000001
 
+void RRT::Stat::to_map(std::map<std::string, std::string> *inp_stats)
+{
+    (*inp_stats)["number_of_nodes"] = std::to_string(number_of_nodes);
+    (*inp_stats)["number_of_goal_expanding_nodes"] = std::to_string(number_of_goal_expanding_nodes);
+    (*inp_stats)["number_of_random_nodes"] = std::to_string(number_of_random_nodes);
+    (*inp_stats)["number_of_denied_nodes_random"] = std::to_string(number_of_denied_nodes_random);
+    (*inp_stats)["number_of_denied_nodes_goal"] = std::to_string(number_of_denied_nodes_goal);
+    (*inp_stats)["number_of_IK_results"] = std::to_string(number_of_IK_results);
+    (*inp_stats)["time_of_IK_results"] = std::to_string(time_of_IK_results);
+    (*inp_stats)["time_of_collision_check_in_IK"] = std::to_string(time_of_collision_check_in_IK);
+    (*inp_stats)["number_of_collision_check_in_IK"] = std::to_string(number_of_collision_check_in_IK);
+    (*inp_stats)["time_of_collision_check"] = std::to_string(time_of_collision_check);
+    (*inp_stats)["number_of_collision_check"] = std::to_string(number_of_collision_check);
+    (*inp_stats)["time_of_nn_check"] = std::to_string(time_of_nn_check);
+    (*inp_stats)["number_of_nn_check"] = std::to_string(number_of_nn_check);
+}
+
+void RRT::export_stats(){
+    stats.to_map(stats_map);
+}
+std::shared_ptr<RRT::Tree::Node> RRT::nearest_neighbour_stats(const Robot &pos)
+{
+    /*
+    Обёртка для NN для сбора времени выполнения
+    */
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto result = nearest_neighbour(pos);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    stats.number_of_nn_check;
+    stats.time_of_nn_check += (t2 - t1)/1ns;
+    return result;
+}
+
+bool RRT::collide_stats(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons)
+{
+    /*
+     Обёртка для collide, которая собирает статистику по времени выполнения
+    */
+    auto t1 = std::chrono::high_resolution_clock::now();
+    bool result = collide(robot, config, poligons);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    stats.number_of_collision_check++;
+    stats.time_of_collision_check += (t2 - t1)/1ns;
+    return result;
+}
 void RRT::Tree::Node::add_childen(std::shared_ptr<Node> child)
 {
     assert(!this->is_children(child));
@@ -127,10 +174,10 @@ void RRT::sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Ve
         double angle_1 = std::acos(triangle_angle_cos);
         if (std::isnan(angle_1))
         {
-            if ((std::abs(triangle_angle_cos) - 1) > COS_TOLERANCE)
-            {
-                return;
-            }
+            // if ((std::abs(triangle_angle_cos) - 1) > COS_TOLERANCE)
+            // {
+            //     return;
+            // }
             if (triangle_angle_cos > 0)
             {
                 angle_1 = 0;
@@ -145,10 +192,10 @@ void RRT::sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Ve
         double angle_2 = std::acos(full_angle_cos) - angle_1;
         if (std::isnan(angle_2))
         {
-            if ((std::abs(full_angle_cos) - 1) > COS_TOLERANCE)
-            {
-                return;
-            }
+            // if ((std::abs(full_angle_cos) - 1) > COS_TOLERANCE)
+            // {
+            //     return;
+            // }
             if (full_angle_cos > 0)
             {
                 angle_2 = -angle_1;
@@ -172,7 +219,7 @@ void RRT::sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Ve
     if (depth == (dof - 2))
     {
         sample.configuration[dof - 1] -= curr_angle + sample.configuration[dof - 2];
-        if (!collide(sample, sample.configuration, obstacles))
+        if (!collide_stats(sample, sample.configuration, obstacles))
         {
             answers.push_back(sample);
         }
@@ -211,7 +258,7 @@ void RRT::expand_to_goal()
 {
     // Берём случайную финишную точку и стремимся к ней, пока можем.
     Robot sample_goal_config = get_end_config_sample();
-    std::shared_ptr<RRT::Tree::Node> nearest_node = nearest_neighbour(sample_goal_config);
+    std::shared_ptr<RRT::Tree::Node> nearest_node = nearest_neighbour_stats(sample_goal_config);
     std::shared_ptr<RRT::Tree::Node> next_node = nearest_node;
     do
     {
@@ -219,7 +266,13 @@ void RRT::expand_to_goal()
         next_node = make_step(nearest_node, sample_goal_config);
         if (next_node)
         {
+            stats.number_of_goal_expanding_nodes++;
+            stats.number_of_nodes++;
             nearest_node->add_childen(next_node);
+        }
+        else
+        {
+            stats.number_of_denied_nodes_goal++;
         }
     } while (next_node && (!is_goal(next_node)));
     if (next_node && is_goal(next_node))
@@ -232,16 +285,22 @@ void RRT::expand_to_goal()
 void RRT::expand_to_random()
 {
     Robot random_position = random_sample();
-    std::shared_ptr<RRT::Tree::Node> nearest_node = nearest_neighbour(random_position);
+    std::shared_ptr<RRT::Tree::Node> nearest_node = nearest_neighbour_stats(random_position);
     std::shared_ptr<RRT::Tree::Node> next_node = make_step(nearest_node, random_position);
     if (next_node)
     {
+        stats.number_of_random_nodes++;
+        stats.number_of_nodes++;
         nearest_node->add_childen(next_node);
         if (is_goal(next_node))
         {
             finished = true;
             finish_node.push_back(next_node);
         }
+    }
+    else
+    {
+        stats.number_of_denied_nodes_random++;
     }
 }
 bool RRT::is_finished() const
@@ -302,7 +361,7 @@ std::shared_ptr<RRT::Tree::Node> RRT::make_step(const std::shared_ptr<RRT::Tree:
     {
         new_pose = pos;
     }
-    if (collide(new_pose, new_pose.configuration, obstacles))
+    if (collide_stats(new_pose, new_pose.configuration, obstacles))
     {
         std::shared_ptr<RRT::Tree::Node> null_node;
         return null_node;
@@ -335,7 +394,7 @@ std::vector<double> RRT::get_path() const
             node = spt->get_parent();
             if (std::shared_ptr<RRT::Tree::Node> nspt = node.lock())
             {
-                for (int joint_index = dof-1; joint_index >= 0; joint_index--)
+                for (int joint_index = dof - 1; joint_index >= 0; joint_index--)
                 {
                     path.push_back(nspt->get_position().configuration[joint_index]);
                 }
@@ -354,4 +413,9 @@ RRT::Tree &RRT::get_tree()
 int RRT::get_dof() const
 {
     return dof;
+}
+
+std::vector<Robot> RRT::get_end_configurations() const
+{
+    return end_configurations;
 }

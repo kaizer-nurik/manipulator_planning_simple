@@ -7,12 +7,14 @@
 #include <thread>
 #include <mutex>
 #include <math.h>
+#include <chrono>
 // из-за числовой нестабильности чисел с плавающей запятой
 // Возможны случаи, когда косинус равен не 1, а 1.000001 и т. д.
 #define COS_TOLERANCE 1
 
 namespace
 {
+    
     struct Robot_and_layer_info
     {
         Robot pos;
@@ -133,8 +135,9 @@ namespace
         }
     };
 
-    void get_solutions(const std::deque<Robot_and_layer_info> &layer, std::vector<Robot> &answers, const GoalPoint &goal, const std::vector<Polygon> &obstacles)
+    InverseKinematics::IK_statistics get_solutions(const std::deque<Robot_and_layer_info> &layer, std::vector<Robot> &answers, const GoalPoint &goal, const std::vector<Polygon> &obstacles)
     {
+        InverseKinematics::IK_statistics stats;
         for (Robot_and_layer_info current_sample : layer)
         {
             std::pair<std::pair<double, double>, bool> result = get_angle(current_sample, current_sample.pos.dof_ - 1, goal, 0);
@@ -150,14 +153,21 @@ namespace
                 continue;
             }
             // проверяем на коллизию
-            if (collide(current_sample.pos, current_sample.pos.configuration, obstacles))
+            stats.number_of_collision_check++;
+            auto t1 = std::chrono::high_resolution_clock::now();
+            bool collided = collide(current_sample.pos, current_sample.pos.configuration, obstacles);
+            auto t2 = std::chrono::high_resolution_clock::now();
+            stats.time_of_collision_check += (t2-t1).count();
+            if (collided)
             {
                 continue;
             }
             // Сохраняем
 
             answers.push_back(current_sample.pos);
+            
         }
+        return stats;
     }
 
     void calculate_curr_angle_parallel(Robot_and_layer_info current_sample, const int &depth, const GoalPoint &goal, double remaining_length, const double length_coef, std::deque<Robot_and_layer_info> &layer, std::mutex &queue_mutex)
@@ -304,7 +314,7 @@ namespace
     }
 }
 
-std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answers, Robot pos, const GoalPoint &goal, const std::vector<Polygon> &obstacles, const u_int8_t sample_rate)
+InverseKinematics::IK_statistics InverseKinematics::sample_all_goals(std::vector<Robot> &answers, Robot pos, const GoalPoint &goal, const std::vector<Polygon> &obstacles, const u_int8_t sample_rate)
 {
     /*
     Идём по-слойно, начиная с 1 звена, и заканчивая последним. при обработке каждого звена набираем "слой", то есть множество
@@ -361,12 +371,12 @@ std::vector<Robot> InverseKinematics::sample_all_goals(std::vector<Robot> &answe
     }
 
     // теперь в layers остались лишь решения ОКЗ. Надо выделить те, которые соответствуют нашим требованиям
-    get_solutions(layer, answers, goal, obstacles);
+    
 
-    return answers;
+    return get_solutions(layer, answers, goal, obstacles);
 }
 
-std::vector<Robot> InverseKinematics::sample_all_goals_parallel(std::vector<Robot> &answers, Robot pos, const GoalPoint &goal, const std::vector<Polygon> &obstacles, const uint8_t sample_rate)
+void InverseKinematics::sample_all_goals_parallel(std::vector<Robot> &answers, Robot pos, const GoalPoint &goal, const std::vector<Polygon> &obstacles, const uint8_t sample_rate)
 {
     /*
     Идём по-слойно, начиная с 1 звена, и заканчивая последним. при обработке каждого звена набираем "слой", то есть множество
@@ -467,5 +477,4 @@ std::vector<Robot> InverseKinematics::sample_all_goals_parallel(std::vector<Robo
     }
     threads.clear();
 
-    return answers;
 }

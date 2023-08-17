@@ -14,27 +14,19 @@
 #include <vector>
 #include <map>
 #include "file_saver.h"
+#include <chrono>
+#include <ctime>
+#define TIMEOUT_MS 10000
+#define ANGLE_STEP 10
 
-void writeDataToCsv(int test,  int node_count, double coord_tolerance, double angle_tolerance, 
-double time, int goal_node_count, int IK_solutions_count, const std::string& filename) {
-    
-    std::ofstream file(filename, std::ios::app);
-
-    if (file.is_open()) {
-        file << test<<','<<node_count<< "," <<coord_tolerance<<","<<angle_tolerance<<","<< time<<","<<goal_node_count<<","<<IK_solutions_count<<std::endl;
-        file.close();
-    } else {
-        std::cout << "Unable to open the file." << std::endl;
-    }
-}
 
 int main(int argc, const char * argv[])
  {
    
-
+    using namespace std::literals;   
     
-    std::string line = "./dataset/scene1/";  //"./dataset/scene1/scene_1_test_1.xml"
-   std::string line2 =  "scene_1_test_";
+    std::string line = "./dataset/scene" + std::string(argv[1])+"/"; 
+   std::string line2 =  "scene_"+std::string(argv[1])+"_test_";
     int successes = 0;
     for (int i=1; i<=50; i++)
     {        
@@ -50,26 +42,33 @@ int main(int argc, const char * argv[])
             return EXIT_FAILURE;
         }
         double angle=0.0;
-        for (int i=0u; i<start.dof_; i++)
-            angle+=start.configuration[i];
-        std::cout << "angle:" << angle/6.28 << ' ' << goal.angle2_ << std::endl;
-        std::cout << goal.goalpoint.x << ' ' << goal.goalpoint.y << std::endl;
-        RRT planner(10,start.dof_,start, goal, polygons);
-        std::map<std::string, double> dict;
-        bool reached_goal = false;
-        for(int i=0; i<10000;i++){
-        planner.grow_tree();
-        //std::cout<<i<<planner.is_finished()<<std::endl;
 
-        if (planner.is_finished())
-        {
-            reached_goal = true;
-            break;
-        }
-    
+        std::cout << "angle:" << goal.angle1_ << ' ' << goal.angle2_ << std::endl;
+        std::cout << goal.goalpoint.x << ' ' << goal.goalpoint.y << std::endl;
+        std::map<std::string, std::string> stats;
+        bool reached_goal = false;
+        bool timeout = false;
+        auto t1 = std::chrono::high_resolution_clock::now();
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto duration = t2-t1;
+        RRT planner(ANGLE_STEP,start.dof_,start, goal, polygons,stats);
+        
+        for(int i=0; i<10000;i++){
+            planner.grow_tree();
+            //std::cout<<i<<planner.is_finished()<<std::endl;
+            if (planner.is_finished())
+            {
+                reached_goal = true;
+                break;
+            }
+            t2 = std::chrono::high_resolution_clock::now();
+            duration = t2-t1;
+            if (duration/1ms > TIMEOUT_MS){
+                timeout = true;
+                break;
+            }
     }
-        // writeDataToCsv(i, dict["node_count"], dict["coord_tolerance"], dict["angle_tolerance"], dict["time"],
-        // dict["goal_node_count"], dict["IK_solutions_count"], "scene1_data.csv");
+        planner.export_stats();
         if(reached_goal){
         FileSaver::save_csv<double>(line2 + std::to_string(i) +"_trajectory.csv",planner.get_path(),planner.get_dof());
 
@@ -82,6 +81,15 @@ int main(int argc, const char * argv[])
         successes+=reached_goal;
         //bool b = planner.coll_test(start, polygons);
         std::cout << reached_goal << std::endl;
+        std::cout << "duration: " << duration/ 1ns <<" ns" << std::endl;
+        stats["reached_goal"] = std::to_string(reached_goal);
+        stats["timeout"] = std::to_string(timeout);
+        stats["total_duration"] = std::to_string(duration/1ns);
+        stats["angle_step"] = std::to_string(ANGLE_STEP);
+        
+        FileSaver::write_map_to_json(line2 + std::to_string(i)+"_stats.json",stats);
+        FileSaver::write_end_config_to_csv(line2 + std::to_string(i)+"_IK_res.csv", planner.get_end_configurations());
+    
     }
 
 
