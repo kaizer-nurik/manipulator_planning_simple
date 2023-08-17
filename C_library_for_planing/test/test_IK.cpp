@@ -67,7 +67,7 @@ void test_IK(const uint8_t max_joint, const int max_iter){
         if (!collide(sample,sample.configuration,polygons));{
             InverseKinematics::sample_all_goals(end_configurations, sample, goal, polygons, 10);
         
-        ASSERT_GT(end_configurations.size(), 0);
+            ASSERT_GT(end_configurations.size(), 0);
         }
         
 
