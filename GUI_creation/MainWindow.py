@@ -11,6 +11,7 @@ from xml_parser import read_xml
 import numpy as np
 # from scipy import interpolate
 from GUI import Ui_MainWindow
+import math
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
@@ -25,9 +26,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.robot = Robot_class()
         self.robot.change_joint_number(1)
         self.obstacles = ObstacleManager(
-            self.poli_x_text, self.poli_y_text, self.poly_list, self.scene)
+            None, None, None, self.scene)
         self.goal_point = GoalPoint(self.scene)
 
+        self.folder_choose_btn.clicked.connect(self.open_folder_dialog)
+        self.goal_point_delta_edit.textChanged.connect(
+            self.change_goal_point_radius)
         self.create_poli_btn.clicked.connect(self.create_poli)
         self.file_choose_btn.clicked.connect(self.open_file_dialog)
         self.plot = self.graphicsView  # для удобства
@@ -54,6 +58,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.scene.angle_changed.connect(self.on_joint_angle_change_by_mouse)
         self.reset_btn.clicked.connect(self.reset_animation)
         self.animate_btn.clicked.connect(self.animate_robot)
+        self.create_goal_point_btn_pos.clicked.connect(
+            self.create_goal_point_by_pos)
 
         self.csv_choose_btn.clicked.connect(self.open_csv_dialog)
         # self.scene.setSceneRect(self.scene_rect)
@@ -210,8 +216,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
                self.obstacles, self.goal_point)
 
     def goal_point_connect(self):
-        print(1)
         self.goal_point.create_goal_point()
+
+    def create_goal_point_by_pos(self):
+        x = 0
+        y = 0
+        angle = 0
+        for joint in self.robot.joints:
+            angle += joint.start_angle
+            x += joint.length*math.cos(angle*math.pi/180)
+            y += joint.length*math.sin(angle*math.pi/180)
+
+        self.goal_point.create_by_coords(x, y, angle)
 
     def ZoomSliderChange(self, value):
         tr = self.graphicsView.transform()
@@ -263,6 +279,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             self.joint_length_line_edit.setStyleSheet("color: green;")
         except BaseException as e:
             self.joint_length_line_edit.setStyleSheet("color: red;")
+            print(e)
+
+    def change_goal_point_radius(self, text):
+        try:
+            self.goal_point.update_radius(float(text))
+
+            self.goal_point_delta_edit.setStyleSheet("color: green;")
+        except BaseException as e:
+            self.goal_point_delta_edit.setStyleSheet("color: red;")
             print(e)
 
     def change_robot_joints_change(self, value):
@@ -342,3 +367,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         )
         # self.plot.fitInView(QRectF(0,0,1000,1000))
         self.csv_choose_edit.setText(fname[0])
+
+    def open_folder_dialog(self):
+        """Слот для кнопки "Обзор"
+        открывает диалог открытия папки датасета
+        """
+        fname = QFileDialog.getExistingDirectory(
+            None, 'Select a folder:', 'C:\\', QFileDialog.ShowDirsOnly)
+        # self.plot.fitInView(QRectF(0,0,1000,1000))
+        self.folder_choose_edit.setText(fname)

@@ -36,6 +36,7 @@ def add_goal_point(root:ET.Element, goal_point:GoalPoint):
     goal_point_xml = ET.SubElement(root,'goal_point')
     goal_point_xml.set('x', str(goal_point.x()/100))
     goal_point_xml.set('y', str(goal_point.y()/100))
+    goal_point_xml.set('delta_radius', str(goal_point.radius/100))
     goal_point_xml.set('angle', str(((goal_point.angle()))% 360 - 180 ))
     goal_point_xml.set('angle_tolerance', str(GOAL_POINT_TRESHOLD) )
     

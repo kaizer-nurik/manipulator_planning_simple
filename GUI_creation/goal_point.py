@@ -3,12 +3,11 @@ from PySide6.QtCore import QRectF, Qt, QPointF, Signal, QObject
 from PySide6 import QtGui
 import numpy as np
 
-GOAL_POINT_SQUARE_RADIUS = 20
 ARROW_LENGTH = 50
 
 class GoalPointVisuals(QGraphicsEllipseItem):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,radius, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         robot_pen = QtGui.QPen(QtGui.Qt.black)
@@ -19,8 +18,8 @@ class GoalPointVisuals(QGraphicsEllipseItem):
 
         self.setFlag(QGraphicsItem.ItemIsMovable)
 
-        self.arrow = QGraphicsLineItem(-GOAL_POINT_SQUARE_RADIUS,
-                                       GOAL_POINT_SQUARE_RADIUS, GOAL_POINT_SQUARE_RADIUS+ARROW_LENGTH, GOAL_POINT_SQUARE_RADIUS, self)
+        self.arrow = QGraphicsLineItem(-radius,
+                                       radius, radius+ARROW_LENGTH, radius, self)
 
         self.arrow.setPos(0, 0)
         self.arrow.setPen(robot_pen)
@@ -52,23 +51,38 @@ class GoalPointVisuals(QGraphicsEllipseItem):
         # вращение, задаваемое мышью
         angle = np.arctan2(delta.y(), delta.x())
         self.change_angle(angle)
+        
+    def update_radius(self,radius):
+        self.setRect(-radius,
+                         -radius, radius*2, radius*2)
+        
 
 
 class GoalPoint():
     def __init__(self, scene):
         self.scene = scene
-        self.dot = GoalPointVisuals()
+        self.radius = 10
+        self.dot = GoalPointVisuals(self.radius)
         self.dot.setVisible(False)
-        self.dot.setRect(-GOAL_POINT_SQUARE_RADIUS,
-                         -GOAL_POINT_SQUARE_RADIUS, GOAL_POINT_SQUARE_RADIUS*2, GOAL_POINT_SQUARE_RADIUS*2)
+        self.dot.setRect(-self.radius,
+                         -self.radius, self.radius*2, self.radius*2)
         self.scene.addItem(self.dot)
+        
 
     def create_goal_point(self):
         self.scene.go_goal_point_mode(self)
+        
+    def create_by_coords(self,x,y,angle):
+        self.create_dot(QPointF(x,y))
+        self.set_angle((angle-180)*np.pi/180)
 
     def create_dot(self, coords):
         self.dot.setPos(coords)
         self.dot.setVisible(True)
+        
+    def update_radius(self,radius):
+        self.radius = radius
+        self.dot.update_radius(radius)
 
     def make_arrow(self, coords):
         self.dot.change_angle_by_dot(coords)

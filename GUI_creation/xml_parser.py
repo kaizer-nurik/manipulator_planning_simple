@@ -35,7 +35,10 @@ def read_xml(filename: str, robot: Robot_class, obstacles: ObstacleManager, goal
     
     goal_point.set_angle((float(goal_info.get('angle'))-180)*np.pi/180)
     goal_point.create_dot(QPointF(float(goal_info.get('x'))*100,float(goal_info.get('y'))*100))
-    
+    try:
+        goal_point.update_radius(float(goal_info.get('delta_radius'))*100)
+    except BaseException as e:
+        print(e)
     
     scene_info = root.find('scene')
     
