@@ -2,19 +2,19 @@
 <input_info>
   <robot_info>
     <joints>
-      <joint number="0" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
-      <joint number="1" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
-      <joint number="2" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
-      <joint number="3" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
+      <joint number="0" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="2" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="3" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
     </joints>
   </robot_info>
   <start_configuration>
-    <angle number="0">87.51044707800088</angle>
+    <angle number="0">96.11550356628538</angle>
     <angle number="1">-0.4561094533866026</angle>
     <angle number="2">3.5100044442656326</angle>
-    <angle number="3">-3.899596577331124</angle>
+    <angle number="3">0.42403876941449425</angle>
   </start_configuration>
-  <goal_point x="-2.868686868686869" y="2.7676767676767677" angle="220.60129464500434" angle_tolerance="10" />
+  <goal_point x="-2.18" y="3.1" angle="90.0" angle_tolerance="10" />
   <scene>
     <polygon>
       <vertex x="-8.395348837209303" y="-0.37209302325581395" />

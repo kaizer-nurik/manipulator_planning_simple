@@ -9,12 +9,12 @@
     </joints>
   </robot_info>
   <start_configuration>
-    <angle number="0">116.56505117707798</angle>
-    <angle number="1">-5.846258031699449</angle>
-    <angle number="2">0.9995315934053224</angle>
-    <angle number="3">8.718994877329294</angle>
+    <angle number="0">91.33221985386967</angle>
+    <angle number="1">15.096970106084456</angle>
+    <angle number="2">2.8365447122681076</angle>
+    <angle number="3">-12.06275270219669</angle>
   </start_configuration>
-  <goal_point x="1.26" y="2.2" angle="-30.46554491945986" angle_tolerance="10" />
+  <goal_point x="0.38" y="1.22" angle="-20.556045219583467" angle_tolerance="10" />
   <scene>
     <polygon>
       <vertex x="-8.395348837209303" y="-0.37209302325581395" />

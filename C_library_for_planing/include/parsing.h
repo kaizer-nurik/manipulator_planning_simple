@@ -8,6 +8,8 @@
 #include "rapidxml.hpp"
 #include "obstacles.h"
 #include "robot.h"
+#include "geometry.h"
+
 
 
 bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Robot &start, GoalPoint &goal)
@@ -96,7 +98,7 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
                     vertexes.push_back(vertex);
                 }
                 Polygon polygon(vertexes);
-                polygons.push_back(polygon);
+                if (polygon.points.size() > 0)   polygons.push_back(polygon);
             }
         }
     }

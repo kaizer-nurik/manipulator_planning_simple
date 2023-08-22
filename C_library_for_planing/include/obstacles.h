@@ -13,6 +13,10 @@ struct Vector2D {
     double dotProduct(const Vector2D& other) const {
         return x * other.x + y * other.y;
     }
+    double length() const
+{
+    return std::sqrt(x * x + y * y);
+}
 
     // Perpendicular vector
     Vector2D perpendicular() const {

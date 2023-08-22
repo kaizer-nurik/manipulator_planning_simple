@@ -2,16 +2,16 @@
 <input_info>
   <robot_info>
     <joints>
-      <joint number="0" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
-      <joint number="1" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
-      <joint number="2" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
-      <joint number="3" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
+      <joint number="0" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="2" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="3" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
     </joints>
   </robot_info>
   <start_configuration>
     <angle number="0">90.81845546168859</angle>
-    <angle number="1">-7.725475609262503</angle>
-    <angle number="2">7.550916846253642</angle>
+    <angle number="1">-5.272840943313383</angle>
+    <angle number="2">8.382121618465021</angle>
     <angle number="3">-4.381715045270994</angle>
   </start_configuration>
   <goal_point x="-2.0202020202020203" y="2.202020202020202" angle="174.0938588862295" angle_tolerance="10" />

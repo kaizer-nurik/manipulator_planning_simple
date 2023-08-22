@@ -14,6 +14,9 @@
 #include <fstream>
 #include "benchmark.h"
 #include "../json-develop/include/nlohmann/json.hpp"
+#include <list>
+#include "geometry.h"
+
 
 template<typename T>
 std::vector<T> operator+(const std::vector<T>& vec1, const std::vector<T>& vec2) {
@@ -184,7 +187,8 @@ void reconstruct_path(const std::shared_ptr<Node> &node, std::string input_filen
 double periodic(double n, double L)
 {
     if (n>=0.0) return fmod(n + L, 2*L) - L;
-    else return fmod(n + L, 2*L) + L;
+    else if (n>=-L && n<0.0) return n;
+    else  return fmod(n + L, 2*L) + L;
 }
 
 void simplify(std::vector<int> & v, int n)
@@ -273,11 +277,11 @@ public:
 
     double heuristic(const Robot &robot, const GoalPoint &goalpoint, const std::vector<double> &angles)
     {
-        return calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);// + 0.1 * std::sqrt(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        return 0.1 * calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);//+ std::abs(last_angle(angles) - goalpoint.angle1_);
     }
     double geuristic(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
     {
-        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));// + 0.1 * std::sqrt(fmod(angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2)); //+ 0.05 * std::sqrt(fmod(last_angle(angle)angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
     }
 
     
@@ -339,15 +343,15 @@ public:
             auto currxy = end_effector(robot, calc_angles(robot, current->position, deltas));
 
             //std::cout << current->getFCost() << ' ' << current->gCost << ' ' << current->hCost  << std::endl;
-            std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << std::endl;
-            if (opened_nodes.size()>50'000) return false;
+            
+            //if (opened_nodes.size()>50'000) return false;
             
             angles = calc_angles(robot, current->position, deltas);
-            
+            std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << ' ' << heuristic(robot,goalpoint, angles) << std::endl;
             //std:: cout << angles[0]*180/std::acos(-1) << ',' << angles[1]*180/std::acos(-1) << ',' << angles[2]*180/std::acos(-1) << std::endl;
             std::vector<double> curr_angles = calc_angles(robot, current->position, deltas);
             
-            if (std::abs(current->hCost) < coord_tolerance) // && std::abs(last_angle(angles) - goalpoint.angle1_)<goalpoint.angle2_)
+            if (std::abs(current->hCost) < coord_tolerance)//  && std::abs(last_angle(angles) - goalpoint.angle1_)<2*goalpoint.angle2_)
             {
                 reconstruct_path(current,input_filename_, output_filename_, robot, deltas);
                 angles = calc_angles(robot, current->position, deltas);
@@ -479,3 +483,284 @@ private:
     const double eps = 1e-3;
 };
 
+
+template <typename T>
+int signum(T number) {
+    //static_assert(std::is_arithmetic<T>, "signum() requires an arithmetic type.");
+    return (T(0) < number) - (number < T(0));
+}
+
+
+double norm(const std::vector<double> &v1, const std::vector<double> &v2)
+{
+    double n = 0.0;
+    for (int i=0; i<v1.size(); i++)
+    {
+        n += (v1[i] - v2[i]) * (v1[i] - v2[i]); 
+    }
+    return std::sqrt(n);
+}
+
+
+
+
+
+
+
+std::vector<std::vector<double>> Astar(Robot &robot, const std::vector<Polygon> polygons, const std::vector<double> &start_config, const std::vector<double> &goal_config, 
+const double &deltaeps)
+{   
+        robot.configuration = start_config;            
+        double coord_tolerance = deltaeps * robot.dof_;
+        std::vector<double> deltas(robot.dof_, 0.0);
+
+        for (auto i = 0u; i < robot.configuration.size(); i++)
+        {
+            deltas[i] = deltaeps;
+        }
+
+        std::vector<std::vector<int>> primitivemoves;
+        for (auto i = 0u; i < robot.dof_; i++)
+        {
+            std::vector<int> a(robot.dof_, 0.0);
+            a[i] = 1;
+            primitivemoves.push_back(a);
+            a[i] = -1;
+            primitivemoves.push_back(a);            
+        }
+
+        
+        std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
+        std::map<std::vector<int>, std::shared_ptr<Node>, CompareKey> map_pq_opened;
+        std::unordered_set<std::shared_ptr<Node>, HashNode, EqualNode> closed_nodes;
+
+        std::vector<int> config(robot.dof_, 0);
+        std::vector<double> angles = start_config; 
+
+        std::shared_ptr<Node> start = std::make_shared<Node>(config, 0.0, norm(angles, goal_config) , nullptr);
+        opened_nodes.push(start);
+        map_pq_opened.emplace(start->position, start);
+
+        int NODES = 0;
+        int Nodes_closed = 0;
+        int n_turns = 0;
+
+        //print_vector(start_config);
+        //print_vector(goal_config);
+        int aa;
+        std::cout << "start "; print_vector(start_config);
+        std::cout << "goal "; print_vector(goal_config);
+        
+        while (!opened_nodes.empty())
+        {
+            std::shared_ptr<Node> current = opened_nodes.top();
+            opened_nodes.pop();
+            map_pq_opened.erase(current->position);
+
+            
+            print_vector(calc_angles(robot, current->position, deltas));
+
+            //std::cin>>aa;
+
+            closed_nodes.insert(current);
+            Nodes_closed++;
+
+            //std::cout << current->getFCost() << ' ' << current->gCost << ' ' << current->hCost  << std::endl;
+            //std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << ' ' << current->getFCost() << ' ' << current->gCost << ' ' << current->hCost<< std::endl;
+            
+            angles = calc_angles(robot, current->position, deltas);
+            
+            std::vector<double> curr_angles = calc_angles(robot, current->position, deltas);
+            
+            if (std::abs(current->hCost) < coord_tolerance)
+            {
+                std::cout << "Successe interpolated\n";
+                std::vector<std::vector<double>> path;
+                auto node_ = current;
+                while (node_ != nullptr)
+                {
+                    path.push_back(calc_angles(robot, node_->position, deltas));
+                    node_ = node_->parent;
+                }    
+                std::reverse(path.begin(), path.end()); 
+                // for (const auto &i:path)
+                //     print_vector(i);
+                return path;            
+
+            }
+            n_turns++;
+            for (const auto &i:primitivemoves)
+            {
+                std::shared_ptr<Node> newneighbour = std::make_shared<Node>(current->position+i, 0.0, 0.0, current);
+                //simplify(newneighbour->position, g_units);
+                angles = calc_angles(robot, newneighbour->position, deltas);
+                newneighbour->hCost = norm(angles, goal_config);
+
+                bool flag = collide(robot, angles, polygons);
+
+                if  (flag)
+                {
+                    //closed_nodes.insert(newneighbour);
+                    //std::cout << "collision" << std::endl;
+                    continue;
+                }
+                if (closed_nodes.count(newneighbour) != 0) //if in closed list
+                {
+                    continue;
+                }
+
+                double g_score = current->gCost + norm(angles, curr_angles);   //tentative
+                auto it = map_pq_opened.find(newneighbour->position);
+
+
+                if (it == map_pq_opened.end()) //Neighbour not in opened => add neighbor
+                {
+                    newneighbour->hCost = norm(goal_config, angles);
+                    newneighbour->gCost = g_score;
+                    newneighbour->parent = current;
+                    map_pq_opened.emplace(newneighbour->position, newneighbour);
+                    opened_nodes.push(newneighbour);
+                    NODES++;   
+                }
+                if (g_score < it->second->gCost && it != map_pq_opened.end()) // optimization
+                {
+                    it->second->gCost = g_score;
+                    it->second->hCost = norm(goal_config, angles);
+                    it->second->parent = current;
+                }
+            }
+        }  
+    std::cout << "OPENED NODES " << NODES << std::endl; 
+    std::vector<std::vector<double>> nnn = {{0.0, 0.0}, {0.0, 0.0}}; 
+    return nnn;
+}
+
+bool check_trajectory(const std::string &input_filename)
+{
+    bool needchange = false;
+    std::vector<Polygon> polygons;
+    Robot robot = Robot();
+    GoalPoint goal(0.0, 0.0, 0.0, 0.0);
+    bool read_normally = read_scene(input_filename, polygons, robot, goal); 
+
+    std::ifstream file(input_filename);
+
+    std::string xmlString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    xmlString.push_back('\0'); 
+    
+    rapidxml::xml_document<> doc;
+    doc.parse<0>(&xmlString[0]);
+
+    std::string csvContent;
+    rapidxml::xml_node<>* csvNode = doc.first_node("input_info")->first_node("csv");
+    if (csvNode) {
+        csvContent = csvNode->value();
+    } else {
+        std::cout << "CSV content node not found in the XML." << std::endl;
+    }
+
+    std::istringstream csvStream(csvContent);
+    std::string line;
+    std::list<std::vector<double>> states;
+    while (std::getline(csvStream, line)) 
+    {
+        std::vector<std::string> rowValues;
+        std::string value;
+        std::stringstream ss(line);
+
+        while (std::getline(ss, value, ','))  //read line
+        {
+            rowValues.push_back(value);
+        }
+
+        // Process the row data as needed
+        std::vector<double> angles;
+        for (const auto& val : rowValues) 
+        {
+            angles.push_back(std::stod(val) * std::acos(-1)/180);
+        }
+        states.push_back(angles);
+        //print_vector(angles);
+    }
+
+    std::cout << std::endl;
+
+    const double deltaeps = std::acos(-1)/180 * 1; // 0.1 grad
+    //in states lies configs in trajectory
+    std::list<std::vector<double>>::iterator it = states.begin();
+    std::vector<double> current = *it;
+    std::vector<double> next;
+    while (it!=std::prev(states.end()))
+    {
+        next = *(++it);
+        //print_vector(current);
+        //current and next -- one joint moved
+        int index = 0;
+        for (int i=0; i<current.size(); i++)
+        {
+            if (std::abs(next[i] - current[i])>1e-2)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        //know index of movable joint
+
+        std::vector<double> interpolate = current;
+        double sign = next[index] - interpolate[index];
+        bool flag = false;
+        while (std::abs(next[index] - interpolate[index]) > 2*deltaeps && (!flag))
+        {
+            interpolate[index] += deltaeps * sign;
+            if (collide(robot, interpolate, polygons))
+            {
+                flag = true;
+                needchange = true;
+            }
+        }
+        if (flag == true)
+        { 
+            std::vector<std::vector<double>> a = Astar(robot, polygons, current, next, deltaeps);
+
+                for (const auto& value : a)
+                {
+                    states.insert(it, value);
+                }
+        }
+        current = *it;
+    }
+
+    // Write vectors to the CSV file
+    std::string path_csv;
+    for (const auto& n : states)
+    {
+        for (size_t i = 0; i < n.size(); ++i)
+        {
+            path_csv.append(std::to_string(n[i] * 180.0 / std::acos(-1)));
+            if (i != n.size() - 1) { path_csv.append(",");}  
+        }
+        path_csv.append("\n");
+    }
+
+    std::ifstream inputFile(input_filename);
+    std::ofstream outputFile("fixed" + input_filename);
+
+    if (inputFile.is_open() && outputFile.is_open())
+    {
+        std::string line;
+        while (std::getline(inputFile, line)) 
+        { 
+            if (line == "</input_info>") continue;
+            if (line[1] == 'c' && line[2] == 's') { break;}
+            outputFile << line << std::endl; 
+            
+        }
+        outputFile << "<csv>" << path_csv <<"</csv>";
+        outputFile << "</input_info>" << std::endl;
+        inputFile.close();  
+        outputFile.close(); 
+    }
+    else { std::cerr << "Error." << std::endl;}
+    return needchange;
+}
