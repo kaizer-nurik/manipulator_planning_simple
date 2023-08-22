@@ -475,7 +475,7 @@
      <string>Путь до папки датасета</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="animate_btn_2">
+   <widget class="QPushButton" name="create_dataset_btn">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -514,7 +514,7 @@
      <string>Количество точек</string>
     </property>
    </widget>
-   <widget class="QSpinBox" name="robot_joint_count_spin_2">
+   <widget class="QSpinBox" name="dataset_dot_spin">
     <property name="geometry">
      <rect>
       <x>10</x>
