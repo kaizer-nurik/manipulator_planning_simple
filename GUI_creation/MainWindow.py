@@ -1,24 +1,37 @@
 from PySide6.QtWidgets import QApplication, QFileDialog, QGraphicsScene, QMainWindow
 from PySide6 import QtGui
-from PySide6.QtCore import Qt, QTimer, QPoint, QEasingCurve, QRectF
+from PySide6.QtCore import Qt, QTimer, QPoint,QPointF, QEasingCurve, QRectF, QBuffer, QIODevice
 import graphics
+from PIL import Image, ImageQt
 from robot_class import Robot_class
 from robo_scene import Robo_scene
 from obstacles import ObstacleManager, Obstacle
 from goal_point import GoalPoint
 from xml_maker import to_xml
 from xml_parser import read_xml
+import io
+import os
 import numpy as np
+import moviepy.editor as mp
+import copy
 # from scipy import interpolate
 from GUI import Ui_MainWindow
 import math
-
-
+from typing import List
+from heatbar_scene import HeatbarScene
+import json
+import re
+import time
 class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-
+        self.heatmap_scene = HeatbarScene(33810,500)
+        self.heatbarView.setScene(self.heatmap_scene)
+        
+        self.heatbarView.scale(1, -1)  
+        self.heatmap_scene.draw()
+        self.heatbarView.setSceneRect(0,-50,500,5000)
         # подключение к кнопке "Обзор" выбора файла
         self.scene = Robo_scene()
 
@@ -27,40 +40,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.robot.change_joint_number(1)
         self.obstacles = ObstacleManager(
             None, None, None, self.scene)
-        self.goal_point = GoalPoint(self.scene)
-
+        self.goal_point = GoalPoint(10,self.scene)
+        self.dataset_dot_spin.valueChanged.connect(self.dataset_value_changed)
         self.folder_choose_btn.clicked.connect(self.open_folder_dialog)
         self.goal_point_delta_edit.textChanged.connect(
             self.change_goal_point_radius)
-        self.create_poli_btn.clicked.connect(self.create_poli)
-        self.file_choose_btn.clicked.connect(self.open_file_dialog)
+        self.process_dataset_btn.clicked.connect(self.process_dataset)
         self.plot = self.graphicsView  # для удобства
-        self.robot_joint_count_spin.valueChanged.connect(
-            self.change_robot_joints_count)
-        self.robot_change_j_spin.valueChanged.connect(
-            self.change_robot_joints_change)
-        self.joint_length_line_edit.textChanged.connect(
-            self.change_joint_length)
-        self.joint_length_line_edit.setText('100')
-        self.left_limit_text.textChanged.connect(self.change_joint_left_limit)
-        self.left_limit_text.setText('-180')
-        self.right_limit_text.textChanged.connect(
-            self.change_joint_right_limit)
-        self.right_limit_text.setText('180')
-        self.start_angle_text.textChanged.connect(
-            self.change_joint_start_angle)
-        self.start_angle_text.setText('0')
+        
         self.zoom_slider.valueChanged.connect(self.ZoomSliderChange)
-        self.create_goal_point_btn.clicked.connect(self.goal_point_connect)
-        self.export_btn.clicked.connect(self.export_xml)
-        self.reset_scene_btn.clicked.connect(self.reset_scene)
         # self.scene_rect  = QRectF(-100000,-100000,100000,100000)
-        self.scene.angle_changed.connect(self.on_joint_angle_change_by_mouse)
-        self.reset_btn.clicked.connect(self.reset_animation)
         self.animate_btn.clicked.connect(self.animate_robot)
-        self.create_goal_point_btn_pos.clicked.connect(
-            self.create_goal_point_by_pos)
-
         self.csv_choose_btn.clicked.connect(self.open_csv_dialog)
         # self.scene.setSceneRect(self.scene_rect)
         # graphics.draw_grid(self.scene,10)
@@ -69,71 +59,169 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.graphicsView.setScene(self.scene)
         self.graphicsView.centerOn(0, 0)
         self.graphicsView.scale(1, -1)
-        self.timer = QTimer()
-        self.timer.setInterval(20)  # msecs 100 = 1/10th sec
-        self.timer.timeout.connect(self.update_anim)
-        self.anim_speed_sldr.value()
-        self.anim_manual_sldr.valueChanged.connect(self.manual_anim)
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
+    def dataset_value_changed(self,value):
+        self.heatmap_scene.set_max_value(value)
+        self.heatmap_scene.draw()
+        try:
+            for number,goal in self.goals:
+                goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[number]))
+        except BaseException as e:
+            print(e)
+            
+        
+    def process_dataset(self):
+        files = []
+        error = False
+        try:
+            files = os.listdir(self.folder_choose_edit.text())
+        except os.error as e:
+            print(e)
+            error = True
+        
+        
+        try:
+            with open(self.csv_choose_edit.text(),'r') as f:
+                scenes_data = json.load(f)
+        except BaseException as e:
+            print(e)
+            error = True        
+         
+        if error:
+            return
+        
+        self.number2open_nodes = dict()
+        
+        for data in scenes_data:
+            self.number2open_nodes[data["_number"]] = data["opened_nodes"]
+        scene = Robo_scene()
+        self.goals :List[GoalPoint] = []
+        self.trajectories :dict[str] = dict()
+        self.robot.joints[0].visuals.setParentItem(None)
+        csv,self.robot, self.obstacles, self.goal_point =  read_xml(self.folder_choose_edit.text()+"\\\\"+files[0],scene)
+        number = int(re.findall("\d+",files[0])[-1])
+        # print(files[0],number)
+        self.goal_point.set_number(number)
+        self.goals.append((number,self.goal_point))
+        self.trajectories[number] = csv
+        for file in files[1:]:
+            csv,Robot, obstacles, goal =  read_xml(self.folder_choose_edit.text()+"\\\\"+file, None)
+            number = int(re.findall("\d+",file)[-1])
+            # print(file,number)
+            goal.set_number(number)
+            self.goals.append((number,goal))
+            self.trajectories[number] = csv
+        
+        for number,goal in self.goals:
+            goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[number]))
+        for number,goal in self.goals[1:]:
+            
+            goal.set_scene(scene)    
+            
+        self.scene = scene
+        graphics.draw_robot(self.scene, self.robot)
+        self.graphicsView.setScene(self.scene)
+        
+
+        
+    def change_goal_point_radius(self, text):
+        try:
+            for number,goal in self.goals:
+                goal.update_radius(float(text))
+
+            self.goal_point_delta_edit.setStyleSheet("color: green;")
+        except BaseException as e:
+            self.goal_point_delta_edit.setStyleSheet("color: red;")
+            print(e)    
     def unlock_view(self):
         self.graphicsView.setInteractive(True)
         unlock_brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         self.graphicsView.setBackgroundBrush(unlock_brush)
         self.graphicsView.setScene(self.scene)
 
+    def QImageToPil(self,img):
+        buffer = QBuffer()
+        buffer.open(QBuffer.ReadWrite)
+        img.save(buffer, "PNG")
+        pil_im = Image.open(io.BytesIO(buffer.data()))
+        buffer.close()
+        return pil_im
     def lock_view(self):
         self.graphicsView.setInteractive(False)
         lock_brush = QtGui.QBrush(QtGui.QColor(230, 230, 203))
         self.graphicsView.setBackgroundBrush(lock_brush)
 
     def animate_robot(self):
-        self.lock_view()
-        self.anim_scene = Robo_scene()
+        for number,goal in self.goals:
+            self.anim_scene = Robo_scene()
+            self.plot.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.plot.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            
 
-        self.current_joint = 0
-        self.anim_robot = Robot_class()
-        self.anim_robot.change_joint_number(1)
-        self.anim_obstacles = ObstacleManager(
-            self.poli_x_text, self.poli_y_text, self.poly_list, self.anim_scene)
-        self.anim_goal_point = GoalPoint(self.anim_scene)
-        graphics.draw_robot(self.anim_scene, self.anim_robot)
-        self.graphicsView.setScene(self.anim_scene)
-        csv = read_xml(filename=self.csv_choose_edit.text(),
-                       robot=self.anim_robot,
-                       obstacles=self.anim_obstacles,
-                       goal_point=self.anim_goal_point,
-                       csv=True)
-        value = 1
-        self.robot_joint_count_spin.blockSignals(True)
-        self.robot_joint_count_spin.setValue(self.anim_robot.joint_count)
-        self.robot_joint_count_spin.blockSignals(False)
-        self.joint_length_line_edit.blockSignals(True)
-        self.joint_length_line_edit.setText(
-            str(self.anim_robot[value-1].length))
-        self.joint_length_line_edit.blockSignals(False)
-        self.left_limit_text.blockSignals(True)
-        self.left_limit_text.setText(
-            f"{self.anim_robot[value-1].left_angle:.2f}")
-        self.left_limit_text.blockSignals(False)
-        self.right_limit_text.blockSignals(True)
-        self.right_limit_text.setText(
-            f"{self.anim_robot[value-1].right_angle:.2f}")
-        self.right_limit_text.blockSignals(False)
-        self.start_angle_text.blockSignals(True)
-        self.start_angle_text.setText(
-            f"{self.anim_robot[value-1].start_angle:.2f}")
-        self.start_angle_text.blockSignals(False)
+            heatbar_img = self.QImageToPil(QtGui.QImage(self.heatbarView.grab().toImage()))
+            self.current_joint = 0
+            self.anim_robot = self.robot.copy()
+            self.anim_obstacles = self.obstacles.copy(self.anim_scene)
+            self.anim_goal_point = goal.copy()
+            self.anim_goal_point.set_scene(self.anim_scene)
+            graphics.draw_robot(self.anim_scene, self.anim_robot)
+            self.graphicsView.setScene(self.anim_scene)
+        
+            trajectory = self.trajectories[number]
+            self.anim = np.loadtxt(trajectory.split('\n'), delimiter=',')
+            if len(self.anim.shape) == 1:
+                self.anim = self.anim.reshape(self.anim.shape[0], 1)
 
-        self.anim = np.loadtxt(csv.split('\n'), delimiter=',')
-        if len(self.anim.shape) == 1:
-            self.anim = self.anim.reshape(self.anim.shape[0], 1)
-        ANIM_COUNT_INTP = 10000
-        axes = []
-        for i in range(self.anim.shape[1]):
-            axes.append(np.interp(np.linspace(0, 100, ANIM_COUNT_INTP), np.linspace(
-                0, 100, self.anim.shape[0]), self.anim[:, i]))
-        self.anim_temp = np.vstack(axes).T
+            images = []
+            for angles in self.anim:
+                
+
+                QApplication.processEvents()
+                self.anim_robot.set_angles(tuple(angles))
+                self.plot.update()
+                self.update()
+                QApplication.processEvents()
+  
+                images.append(self.QImageToPil( QtGui.QImage(self.plot.grab().toImage())))
+
+            
+            for i in range(len(images)):
+                to_cat = [images[i],heatbar_img]
+                widths, heights = zip(*(i.size for i in to_cat))
+
+                total_width = sum(widths)
+                max_height = max(heights)
+
+                new_im = Image.new('RGB', (total_width, max_height))
+
+                x_offset = 0
+                for im in to_cat:
+                    new_im.paste(im, (x_offset,0))
+                    x_offset += im.size[0]
+                images[i]=new_im
+                
+            images.pop(0)
+            
+            os.makedirs("./GIFs",exist_ok=True)
+            
+            images[0].save(f"./GIFs/case_{number}.gif", append_images=images[1:],
+             save_all=True, duration=100)
+            
+            
+            os.makedirs("./MP4s",exist_ok=True)
+            clip = mp.VideoFileClip(f"./GIFs/case_{number}.gif")
+            clip.write_videofile(f"./MP4s/case_{number}.mp4")
+           
+            self.plot.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            self.plot.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+            # ANIM_COUNT_INTP = 10000
+            # axes = []
+            # for i in range(self.anim.shape[1]):
+            #     axes.append(np.interp(np.linspace(0, 100, ANIM_COUNT_INTP), np.linspace(
+            #         0, 100, self.anim.shape[0]), self.anim[:, i]))
+            # self.anim_temp = np.vstack(axes).T
         # mymin,mymax = 0,10000
         # X = np.linspace(mymin,mymax,self.anim.shape[0])
         # Y = np.linspace(np.min(self.anim),np.max(self.anim),self.robot.joint_count)
@@ -148,86 +236,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
 
         # self.anim_temp = f(Ynew,Xnew)
         #
-        self.anim_count = 0
 
-        self.anim_manual_sldr.blockSignals(True)
-        self.timer.start()
 
-    def update_anim(self):
-        self.anim_robot.set_angles(tuple(self.anim_temp[self.anim_count]))
 
-        self.anim_count += int(1000*self.anim_speed_sldr.value()/100)
-        self.anim_manual_sldr.setValue(
-            int(self.anim_count/self.anim_temp.shape[0]*100))
-        if self.anim_count >= self.anim_temp.shape[0]:
-            self.anim_manual_sldr.blockSignals(False)
-            self.timer.stop()
-
-    def manual_anim(self, value):
-        self.anim_robot.set_angles(
-            tuple(self.anim[int((self.anim.shape[0]-1)*value/100)]))
-
-    def reset_animation(self):
-        value = 1
-
-        self.robot_joint_count_spin.blockSignals(True)
-        self.robot_joint_count_spin.setValue(self.robot.joint_count)
-        self.robot_joint_count_spin.blockSignals(False)
-        self.joint_length_line_edit.blockSignals(True)
-        self.joint_length_line_edit.setText(str(self.robot[value-1].length))
-        self.joint_length_line_edit.blockSignals(False)
-        self.left_limit_text.blockSignals(True)
-        self.left_limit_text.setText(f"{self.robot[value-1].left_angle:.2f}")
-        self.left_limit_text.blockSignals(False)
-        self.right_limit_text.blockSignals(True)
-        self.right_limit_text.setText(f"{self.robot[value-1].right_angle:.2f}")
-        self.right_limit_text.blockSignals(False)
-        self.start_angle_text.blockSignals(True)
-        self.start_angle_text.setText(f"{self.robot[value-1].start_angle:.2f}")
-        self.start_angle_text.blockSignals(False)
-        self.unlock_view()
-
-    def reset_scene(self):
-        self.robot.reset()
-        self.obstacles.reset()
-        self.goal_point.reset()
-        self.scene.reset()
-        self.joint_length_line_edit.blockSignals(True)
-        self.joint_length_line_edit.setText('100')
-        self.joint_length_line_edit.blockSignals(False)
-        self.left_limit_text.blockSignals(True)
-        self.left_limit_text.setText('-180')
-        self.left_limit_text.blockSignals(False)
-        self.right_limit_text.blockSignals(True)
-        self.right_limit_text.setText('180')
-        self.right_limit_text.blockSignals(False)
-        self.start_angle_text.blockSignals(True)
-        self.start_angle_text.setText('0')
-        self.start_angle_text.blockSignals(False)
-        self.robot_change_j_spin.blockSignals(True)
-        self.robot_change_j_spin.setValue(1)
-        self.robot_change_j_spin.blockSignals(False)
-        self.robot_joint_count_spin.blockSignals(True)
-        self.robot_joint_count_spin.setValue(1)
-        self.robot_joint_count_spin.blockSignals(False)
-
-    def export_xml(self):
-        to_xml(self.file_choose_edit.text(), self.robot,
-               self.obstacles, self.goal_point)
-
-    def goal_point_connect(self):
-        self.goal_point.create_goal_point()
-
-    def create_goal_point_by_pos(self):
-        x = 0
-        y = 0
-        angle = 0
-        for joint in self.robot.joints:
-            angle += joint.start_angle
-            x += joint.length*math.cos(angle*math.pi/180)
-            y += joint.length*math.sin(angle*math.pi/180)
-
-        self.goal_point.create_by_coords(x, y, angle)
 
     def ZoomSliderChange(self, value):
         tr = self.graphicsView.transform()
@@ -235,125 +246,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             value/100, 0, 0, -value/100, tr.dx(), tr.dy()))
         # self.graphicsView.scale(value/100,value/100)
 
-    def create_poli(self):
-        """Слот для кнопки "Создать полигон"
-        создает новый полигон. Нажимая на сцену, можно создать его  точки
-        """
-        self.obstacles.create_obstacle()
-
-    def on_joint_angle_change_by_mouse(self, joint_num, angle):
-        self.robot[joint_num-1].update_start_angle(angle)
-        if (joint_num-1) == self.current_joint:
-            self.start_angle_text.blockSignals(True)
-            self.start_angle_text.setText(f"{angle:.2f}")
-            self.start_angle_text.blockSignals(False)
-
-    def change_joint_start_angle(self, text):
-        try:
-            self.robot[self.current_joint].update_start_angle(float(text))
-            self.start_angle_text.setStyleSheet("color: green;")
-        except BaseException as e:
-            self.start_angle_text.setStyleSheet("color: red;")
-            print(e)
-
-    def change_joint_right_limit(self, text):
-        try:
-            self.robot[self.current_joint].update_right_limit(float(text))
-            self.right_limit_text.setStyleSheet("color: green;")
-        except BaseException as e:
-            self.right_limit_text.setStyleSheet("color: red;")
-            print(e)
-
-    def change_joint_left_limit(self, text):
-        try:
-            self.robot[self.current_joint].update_left_limit(float(text))
-            self.left_limit_text.setStyleSheet("color: green;")
-        except BaseException as e:
-            self.left_limit_text.setStyleSheet("color: red;")
-            print(e)
-
-    def change_joint_length(self, text):
-        try:
-            self.robot[self.current_joint].update_length(float(text))
-
-            self.joint_length_line_edit.setStyleSheet("color: green;")
-        except BaseException as e:
-            self.joint_length_line_edit.setStyleSheet("color: red;")
-            print(e)
-
-    def change_goal_point_radius(self, text):
-        try:
-            self.goal_point.update_radius(float(text))
-
-            self.goal_point_delta_edit.setStyleSheet("color: green;")
-        except BaseException as e:
-            self.goal_point_delta_edit.setStyleSheet("color: red;")
-            print(e)
-
-    def change_robot_joints_change(self, value):
-        self.current_joint = int(value)-1
-        self.joint_length_line_edit.blockSignals(True)
-        self.joint_length_line_edit.setText(str(self.robot[value-1].length))
-        self.joint_length_line_edit.blockSignals(False)
-        self.left_limit_text.blockSignals(True)
-        self.left_limit_text.setText(f"{self.robot[value-1].left_angle:.2f}")
-        self.left_limit_text.blockSignals(False)
-        self.right_limit_text.blockSignals(True)
-        self.right_limit_text.setText(f"{self.robot[value-1].right_angle:.2f}")
-        self.right_limit_text.blockSignals(False)
-        self.start_angle_text.blockSignals(True)
-        self.start_angle_text.setText(f"{self.robot[value-1].start_angle:.2f}")
-        self.start_angle_text.blockSignals(False)
-
-    def change_robot_joints_count(self, value):
-        """Change joints count according to spinbox
-
-        Args:
-            value (int): spinbox value
-        """
-        self.robot.change_joint_number(value)
-        self.robot_change_j_spin.setMaximum(value)
-
-    def open_file_dialog(self):
-        """Слот для кнопки "Обзор"
-        открывает диалог сохранения файла и записывает имя в соотвествующий виджет
-        """
-        fname = QFileDialog.getSaveFileName(
-            self,
-            "Сохранить в",
-            "test",
-            "XML (*.xml);; All Files (*)",
-        )
-
-        # self.plot.fitInView(QRectF(0,0,1000,1000))
-        self.file_choose_edit.setText(fname[0])
-        try:
-            read_xml(filename=fname[0],
-                     robot=self.robot,
-                     obstacles=self.obstacles,
-                     goal_point=self.goal_point)
-            value = 1
-            self.robot_joint_count_spin.blockSignals(True)
-            self.robot_joint_count_spin.setValue(self.robot.joint_count)
-            self.robot_joint_count_spin.blockSignals(False)
-            self.joint_length_line_edit.blockSignals(True)
-            self.joint_length_line_edit.setText(
-                str(self.robot[value-1].length))
-            self.joint_length_line_edit.blockSignals(False)
-            self.left_limit_text.blockSignals(True)
-            self.left_limit_text.setText(
-                f"{self.robot[value-1].left_angle:.2f}")
-            self.left_limit_text.blockSignals(False)
-            self.right_limit_text.blockSignals(True)
-            self.right_limit_text.setText(
-                f"{self.robot[value-1].right_angle:.2f}")
-            self.right_limit_text.blockSignals(False)
-            self.start_angle_text.blockSignals(True)
-            self.start_angle_text.setText(
-                f"{self.robot[value-1].start_angle:.2f}")
-            self.start_angle_text.blockSignals(False)
-        except BaseException as e:
-            print(e)
 
     def open_csv_dialog(self):
         """Слот для кнопки "Обзор"
@@ -363,7 +255,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             self,
             "Открыть",
             "",
-            "XML (*.xml);; All Files (*)",
+            "json (*.json);; All Files (*)",
         )
         # self.plot.fitInView(QRectF(0,0,1000,1000))
         self.csv_choose_edit.setText(fname[0])

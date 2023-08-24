@@ -9,57 +9,19 @@ class Robo_scene(QGraphicsScene):
 
     def __init__(self):
         super().__init__()
-        self.obstacle = None
-        self.goal_point_manager = None
     
-    def reset(self):
-        self.obstacle = None
-        self.goal_point_manager = None
-        
-    def go_poli_mode(self,obstacle):
-        self.obstacle = obstacle
-        
-    def go_goal_point_mode(self,gpm):
-        self.obstacle = None
-        self.goal_point_manager = gpm
-        
+
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        
-        if (self.obstacle is None) and (self.goal_point_manager is None):
-            event.ignore()
-            return
-        dot_pos = event.scenePos()
-        
-        if self.obstacle is not None:
-            event.accept()
-            
-            self.obstacle.add_dot(dot_pos)
-            
-            if self.obstacle.is_done():
-                self.obstacle.set_dots_visible(False)
-                self.obstacle = None
-        if self.goal_point_manager is not None:
-            self.goal_point_manager.create_dot(dot_pos)
+
             
     def mouseMoveEvent(self, event) -> None:
         super().mouseMoveEvent(event)
-        
-        if (self.obstacle is None) and (self.goal_point_manager is None):
-            event.ignore()
-            return
-        dot_pos = event.scenePos()    
-        
-        if self.goal_point_manager is not None:
-            self.goal_point_manager.make_arrow(dot_pos)
+      
             
     def mouseReleaseEvent(self, event) -> None:
         super().mouseReleaseEvent(event)
-        if self.goal_point_manager is not None:
-            self.goal_point_manager = None
-
+      
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
-        if isinstance(self.focusItem(),obstacles.Obstacle):
-            if event.matches(QtGui.QKeySequence.Delete):
-                self.focusItem().suicide()
+  

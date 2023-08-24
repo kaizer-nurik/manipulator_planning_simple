@@ -188,3 +188,17 @@ class Robot_class():
         for index,angle in enumerate(self._angles):
             self.joints[index].rotate(angle)
         
+    def copy(self):
+        new = Robot_class()
+        new.change_joint_number(1)
+        
+        for joint in self:
+            
+            new.joints[-1].left_angle = joint.left_angle
+            new.joints[-1].right_angle = joint.right_angle
+            new.joints[-1].length = joint.length
+            new.add_joint()
+        new.pop_joint()            
+        new.set_angles(self.get_angles().copy())
+        
+        return new
