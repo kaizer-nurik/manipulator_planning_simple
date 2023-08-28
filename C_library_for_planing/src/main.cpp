@@ -65,7 +65,7 @@ int main(int argc, const char * argv[])
 
     
     std::string line = "./dataset/scene1/";  //"./dataset/scene1/scene_1_test_1.xml"
-   std::string line2 =  "scene_1_random_test_";
+   std::string line2 =  "scene_1_test_";
     int successes = 0;
     for (int i=1; i<=50; i++)
     {        

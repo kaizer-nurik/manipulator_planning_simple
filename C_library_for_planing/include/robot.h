@@ -14,10 +14,10 @@
 #include <chrono>
 
     double fix_fmod(double angle){
-    double angle_from_0_to_360 = angle - 360.0 * floor( angle / 360.0 );
+    double angle_from_0_to_360 = angle - (2*M_PI) * floor( angle / (2*M_PI) );
 
-    if (angle_from_0_to_360 > 180){
-        angle_from_0_to_360 -= 360;
+    if (angle_from_0_to_360 > M_PI){
+        angle_from_0_to_360 -= (2*M_PI);
     }  
     return angle_from_0_to_360;
 
@@ -245,7 +245,7 @@ namespace
     {
 
         double current_joint_length = current_sample.pos.joints[depth].length;
-        Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle * M_PI / 180.0), current_joint_length * std::sin(current_sample.curr_angle * M_PI / 180.0));
+        Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle), current_joint_length * std::sin(current_sample.curr_angle ));
         Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
         double dist_to_goal = vector_to_goal.length();
 
@@ -269,8 +269,7 @@ namespace
             {
                 angle_2 *= -1;
             }
-            angle_2 = angle_2 * 180.0 / M_PI; // в угол
-            angle_1 = angle_1 * 180.0 / M_PI; // в угол
+
             // std::cout<<"depth= "<<depth<<"cos1= "<< triangle_angle_cos<< "angle1= " << angle_1 <<"cos2= "<< full_angle_cos << "angle_2= " << angle_2 << "orientation=" << orientation<<std::endl;
 
         }
@@ -301,13 +300,13 @@ namespace
             Robot_and_layer_info second_answer = current_sample;
 
             current_sample.curr_angle += current_sample.pos.configuration[depth];
-            current_sample.last.x += current_sample.pos.joints[depth].length * std::cos(current_sample.curr_angle * M_PI / 180.0);
-            current_sample.last.y += current_sample.pos.joints[depth].length * std::sin(current_sample.curr_angle * M_PI / 180.0);
+            current_sample.last.x += current_sample.pos.joints[depth].length * std::cos(current_sample.curr_angle );
+            current_sample.last.y += current_sample.pos.joints[depth].length * std::sin(current_sample.curr_angle );
 
             second_answer.pos.configuration[depth] = fix_fmod(result.first.second);
             second_answer.curr_angle += second_answer.pos.configuration[depth];
-            second_answer.last.x += second_answer.pos.joints[depth].length * std::cos(second_answer.curr_angle * M_PI / 180.0);
-            second_answer.last.y += second_answer.pos.joints[depth].length * std::sin(second_answer.curr_angle * M_PI / 180.0);
+            second_answer.last.x += second_answer.pos.joints[depth].length * std::cos(second_answer.curr_angle );
+            second_answer.last.y += second_answer.pos.joints[depth].length * std::sin(second_answer.curr_angle );
 
             layer.push_back(current_sample);
             layer.push_back(second_answer);
@@ -356,7 +355,7 @@ namespace
     {
         GoalPoint intermediate_goal(goal);
 
-        double last_angle_rad = goal.angle1_ * M_PI / 180.0;
+        double last_angle_rad = goal.angle1_ ;
         double last_joint_length = pos.joints[pos.dof_ - 1].length;
         intermediate_goal.goalpoint.x -= std::cos(last_angle_rad) * last_joint_length;
         intermediate_goal.goalpoint.y -= std::sin(last_angle_rad) * last_joint_length;
@@ -374,7 +373,7 @@ namespace
         {
 
             double current_joint_length = current_sample.pos.joints[depth].length;
-            Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle * M_PI / 180.0), current_joint_length * std::sin(current_sample.curr_angle * M_PI / 180.0));
+            Vector2D curr_vector(current_joint_length * std::cos(current_sample.curr_angle ), current_joint_length * std::sin(current_sample.curr_angle ));
             Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
             double dist_to_goal = vector_to_goal.length();
 
