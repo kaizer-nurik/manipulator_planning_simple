@@ -120,4 +120,5 @@ class GoalPoint():
         new.set_number(self.number)
         new.set_scene(scene)
         new.create_by_coords(self.x(),self.y(),self.angle())
+        new.set_angle(self.dot.angle)
         return new

@@ -1,2 +1,7 @@
 GUI_creation/__pycache__
 .vscode
+goal_gui
+GUI_creation/GIFs
+GUI_creation/MP4s
+GUI_creation/*.rar
+GUI_creation/*.zip

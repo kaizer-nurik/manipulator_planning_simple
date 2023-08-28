@@ -21,6 +21,11 @@ class HeatbarScene(QGraphicsScene):
         super().__init__()
         self.max_value = value
         self.max_height = height
+        self.log_scale = False
+
+    def set_log_scale(self,log_scale):
+        self.log_scale = log_scale
+        self.draw()
 
     def set_max_value(self, value: int):
         self.max_value = value
@@ -32,8 +37,12 @@ class HeatbarScene(QGraphicsScene):
             value (int): значение
         """
         if (value > self.max_value):
-            self.max_value:value
-        mapped_value = np.round((255//DIVIDE_FACTOR+255//DIVIDE_FACTOR+280)*value/self.max_value)
+            self.max_value=value
+        if self.log_scale:
+            mapped_value = np.round((255//DIVIDE_FACTOR+255//DIVIDE_FACTOR+280)*np.log10(value)/np.log10(self.max_value))
+        else:
+            mapped_value = np.round((255//DIVIDE_FACTOR+255//DIVIDE_FACTOR+280)*value/self.max_value)
+
         
         
         if mapped_value <=255//DIVIDE_FACTOR:
@@ -51,6 +60,8 @@ class HeatbarScene(QGraphicsScene):
         Args:
             pixel (_type_): пиксели.
         """
+        if self.log_scale:
+            return 10**(np.log10(self.max_value)*pixel/self.max_height)
         return self.max_value * pixel/self.max_height
     
     def value2pixel(self, value:int):
@@ -59,6 +70,8 @@ class HeatbarScene(QGraphicsScene):
         Args:
             value (_type_): пиксели.
         """
+        if self.log_scale:
+            return self.max_height * np.log10(value)/np.log10(self.max_value)
         return self.max_height * value/self.max_value
     
     
@@ -77,7 +90,11 @@ class HeatbarScene(QGraphicsScene):
         font = QtGui.QFont()
         font.setPointSize(10)
         
-        for value in range(0,self.max_value//10 * 11 ,self.max_value//10 ):
+        if  self.log_scale:
+            values = [self.max_value**(i/10) for i in range(11)]
+        else:
+            values = range(0,self.max_value//10 * 11 ,self.max_value//10 )
+        for value in values:
             self.addLine(45,self.value2pixel(value),55,self.value2pixel(value),line_pen)
             text = self.addText(str(value),font)
             text.setTransform(QtGui.QTransform(1,0,0,-1,60,self.value2pixel(value)+12))

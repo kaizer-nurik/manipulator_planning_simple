@@ -34,6 +34,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.heatbarView.setSceneRect(0,-50,500,5000)
         # подключение к кнопке "Обзор" выбора файла
         self.scene = Robo_scene()
+        self.log_scale_checkBox.stateChanged.connect(self.set_log_scale_callback)
 
         self.current_joint = 0
         self.robot = Robot_class()
@@ -60,6 +61,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.graphicsView.centerOn(0, 0)
         self.graphicsView.scale(1, -1)
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
+
+    def set_log_scale_callback(self,value):
+        self.heatmap_scene.set_log_scale(value)
+        try:
+            for number,goal in self.goals:
+                goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[number]))
+        except BaseException as e:
+            print(e)
 
     def dataset_value_changed(self,value):
         self.heatmap_scene.set_max_value(value)
@@ -206,7 +215,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             os.makedirs("./GIFs",exist_ok=True)
             
             images[0].save(f"./GIFs/case_{number}.gif", append_images=images[1:],
-             save_all=True, duration=100)
+             save_all=True, duration=100,loops=0)
             
             
             os.makedirs("./MP4s",exist_ok=True)

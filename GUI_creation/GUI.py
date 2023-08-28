@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'GUI.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.1
+## Created by: Qt User Interface Compiler version 6.5.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QGraphicsView, QLabel,
-    QLineEdit, QMainWindow, QMenuBar, QPushButton,
-    QRadioButton, QSizePolicy, QSlider, QSpinBox,
-    QStatusBar, QWidget)
+from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QGraphicsView,
+    QLabel, QLineEdit, QMainWindow, QMenuBar,
+    QPushButton, QRadioButton, QSizePolicy, QSlider,
+    QSpinBox, QStatusBar, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -102,11 +102,14 @@ class Ui_MainWindow(object):
         self.heatbarView.setTransformationAnchor(QGraphicsView.NoAnchor)
         self.radioButton = QRadioButton(self.centralwidget)
         self.radioButton.setObjectName(u"radioButton")
-        self.radioButton.setGeometry(QRect(180, 130, 95, 20))
+        self.radioButton.setGeometry(QRect(200, 60, 95, 20))
         self.radioButton.setChecked(True)
         self.radioButton_2 = QRadioButton(self.centralwidget)
         self.radioButton_2.setObjectName(u"radioButton_2")
-        self.radioButton_2.setGeometry(QRect(180, 160, 95, 20))
+        self.radioButton_2.setGeometry(QRect(200, 90, 95, 20))
+        self.log_scale_checkBox = QCheckBox(self.centralwidget)
+        self.log_scale_checkBox.setObjectName(u"log_scale_checkBox")
+        self.log_scale_checkBox.setGeometry(QRect(120, 160, 191, 20))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -138,5 +141,6 @@ class Ui_MainWindow(object):
         self.goal_point_delta_edit.setText(QCoreApplication.translate("MainWindow", u"10", None))
         self.radioButton.setText(QCoreApplication.translate("MainWindow", u"\u0410*", None))
         self.radioButton_2.setText(QCoreApplication.translate("MainWindow", u"RRT", None))
+        self.log_scale_checkBox.setText(QCoreApplication.translate("MainWindow", u"\u041b\u043e\u0433\u0430\u0440\u0438\u0444\u043c\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u043c\u0430\u0441\u0448\u0442\u0430\u0431", None))
     # retranslateUi
 
