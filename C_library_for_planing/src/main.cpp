@@ -63,9 +63,10 @@ int main(int argc, const char * argv[])
     // //bool b = planner.coll_test(start, polygons);
     // std::cout << b << std::endl;
 
-    
-    std::string line = "./dataset/scene1/";  //"./dataset/scene1/scene_1_test_1.xml"
-   std::string line2 =  "scene_1_random_test_";
+    //std::cout << periodic(-181,180) << ' ' << periodic(-721,180) << ' ' << periodic(721,180) << ' ' << periodic(181,180) << ' ' << periodic(360,180) << std::endl;
+
+    std::string line = "./dataset/scene3/";  //"./dataset/scene1/scene_1_test_1.xml"
+   std::string line2 =  "scene_3_random_test_";
     int successes = 0;
     for (int i=1; i<=50; i++)
     {        
@@ -80,34 +81,34 @@ int main(int argc, const char * argv[])
             return EXIT_FAILURE;
         }
         double angle=0.0;
-        std::vector<Robot> answers;
-        std::cout << "Now IKT\n";
-        sample_all_goals(answers, start, goal, polygons, 10);
-        assert(answers.size()>0);
-        std::cout << answers.size() << std::endl;
-        for (auto r:answers)
-            print_vector(r.configuration);
+        // std::vector<Robot> answers;
+        // std::cout << "Now IKT\n";
+        // sample_all_goals(answers, start, goal, polygons, 10);
+        // assert(answers.size()>0);
+        // std::cout << answers.size() << std::endl;
+        // for (auto r:answers)
+        //     print_vector(r.configuration);
 
-        // Planner planner(line + line2 + std::to_string(i) + ".xml", line2 + std::to_string(i) +"_trajectory.xml");
-        // std::map<std::string, double> dict;
-        // bool b = planner.AStar(start, goal, polygons, dict);
-        // writeDataToJson(i, dict["g_units"], dict["coord_tolerance"], dict["angle_tolerance"], dict["time"], dict["coll_check_percentage"], dict["opened_nodes"],
-        // dict["closed_nodes"], dict["g_cost"], dict["turn_numbers"], "scene1_0_1_data.json");
+        Planner planner(line + line2 + std::to_string(i) + ".xml", line2 + std::to_string(i) +"_trajectory.xml");
+        std::map<std::string, double> dict;
+        bool b = planner.AStar(start, goal, polygons, dict);
+        writeDataToJson(i, dict["g_units"], dict["coord_tolerance"], dict["angle_tolerance"], dict["time"], dict["coll_check_percentage"], dict["opened_nodes"],
+        dict["closed_nodes"], dict["g_cost"], dict["turn_numbers"], "scene1_0_1_data.json");
 
-        // successes+=b;
-        // //bool b = planner.coll_test(start, polygons);
-        // std::cout << b << std::endl;
+        successes+=b;
+        //bool b = planner.coll_test(start, polygons);
+        std::cout << b << std::endl;
     }
 
 
     std::cout << "tests completed " << successes << '/' << 50 << std::endl; 
 
 
-    //std::string filename = argv[1];
-    //run_benchmark("example.xml", "trajectory.xml", 100, start, polygons, goal);
+//     std::string filename = argv[1];
+//     run_benchmark("example.xml", "trajectory.xml", 100, start, polygons, goal);
 
-    //std::cout << "polygons_collide: " << polygons_collide(Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)}), 
-    //Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)})) << std::endl;
+//     std::cout << "polygons_collide: " << polygons_collide(Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)}), 
+//     Polygon({Vector2D(0, 0), Vector2D(1, 1), Vector2D(0, 2), Vector2D(-1, 1)})) << std::endl;
 
 
 

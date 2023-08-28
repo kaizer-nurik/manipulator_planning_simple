@@ -18,6 +18,7 @@
 #include "geometry.h"
 
 
+const double PI = std::acos(-1);
 template<typename T>
 std::vector<T> operator+(const std::vector<T>& vec1, const std::vector<T>& vec2) {
     std::vector<T> result;
@@ -184,7 +185,7 @@ void reconstruct_path(const std::shared_ptr<Node> &node, std::string input_filen
     else { std::cerr << "Error." << std::endl;}
 }
 
-double periodic(double n, double L)
+double periodic(const double &n, const double &L)
 {
     if (n>=0.0) return fmod(n + L, 2*L) - L;
     else if (n>=-L && n<0.0) return n;
@@ -277,11 +278,12 @@ public:
 
     double heuristic(const Robot &robot, const GoalPoint &goalpoint, const std::vector<double> &angles)
     {
-        return 0.1 * calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);//+ std::abs(last_angle(angles) - goalpoint.angle1_);
+        double g = calculateDistance(end_effector(robot, angles), goalpoint.goalpoint);
+        return g + std::abs(periodic(last_angle(angles) - goalpoint.angle1_, PI))/(1+g);
     }
     double geuristic(const Robot &robot, const std::vector<double> &angles1, const std::vector<double> &angles2)
     {
-        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2)); //+ 0.05 * std::sqrt(fmod(last_angle(angle)angles[angles.size()-1], std::acos(-1)) - goalpoint.angle1_);
+        return calculateDistance2(end_effector(robot, angles1), end_effector(robot, angles2));// + std::abs(periodic(last_angle(angles1) - last_angle(angles2), PI));
     }
 
     
@@ -301,19 +303,24 @@ public:
         {
             deltas[i] = std::abs(robot.joints[i].limits[1] - robot.joints[i].limits[0]) / (2*g_units);
         }
-        // std::vector<std::vector<int>> primitivemoves;
-        // std::vector<int> current(robot.dof_);
-        // generateVectors(primitivemoves, current, 0);
+
+
 
         std::vector<std::vector<int>> primitivemoves;
-        for (auto i = 0u; i < robot.dof_; i++)
-        {
-            std::vector<int> a(robot.dof_, 0.0);
-            a[i] = 1;
-            primitivemoves.push_back(a);
-            a[i] = -1;
-            primitivemoves.push_back(a);            
-        }
+        std::vector<int> current(robot.dof_);
+        generateVectors(primitivemoves, current, 0);
+
+
+
+        //std::vector<std::vector<int>> primitivemoves;        
+        // for (auto i = 0u; i < robot.dof_; i++)
+        // {
+        //     std::vector<int> a(robot.dof_, 0.0);
+        //     a[i] = 1;
+        //     primitivemoves.push_back(a);
+        //     a[i] = -1;
+        //     primitivemoves.push_back(a);            
+        // }
 
         
         std::priority_queue <std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>,  CompareNodes> opened_nodes;
@@ -347,11 +354,11 @@ public:
             //if (opened_nodes.size()>50'000) return false;
             
             angles = calc_angles(robot, current->position, deltas);
-            std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << ' ' << heuristic(robot,goalpoint, angles) << std::endl;
+            std::cout << opened_nodes.size() << ' ' << map_pq_opened.size() << ' ' << closed_nodes.size() << std::endl;// " endeff: "<< goal.x << ' ' << goal.y << ' ' << goalpoint.angle1_ <<" current:" << currxy.x << ' ' << currxy.y << ' ' << periodic(last_angle(angles), PI) <<" heuristic: " << heuristic(robot,goalpoint, angles) << std::endl;
             //std:: cout << angles[0]*180/std::acos(-1) << ',' << angles[1]*180/std::acos(-1) << ',' << angles[2]*180/std::acos(-1) << std::endl;
             std::vector<double> curr_angles = calc_angles(robot, current->position, deltas);
             
-            if (std::abs(current->hCost) < coord_tolerance)//  && std::abs(last_angle(angles) - goalpoint.angle1_)<2*goalpoint.angle2_)
+            if (calculateDistance(currxy, goalpoint.goalpoint) < coord_tolerance  && std::abs(periodic(last_angle(angles) - goalpoint.angle1_, PI))<2*goalpoint.angle2_)
             {
                 reconstruct_path(current,input_filename_, output_filename_, robot, deltas);
                 angles = calc_angles(robot, current->position, deltas);
