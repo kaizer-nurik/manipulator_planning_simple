@@ -298,10 +298,10 @@ namespace
             Vector2D vector_to_goal(goal.goalpoint.x - current_sample.last.x, goal.goalpoint.y - current_sample.last.y);
             double dist_to_goal = vector_to_goal.length();
 
-            double from = (dist_to_goal - current_joint_length) / remaining_length;
+            double from = (dist_to_goal - current_joint_length- goal.delta) / remaining_length;
             from = (from < 0) ? 0 : from;
             from = (from > 1) ? 1 : from;
-            double to = (dist_to_goal + current_joint_length) / remaining_length;
+            double to = (dist_to_goal + current_joint_length+goal.delta) / remaining_length;
             to = (to < 0) ? 0 : to;
             to = (to > 1) ? 1 : to;
             double step = (to - from) / sample_rate;

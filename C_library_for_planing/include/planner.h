@@ -153,7 +153,7 @@ public:
             random_gen.push_back(dis);
         }
         auto t1 = std::chrono::high_resolution_clock::now();
-        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 10);
+        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 100);
         auto t2 = std::chrono::high_resolution_clock::now();
         stats.time_of_IK_results = (t2 - t1)/1ns;
         stats.number_of_collision_check_in_IK = ik_stats.number_of_collision_check;
@@ -162,10 +162,22 @@ public:
 
         // TODO: добавить проверку решений с помощью ПЗК
 
-        // if (end_configurations.size() == 0)
-        // {
-        //     throw std::invalid_argument("No solution found for goal configuration.");
-        // }
+        if (end_configurations.size() == 0)
+        {
+            for (int sample_angle = 0; sample_angle<=100; sample_angle++){
+               
+                GoalPoint angle_delta_goal(goal.goalpoint.x,goal.goalpoint.y,goal.angle1_-goal.angle2_+sample_angle*(goal.angle2_/50),goal.angle2_);
+                InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, angle_delta_goal, obstacles, 100);
+               if (end_configurations.size() != 0){
+                break;
+               }
+            }
+            
+        }
+        if (end_configurations.size() == 0){
+                throw std::invalid_argument("No solution found for goal configuration.");
+        }
+        
         std::cout << "Inverse Kinematics solved, got " << end_configurations.size() << " solutions" << std::endl;
     }
 
