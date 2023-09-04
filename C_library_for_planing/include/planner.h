@@ -162,10 +162,10 @@ public:
 
         // TODO: добавить проверку решений с помощью ПЗК
 
-        if (end_configurations.size() == 0)
-        {
-            throw std::invalid_argument("No solution found for goal configuration.");
-        }
+        // if (end_configurations.size() == 0)
+        // {
+        //     throw std::invalid_argument("No solution found for goal configuration.");
+        // }
         std::cout << "Inverse Kinematics solved, got " << end_configurations.size() << " solutions" << std::endl;
     }
 

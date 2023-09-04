@@ -4,7 +4,7 @@
 #include <fstream>
 #include <exception>
 #include <algorithm>
-
+#include <filesystem>
 // Функция, сохраняющая дерево из rrt для визуализации в питоне.
 void FileSaver::save_rrt_tree(const std::string &output_filename, const RRT::Tree &tree)
 {
@@ -85,3 +85,4 @@ void FileSaver::write_map_to_json(std::string filename, std::map<std::string, st
     file << "}" << std::endl;
     file.close();
 }
+

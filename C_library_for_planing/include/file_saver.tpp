@@ -65,6 +65,11 @@ void FileSaver::save_csv_to_xml(const std::string out_filename_xml, const std::s
             break;
         }
         targetFile << line << std::endl;
+
+        if (line.find("</scene>") != std::string::npos) // Чтобы не записывать <csv></csv>, если он есть.
+        {
+            break;
+        }
     }
 
     sourceFile.close();

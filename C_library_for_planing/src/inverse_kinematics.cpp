@@ -306,7 +306,7 @@ namespace
             to = (to > 1) ? 1 : to;
             double step = (to - from) / sample_rate;
             step = (from + step * (sample_rate + 1) > to) ? step : 1; // случай, когда from = to и step = 0
-            for (double length_coef = from; length_coef <= to; length_coef += step)
+            for (double length_coef = from; length_coef <= to+step/2.0; length_coef += step)
             {
                 calculate_curr_angle(current_sample, depth, goal, remaining_length, length_coef, layer);
             }
