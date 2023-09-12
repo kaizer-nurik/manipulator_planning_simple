@@ -80,6 +80,17 @@ Robot Robot::operator*(double const rhs) const
     }
     return result;
 }
+
+double Robot::distance(const Robot& other) const{
+    double result = 0;
+    for (int i = 0; i < configuration.size(); i++)
+    {
+       
+        result += std::abs(configuration[i] - other.configuration[i]);
+        // assert(!std::isnan(result));
+    }
+    return result;
+}
 double fix_fmod(double angle){
     double angle_from_0_to_360 = angle - 360.0 * floor( angle / 360.0 );
 

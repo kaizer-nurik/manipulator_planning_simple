@@ -18,7 +18,7 @@
 #include <ctime>
 #include <filesystem>
 #define TIMEOUT_MS 10000
-#define ANGLE_STEP 10
+#define ANGLE_STEP 0.1
 
 
 int main(int argc, const char * argv[])
@@ -32,7 +32,7 @@ int main(int argc, const char * argv[])
         line2 =  "scene_"+std::string(argv[1]).substr(0,1)+"_random_test_";
     } 
     else{
-        line2 =  "scene_"+std::string(argv[1]).substr(0,1)+"_random_test_";
+        line2 =  "scene_"+std::string(argv[1]).substr(0,1)+"_test_";
     }
     std::string result_dir = "./results_of_scene"+std::string(argv[1])+"/";
     std::string xml_trajectories_dir = result_dir+"scene"+std::string(argv[1])+"/";
@@ -64,22 +64,20 @@ int main(int argc, const char * argv[])
         auto t2 = std::chrono::high_resolution_clock::now();
         auto duration = t2-t1;
         RRT planner(ANGLE_STEP,start.dof_,start, goal, polygons,stats);
-        if(planner.get_end_configurations().size()>0){
-        for(int i=0; i<10000;i++){
-            planner.grow_tree();
-            //std::cout<<i<<planner.is_finished()<<std::endl;
-            if (planner.is_finished())
-            {
-                reached_goal = true;
-                break;
-            }
-            t2 = std::chrono::high_resolution_clock::now();
-            duration = t2-t1;
-            if (duration/1ms > TIMEOUT_MS){
-                timeout = true;
-                break;
-            }
-    }}
+        if(true){
+            for(int i=0; i<100000;i++){
+                planner.grow_tree();
+                //std::cout<<i<<planner.is_finished()<<std::endl;
+                if (planner.is_finished())
+                {
+                    reached_goal = true;
+                    break;
+                }
+                t2 = std::chrono::high_resolution_clock::now();
+                duration = t2-t1;
+                
+        }
+    }
         planner.export_stats();
         if(reached_goal){
         FileSaver::save_csv<double>(result_dir+line2 + std::to_string(i) +"_trajectory.csv",planner.get_path(),planner.get_dof());

@@ -153,7 +153,7 @@ public:
             random_gen.push_back(dis);
         }
         auto t1 = std::chrono::high_resolution_clock::now();
-        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 100);
+        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 10);
         auto t2 = std::chrono::high_resolution_clock::now();
         stats.time_of_IK_results = (t2 - t1)/1ns;
         stats.number_of_collision_check_in_IK = ik_stats.number_of_collision_check;
@@ -167,7 +167,7 @@ public:
             for (int sample_angle = 0; sample_angle<=100; sample_angle++){
                
                 GoalPoint angle_delta_goal(goal.goalpoint.x,goal.goalpoint.y,goal.angle1_-goal.angle2_+sample_angle*(goal.angle2_/50),goal.angle2_);
-                InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, angle_delta_goal, obstacles, 100);
+                InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, angle_delta_goal, obstacles, 10);
                if (end_configurations.size() != 0){
                 break;
                }
@@ -177,7 +177,7 @@ public:
         if (end_configurations.size() == 0){
                 throw std::invalid_argument("No solution found for goal configuration.");
         }
-        
+        nodes.push_back(NodeAndConfig(tree.head,tree.head->get_position()));
         std::cout << "Inverse Kinematics solved, got " << end_configurations.size() << " solutions" << std::endl;
     }
 
@@ -213,7 +213,7 @@ private:
     int dof;
     Robot start;
     GoalPoint goal;
-    float goal_bias = 0.3;
+    float goal_bias = 0.01;
     std::vector<Polygon> obstacles;
     std::vector<std::weak_ptr<RRT::Tree::Node>> finish_node;
     Robot random_sample();
@@ -225,7 +225,13 @@ private:
     std::shared_ptr<RRT::Tree::Node> make_step(const std::shared_ptr<RRT::Tree::Node> node, const Robot &pos);
     bool is_goal(const std::shared_ptr<RRT::Tree::Node> node);
     std::vector<Robot> end_configurations;
-
+    struct NodeAndConfig{
+        std::shared_ptr<RRT::Tree::Node> node;
+        Robot config;
+        NodeAndConfig(std::shared_ptr<RRT::Tree::Node> inp_node,Robot inp_config):
+        node(inp_node), config(inp_config){};
+    };
+    std::vector<NodeAndConfig> nodes;
     RRT::Stat stats;
     std::map<std::string, std::string> *stats_map;
 };

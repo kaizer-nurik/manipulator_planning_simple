@@ -88,21 +88,21 @@ double RRT::Tree::Node::distance(std::shared_ptr<Node> other)
 
 double RRT::Tree::Node::distance(Robot other)
 {
-    assert(this->get_position().dof_ == other.dof_);
-    std::vector<double> n1 = this->get_position().configuration;
-    std::vector<double> n2 = other.configuration;
-    assert(n1.size() == n2.size());
+    // assert(this->get_position().dof_ == other.dof_);
+    // std::vector<double> n1 = this->get_position().configuration;
+    // std::vector<double> n2 = other.configuration;
+    // assert(n1.size() == n2.size());
+//  double result = 0;
+//     for (int i = 0; i < n1.size(); i++)
+//     {
+//         // assert(!std::isnan(n1[i]));
+//         // assert(!std::isnan(n2[i]));
 
-    double result = 0;
-    for (int i = 0; i < n1.size(); i++)
-    {
-        assert(!std::isnan(n1[i]));
-        assert(!std::isnan(n2[i]));
-
-        result += (n1[i] - n2[i]) * (n1[i] - n2[i]);
-        assert(!std::isnan(result));
-    }
-    return std::sqrt(result);
+//         result += (n1[i] - n2[i]) * (n1[i] - n2[i]);
+//         // assert(!std::isnan(result));
+//     }
+//     return std::sqrt(result);
+   return this->get_position().distance(other);
 }
 
 std::weak_ptr<RRT::Tree::Node> RRT::Tree::Node::get_parent()
@@ -268,6 +268,7 @@ void RRT::expand_to_goal()
         {
             stats.number_of_goal_expanding_nodes++;
             stats.number_of_nodes++;
+            nodes.push_back(RRT::NodeAndConfig(next_node,next_node->get_position()));
             nearest_node->add_childen(next_node);
         }
         else
@@ -291,6 +292,7 @@ void RRT::expand_to_random()
     {
         stats.number_of_random_nodes++;
         stats.number_of_nodes++;
+        nodes.push_back(RRT::NodeAndConfig(next_node,next_node->get_position()));
         nearest_node->add_childen(next_node);
         if (is_goal(next_node))
         {
@@ -311,25 +313,17 @@ bool RRT::is_finished() const
 std::shared_ptr<RRT::Tree::Node> RRT::nearest_neighbour(const Robot &pos)
 {
     // Определение ближайшего соседа полным перебором
-    double min_distance = tree.head->distance(pos);
-    std::shared_ptr<RRT::Tree::Node> min_node = tree.head;
-    std::deque<std::shared_ptr<RRT::Tree::Node>> to_go;
-    for (auto child : (*min_node).children)
+    double min_distance = nodes[0].config.distance(pos);
+    std::shared_ptr<RRT::Tree::Node> min_node = nodes[0].node;
+
+    for (int i=nodes.size()-1; i>0;i--)
     {
-        to_go.push_back(child);
-    }
-    while (to_go.size() > 0)
-    {
-        if (min_distance > (*to_go[0]).distance(pos))
+        double dist = nodes[i].config.distance(pos);
+        if (min_distance > dist)
         {
-            min_distance = (*to_go[0]).distance(pos);
-            min_node = to_go[0];
+            min_distance = dist;
+            min_node = nodes[i].node;
         }
-        for (auto child : to_go[0]->children)
-        {
-            to_go.push_back(child);
-        }
-        to_go.pop_front();
     }
     return min_node;
 }
