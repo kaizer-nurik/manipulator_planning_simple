@@ -95,7 +95,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.anim_robot = Robot_class()
         self.anim_robot.change_joint_number(1)
         self.anim_obstacles = ObstacleManager(
-            self.poli_x_text, self.poli_y_text, self.poly_list, self.anim_scene)
+            None, None, None, self.anim_scene)
+        
         self.anim_goal_point = GoalPoint(self.anim_scene)
         graphics.draw_robot(self.anim_scene, self.anim_robot)
         self.graphicsView.setScene(self.anim_scene)
