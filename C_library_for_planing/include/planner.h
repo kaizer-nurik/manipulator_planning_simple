@@ -103,28 +103,27 @@ public:
     struct Tree
     {
 
-        struct Node : public std::enable_shared_from_this<Node>
+        struct Node 
         {
             Node(Robot _position) : position(_position){};
             Node(const Node &_other) = delete;
             Node(Node &&_other) = delete;
             Node operator=(const Node &_other) = delete;
             Node operator=(Node &&_other) = delete;
-            ~Node() = default;
+            ~Node();
 
-            void add_childen(std::shared_ptr<Node> child);
+            Node* add_children(Robot& Node);
 
-            bool is_children(std::shared_ptr<Node> child);
 
-            double distance(std::shared_ptr<Node> other);
-            double distance(Robot other);
-            std::weak_ptr<Node> get_parent();
-            Robot get_position();
-            void set_parent(std::weak_ptr<Node> parent);
-            std::unordered_set<std::shared_ptr<Node>> children;
+            double distance(const Node* other) const;
+            double distance(const Robot other) const;
+            Node* get_parent() const;
+            Robot get_position() const;
+            void set_parent(Node *parent);
+            std::vector<Node *> children;
 
         private:
-            std::weak_ptr<Node> _parent;
+            Node* _parent;
             Robot position;
         };
 
@@ -133,9 +132,9 @@ public:
         Tree(Tree &&_other) = delete;
         Tree operator=(const Tree &_other) = delete;
         Tree operator=(Tree &&_other) = delete;
-        ~Tree() = default;
+        ~Tree(){delete head;};
 
-        std::shared_ptr<Node> head;
+        Node* head;
     };
 
     RRT(double _tolerance, int other_dof, const Robot &inp_start,
@@ -197,12 +196,11 @@ public:
     void export_stats();
 
 private:
-    std::shared_ptr<RRT::Tree::Node> nearest_neighbour_stats(const Robot &pos);
+    RRT::Tree::Node* nearest_neighbour_stats(const Robot &pos);
     bool collide_stats(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons);
 
     void expand_to_goal();
     void expand_to_random();
-    void sample_all_goals(std::vector<Robot> &answers, Robot pos, int depth, Vector2D intermediate_goal, double length_koef);
     Robot get_end_config_sample();
     bool finished = false;
     uint32_t iteration_count = 0;
@@ -213,22 +211,22 @@ private:
     int dof;
     Robot start;
     GoalPoint goal;
-    float goal_bias = 0.01;
+    float goal_bias = 0.1;
     std::vector<Polygon> obstacles;
-    std::vector<std::weak_ptr<RRT::Tree::Node>> finish_node;
+    std::vector<RRT::Tree::Node*>finish_node;
     Robot random_sample();
-    std::shared_ptr<RRT::Tree::Node> nearest_neighbour(const Robot &pos);
+    RRT::Tree::Node* nearest_neighbour(const Robot &pos);
     Tree tree;
-    std::shared_ptr<RRT::Tree::Node> closest_to_goal_node = tree.head;
+    RRT::Tree::Node* closest_to_goal_node = tree.head;
     float distance_from_closest;
     void save_tree();
-    std::shared_ptr<RRT::Tree::Node> make_step(const std::shared_ptr<RRT::Tree::Node> node, const Robot &pos);
-    bool is_goal(const std::shared_ptr<RRT::Tree::Node> node);
+    RRT::Tree::Node* make_step( RRT::Tree::Node& node, const Robot &pos);
+    bool is_goal(const RRT::Tree::Node& node);
     std::vector<Robot> end_configurations;
     struct NodeAndConfig{
-        std::shared_ptr<RRT::Tree::Node> node;
+        RRT::Tree::Node* node;
         Robot config;
-        NodeAndConfig(std::shared_ptr<RRT::Tree::Node> inp_node,Robot inp_config):
+        NodeAndConfig(RRT::Tree::Node* inp_node,Robot inp_config):
         node(inp_node), config(inp_config){};
     };
     std::vector<NodeAndConfig> nodes;

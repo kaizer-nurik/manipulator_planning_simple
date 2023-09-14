@@ -18,7 +18,7 @@
 #include <ctime>
 #include <filesystem>
 #define TIMEOUT_MS 10000
-#define ANGLE_STEP 0.1
+#define ANGLE_STEP 30
 
 
 int main(int argc, const char * argv[])

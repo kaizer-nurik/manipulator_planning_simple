@@ -9,8 +9,8 @@
 void FileSaver::save_rrt_tree(const std::string &output_filename, const RRT::Tree &tree)
 {
 
-    std::deque<std::shared_ptr<RRT::Tree::Node>> need_visit;
-    std::map<std::shared_ptr<RRT::Tree::Node>, int> node2ind; // словарь ноды в индекс
+    std::deque<RRT::Tree::Node*> need_visit;
+    std::map<RRT::Tree::Node*, int> node2ind; // словарь ноды в индекс
     need_visit.push_back(tree.head);
     int node_ind = 0;
 
