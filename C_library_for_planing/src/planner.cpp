@@ -147,7 +147,7 @@ void RRT::expand_to_goal()
     RRT::Tree::Node* nearest_node = nearest_neighbour_stats(sample_goal_config);
 
          RRT::Tree::Node* next_node = make_step(*nearest_node, sample_goal_config);
-        if (next_node)
+        while (next_node)
         {
             stats.number_of_goal_expanding_nodes++;
             stats.number_of_nodes++;
@@ -155,12 +155,12 @@ void RRT::expand_to_goal()
             if (is_goal(*next_node)){
                 finished = true;
                finish_node.push_back(next_node);
+               return;
             }
+            next_node = make_step(*next_node, sample_goal_config);
         }
-        else
-        {
-            stats.number_of_denied_nodes_goal++;
-        }
+        stats.number_of_denied_nodes_goal++;
+        
 
 }
 
