@@ -13,6 +13,8 @@
 #include <stdexcept>
 #include <assert.h>
 #include <chrono>
+#include <ANN.h>  // ANN declarations
+#include <multiann.h>
 // из-за числовой нестабильности чисел с плавающей запятой
 // Возможны случаи, когда косинус равен не 1, а 1.000001 и т. д.
 #define COS_TOLERANCE 0.00000001
@@ -152,6 +154,12 @@ void RRT::expand_to_goal()
             stats.number_of_goal_expanding_nodes++;
             stats.number_of_nodes++;
             nodes.push_back(RRT::NodeAndConfig(next_node,next_node->get_position()));
+            std::vector<double> node_ptr = next_node->get_position().configuration;
+            configuration2Node[node_ptr] = next_node;
+            ANNpoint head = annAllocPt(dof);
+            std::copy(node_ptr.begin(), node_ptr.end(), head);
+
+            MAG->AddPoint(head, head);
             if (is_goal(*next_node)){
                 finished = true;
                finish_node.push_back(next_node);
@@ -174,6 +182,12 @@ void RRT::expand_to_random()
         stats.number_of_random_nodes++;
         stats.number_of_nodes++;
         nodes.push_back(RRT::NodeAndConfig(next_node,next_node->get_position()));
+        std::vector<double> node_ptr = next_node->get_position().configuration;
+            configuration2Node[node_ptr] = next_node;
+            ANNpoint head = annAllocPt(dof);
+            std::copy(node_ptr.begin(), node_ptr.end(), head);
+
+            MAG->AddPoint(head, head);
         if (is_goal(*next_node))
         {
             finished = true;
@@ -193,21 +207,38 @@ bool RRT::is_finished() const
 RRT::Tree::Node* RRT::nearest_neighbour(const Robot &pos)
 {
     // Определение ближайшего соседа полным перебором
-    double min_distance = nodes[0].config.distance(pos);
-    RRT::Tree::Node* min_node = nodes[0].node;
+    // double min_distance = nodes[0].config.distance(pos);
+    // RRT::Tree::Node* min_node = nodes[0].node;
 
-    for (int i=nodes.size()-1; i>0;i--)
-    {
-        double dist = nodes[i].config.distance(pos);
-        if (min_distance > dist)
-        {
-            min_distance = dist;
-            min_node = nodes[i].node;
-        }
+    // for (int i=nodes.size()-1; i>0;i--)
+    // {
+    //     double dist = nodes[i].config.distance(pos);
+    //     if (min_distance > dist)
+    //     {
+    //         min_distance = dist;
+    //         min_node = nodes[i].node;
+    //     }
+    // }
+    // return min_node;
+    ANNpoint query_pt; 
+    query_pt = annAllocPt(dof);  
+    std::copy(pos.configuration.begin(), pos.configuration.end(), query_pt);
+    double d_ann = INFINITY;
+    
+    int idx_ann;
+    double*  nearest_cfg = (double*)MAG->NearestNeighbor(
+                query_pt, idx_ann,
+                d_ann);
+
+    std::vector<double> near_pos(pos.configuration);
+    for(int i=0;i<dof;i++){
+        near_pos[i]=nearest_cfg[i];
     }
-    return min_node;
+    RRT::Tree::Node* nearest_node = configuration2Node[near_pos];
+    annDeallocPt(query_pt);
+    return nearest_node;
+    
 }
-
 RRT::Tree::Node* RRT::make_step(RRT::Tree::Node& node, const Robot &pos)
 {
     // Делаем фиксированный шаг в сторону точки

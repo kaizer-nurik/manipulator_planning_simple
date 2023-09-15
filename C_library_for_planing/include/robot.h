@@ -41,7 +41,7 @@ struct GoalPoint
     Vector2D goalpoint;
     double angle1_;
     double angle2_;
-    double delta = 0.01;
+    double delta = 0.1;
     bool is_goal(const double& x, const double& y, const double& angle) const;
     bool is_goal(const Robot& pos)const ;
     float distance(const Robot &robot, const std::vector<double> config) const;

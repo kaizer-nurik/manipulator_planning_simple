@@ -10,6 +10,11 @@ add_subdirectory(googletest) # add googletest subdirectory
 
 include_directories(googletest/include) # this is so we can #include <gtest/gtest.h>
 
+
+add_subdirectory(mpnn) # add motion planning nearest neigbourhood directory
+include_directories(mpnn/include) # this is so we can #include <gtest/gtest.h>
+
+
 add_executable(test_IK "./test/test_IK.cpp") # add this executable
 
 include(GoogleTest)
@@ -56,7 +61,7 @@ find_package (Threads)
 include_directories(./rapidxml ./include ./googletest)
 
 add_executable(main "./src/main.cpp")
-target_link_libraries(main Threads::Threads inverse_kinematics file_saver robot parsing planner rapidxml obstacles )
+target_link_libraries(main Threads::Threads inverse_kinematics file_saver robot parsing planner rapidxml obstacles DNN )
 target_link_libraries(test_IK Threads::Threads inverse_kinematics  gtest robot parsing planner rapidxml obstacles)   
 set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
 

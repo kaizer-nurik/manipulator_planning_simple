@@ -7,3 +7,6 @@
 [submodule "C_library_for_planing/rapidxml"]
 	path = C_library_for_planing/rapidxml
 	url = https://github.com/viriw/rapidxml
+[submodule "C_library_for_planing/mpnn"]
+	path = C_library_for_planing/mpnn
+	url = https://github.com/drewm1980/mpnn

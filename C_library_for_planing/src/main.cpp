@@ -40,7 +40,8 @@ int main(int argc, const char * argv[])
     std::filesystem::create_directory(xml_trajectories_dir);
 
     int successes = 0;
-    int i = 19;
+    for (int i=1; i<=50; i++)
+    {        
         std::cout<<line+line2 + std::to_string(i) + ".xml"<<std::endl;
         std::vector<Polygon> polygons;
         Robot start = Robot();
@@ -64,7 +65,7 @@ int main(int argc, const char * argv[])
         auto duration = t2-t1;
         RRT planner(ANGLE_STEP,start.dof_,start, goal, polygons,stats);
         if(true){
-            for(int i=0; i<0;i++){
+            for(int i=0; i<100000;i++){
                 planner.grow_tree();
                 //std::cout<<i<<planner.is_finished()<<std::endl;
                 if (planner.is_finished())
@@ -99,7 +100,7 @@ int main(int argc, const char * argv[])
         FileSaver::write_map_to_json(result_dir+line2 + std::to_string(i)+"_stats.json",stats);
         FileSaver::write_end_config_to_csv(result_dir+line2 + std::to_string(i)+"_IK_res.csv", planner.get_end_configurations());
     
-    
+    }
 
 
     std::cout << "tests completed " << successes << '/' << 50 << std::endl; 

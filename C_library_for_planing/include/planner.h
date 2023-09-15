@@ -16,6 +16,8 @@
 #include <assert.h>
 #include "inverse_kinematics.h"
 #include <chrono>
+#include <ANN.h>  // ANN declarations
+#include <multiann.h>
 #define RRT_GOAL_POINT_PROBABILITY 0.1
 using namespace std::literals;   
 struct Node
@@ -138,8 +140,10 @@ public:
     };
 
     RRT(double _tolerance, int other_dof, const Robot &inp_start,
-        const GoalPoint &inp_goal, const std::vector<Polygon> &inp_obstacles, std::map<std::string, std::string> &inp_stats) : tolerance(_tolerance), dof(other_dof), start(inp_start), goal(inp_goal),
-                                                                                                                               obstacles(inp_obstacles), tree(start), distance_from_closest(goal.distance(start, start.configuration)), probability_gen(0.0, 1.0), stats_map(&inp_stats)
+        const GoalPoint &inp_goal, const std::vector<Polygon> &inp_obstacles, std::map<std::string, std::string> &inp_stats) : tolerance(_tolerance), 
+        dof(other_dof), start(inp_start), goal(inp_goal),
+    
+                      obstacles(inp_obstacles), tree(start), distance_from_closest(goal.distance(start, start.configuration)), probability_gen(0.0, 1.0), stats_map(&inp_stats)
     {
 
         std::random_device rd;
@@ -152,7 +156,7 @@ public:
             random_gen.push_back(dis);
         }
         auto t1 = std::chrono::high_resolution_clock::now();
-        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 100);
+        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 10);
         auto t2 = std::chrono::high_resolution_clock::now();
         stats.time_of_IK_results = (t2 - t1)/1ns;
         stats.number_of_collision_check_in_IK = ik_stats.number_of_collision_check;
@@ -177,8 +181,24 @@ public:
                 throw std::invalid_argument("No solution found for goal configuration.");
         }
         nodes.push_back(NodeAndConfig(tree.head,tree.head->get_position()));
+
+        topology = new int[dof];
+        for(int i=0;i<dof;i++){
+            topology[i]=1;
+        }
+        scale = new double[dof];
+        for(int i=0;i<dof;i++){
+            scale[i]=1;
+        }
+        MAG = new MultiANN(dof, 1,   topology,scale);
+        std::vector<double> head_ptr = tree.head->get_position().configuration;
+        configuration2Node[head_ptr] = tree.head;
+        ANNpoint head = annAllocPt(dof);
+        std::copy(head_ptr.begin(), head_ptr.end(), head);
+
+        MAG->AddPoint(head, head);
         std::cout << "Inverse Kinematics solved, got " << end_configurations.size() << " solutions" << std::endl;
-    }
+    };
 
     RRT(const RRT &_other) = delete;
     RRT(RRT &&_other) = delete;
@@ -198,7 +218,7 @@ public:
 private:
     RRT::Tree::Node* nearest_neighbour_stats(const Robot &pos);
     bool collide_stats(const Robot &robot, const std::vector<double> config, const std::vector<Polygon> &poligons);
-
+    
     void expand_to_goal();
     void expand_to_random();
     Robot get_end_config_sample();
@@ -231,5 +251,9 @@ private:
     };
     std::vector<NodeAndConfig> nodes;
     RRT::Stat stats;
+    ANNpoint scale;
+    int* topology;
+    MultiANN* MAG; 
     std::map<std::string, std::string> *stats_map;
+    std::map<std::vector<double>, RRT::Tree::Node*> configuration2Node;
 };
