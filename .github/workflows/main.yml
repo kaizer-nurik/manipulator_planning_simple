@@ -37,7 +37,7 @@ jobs:
         with:
           nuitka-version: main
           standalone: true
-          enable-plugins: pyside6, numpy
+          enable-plugins: pyside6,numpy
           script-name: ./GUI_creation/main.py
           onefile: true
           windows-icon-from-ico: ./GUI_creation/resources/app.ico
