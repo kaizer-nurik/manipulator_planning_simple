@@ -18,7 +18,7 @@
 #include <ctime>
 #include <filesystem>
 #define TIMEOUT_MS 10000
-#define ANGLE_STEP 6
+#define ANGLE_STEP 10
 
 
 int main(int argc, const char * argv[])
@@ -34,7 +34,8 @@ int main(int argc, const char * argv[])
     else{
         line2 =  "scene_"+std::string(argv[1]).substr(0,1)+"_test_";
     }
-    std::string result_dir = "./results_of_scene"+std::string(argv[1])+"/";
+    for(int k=7;k<=100;k++){
+    std::string result_dir = "./results_of_scene"+std::string(argv[1])+"#"+std::to_string(k)+"/";
     std::string xml_trajectories_dir = result_dir+"scene"+std::string(argv[1])+"/";
     std::filesystem::create_directory(result_dir);
     std::filesystem::create_directory(xml_trajectories_dir);
@@ -65,7 +66,7 @@ int main(int argc, const char * argv[])
         auto duration = t2-t1;
         RRT planner(ANGLE_STEP,start.dof_,start, goal, polygons,stats);
         if(true){
-            for(int i=0; i<100000;i++){
+            for(int i=0; i<1000000;i++){
                 planner.grow_tree();
                 //std::cout<<i<<planner.is_finished()<<std::endl;
                 if (planner.is_finished())
@@ -102,7 +103,8 @@ int main(int argc, const char * argv[])
     
     }
 
-
     std::cout << "tests completed " << successes << '/' << 50 << std::endl; 
+    }
+
       return EXIT_SUCCESS;
 }

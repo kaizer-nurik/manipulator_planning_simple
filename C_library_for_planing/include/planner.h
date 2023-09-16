@@ -125,7 +125,7 @@ public:
             std::vector<Node *> children;
 
         private:
-            Node* _parent;
+            Node* _parent = nullptr;
             Robot position;
         };
 
@@ -156,7 +156,7 @@ public:
             random_gen.push_back(dis);
         }
         auto t1 = std::chrono::high_resolution_clock::now();
-        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 10);
+        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 100);
         auto t2 = std::chrono::high_resolution_clock::now();
         stats.time_of_IK_results = (t2 - t1)/1ns;
         stats.number_of_collision_check_in_IK = ik_stats.number_of_collision_check;
@@ -231,7 +231,7 @@ private:
     int dof;
     Robot start;
     GoalPoint goal;
-    float goal_bias = 0.1;
+    float goal_bias = 0.05;
     std::vector<Polygon> obstacles;
     std::vector<RRT::Tree::Node*>finish_node;
     Robot random_sample();

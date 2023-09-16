@@ -9,7 +9,14 @@ enable_testing() #to  discover tests in test explorer
 add_subdirectory(googletest) # add googletest subdirectory
 
 include_directories(googletest/include) # this is so we can #include <gtest/gtest.h>
+set(RELEASE_FLAGS "-Ofast -DNDEBUG -DBOOST_DISABLE_ASSERTS")
+set(DEBUG_FLAGS "-Ofast -ggdb3")
 
+set(CMAKE_CXX_FLAGS_RELEASE ${RELEASE_FLAGS})
+set(CMAKE_C_FLAGS_RELEASE ${RELEASE_FLAGS})
+
+set(CMAKE_CXX_FLAGS_DEBUG ${DEBUG_FLAGS})
+set(CMAKE_C_FLAGS_DEBUG ${DEBUG_FLAGS})
 
 add_subdirectory(mpnn) # add motion planning nearest neigbourhood directory
 include_directories(mpnn/include) # this is so we can #include <gtest/gtest.h>
