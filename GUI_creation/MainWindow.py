@@ -105,7 +105,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         for data in scenes_data:
             self.number2open_nodes[data["_number"]] = data["opened_nodes"]
         scene = Robo_scene()
-        self.goals :List[GoalPoint] = []
+        self.goals :List[(int,GoalPoint)] = []
         self.trajectories :dict[str] = dict()
         self.robot.joints[0].visuals.setParentItem(None)
         csv,self.robot, self.obstacles, self.goal_point =  read_xml(self.folder_choose_edit.text()+"\\\\"+files[0],scene)
@@ -121,10 +121,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             goal.set_number(number)
             self.goals.append((number,goal))
             self.trajectories[number] = csv
-        
+
         for number,goal in self.goals:
+            print(number)
+            print(self.number2open_nodes)
             goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[number]))
-        for number,goal in self.goals[1:]:
+        for number,goal in self.goals:
             
             goal.set_scene(scene)    
             
@@ -215,7 +217,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             os.makedirs("./GIFs",exist_ok=True)
             
             images[0].save(f"./GIFs/case_{number}.gif", append_images=images[1:],
-             save_all=True, duration=100,loops=0)
+             save_all=True, duration=20,loop=0)
             
             
             os.makedirs("./MP4s",exist_ok=True)

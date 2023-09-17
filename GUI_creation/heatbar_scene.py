@@ -36,8 +36,7 @@ class HeatbarScene(QGraphicsScene):
         Args:
             value (int): значение
         """
-        if (value > self.max_value):
-            self.max_value=value
+
         if self.log_scale:
             mapped_value = np.round((255//DIVIDE_FACTOR+255//DIVIDE_FACTOR+280)*np.log10(value)/np.log10(self.max_value))
         else:
@@ -91,7 +90,8 @@ class HeatbarScene(QGraphicsScene):
         font.setPointSize(10)
         
         if  self.log_scale:
-            values = [self.max_value**(i/10) for i in range(11)]
+            values = [10**i for i in range(int(np.log10(self.max_value)+1))]
+            values.append(self.max_value)
         else:
             values = range(0,self.max_value//10 * 11 ,self.max_value//10 )
         for value in values:
