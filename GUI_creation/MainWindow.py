@@ -178,7 +178,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             self.anim_goal_point.set_scene(self.anim_scene)
             graphics.draw_robot(self.anim_scene, self.anim_robot)
             self.graphicsView.setScene(self.anim_scene)
-        
+            self.graphicsView.centerOn(0, 0)
             trajectory = self.trajectories[number]
             self.anim = np.loadtxt(trajectory.split('\n'), delimiter=',')
             if len(self.anim.shape) == 1:
