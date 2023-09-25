@@ -1,6 +1,6 @@
-# Specify your repository details
-repository_name = "Your Repository Name"
-description = "Description of your repository."
+# Basic Search-based and Sample-based motion planning methods for manipulators
+repository_name = manipulator_planning_simple
+description = This repository contains A* and RRT for manipulators, test environment for creating tests and animating planning work
 your_email = "your-email@example.com"
 python_version = "X.X.X"
 dependencies = ["Library name (version X.X.X)", "Another Library (version Y.Y.Y)"]
@@ -27,4 +27,4 @@ readme_content = f"""# {repository_name}
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/your-username/{repository_name}.git
+   git clone https://github.com/kaizer-nurik/manipulator_planning_simple.git
