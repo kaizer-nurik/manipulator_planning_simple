@@ -1,16 +1,8 @@
 # Search-based and Sample-based motion planning methods for manipulators
-repository_name = manipulator_planning_simple
-description = This repository contains A* and RRT for manipulators, test environment for creating tests and animating planning work
-your_email = "your-email@example.com"
-python_version = "X.X.X"
-dependencies = ["Library name (version X.X.X)", "Another Library (version Y.Y.Y)"]
-
-# Create the README content
-readme_content = f"""# {repository_name}
 
 ## Description
 
-{description}
+This repository contains A* and RRT for manipulators, test environment for creating tests and animating planning work
 
 ## Contents
 
