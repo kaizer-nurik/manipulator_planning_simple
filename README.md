@@ -14,7 +14,6 @@ This repository contains A* and RRT for manipulators, test environment for creat
 - **Documentation:** Detailed documentation for both A* and RRT algorithms, including explanations of the algorithms, their parameters, and usage guidelines.
 - **Dependencies:** List of required dependencies and installation instructions.
 - **Contributing:** Guidelines for contributing to this project.
-- **License:** Information about the project's license.
 
 ## Getting Started
 
