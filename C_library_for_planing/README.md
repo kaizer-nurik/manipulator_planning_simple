@@ -10,25 +10,33 @@
 git clone https://github.com/kaizer-nurik/manipulator_planning_simple.git
 ```
 
-2) Change active directory to this
+2) init submodules
+
+```
+git submodule init
+
+git submodule update
+```
+
+3) Change active directory to this
 
 ```
 cd ./manipulator_planning_simple/C_library_for_planing
 ```
 
-3) Create build directory and go into it
+4) Create build directory and go into it
 
 ```
 mkdir ./build
 cd build
 ```
 
-4) Execute Cmakefile
+5) Execute Cmakefile
 
 ```
 cmake ..
 ```
-5) Build the code!
+6) Build the code!
 
 ```
 make
