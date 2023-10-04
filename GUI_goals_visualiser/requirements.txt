@@ -1,0 +1,6 @@
+PySide6
+pyqtgraph
+numpy
+scipy
+Pillow
+moviepy
