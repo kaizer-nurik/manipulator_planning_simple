@@ -1,0 +1,228 @@
+name: simple-manipulator-planning
+on:
+  push:
+      branches: [ test ]
+ 
+  
+jobs:
+  time_test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: install gtest
+      run: |
+        git submodule update --init --recursive
+        sudo apt-get install -y cmake
+        
+    - name: cmake
+      run: |
+        cd C_library_for_planing
+        mkdir build
+        ls
+        cd build
+        cmake ..
+        make
+    - name: run
+      run: |
+        cd C_library_for_planing
+        cp example.xml ./build/
+        cd build
+        ./mytests
+
+
+  # clang-tidy:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: install gtest
+  #     run: |
+  #       sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  #       sudo apt-get install -y cmake
+  #       sudo apt-get install -y libgtest-dev
+  #       mkdir build_gtest
+  #       cd build_gtest
+  #       cmake /usr/src/gtest
+  #       sudo make
+  #       sudo cp ./lib/libgtest* /usr/lib
+  #       cd ..
+  #   - name: Run clang-tidy
+  #     run: |
+  #       sudo apt install clang-tidy
+  #       clang-tidy ./*.c ./*.h  -warnings-as-errors=* -extra-arg=-std=c99 --
+
+  # cppheck:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: cppcheck
+  #     uses: deep5050/cppcheck-action@main
+  #     with:
+  #       github_token: ${{ secrets.GITHUB_TOKEN}}
+  #   - name: publish report    
+  #     uses: mikeal/publish-to-github-action@master
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       BRANCH_NAME: 'hw2'
+
+
+  # cpplint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: actions/checkout@v1
+  #   - uses: actions/setup-python@v1
+  #   - run: pip install cpplint
+  #   - run: cpplint --recursive --filter=-legal/copyright,-whitespace/braces,-build/include_subdir,-runtime/threadsafe_fn,-whitespace/ending_newline,-whitespace/parens,-whitespace/blank_line .
+
+
+  # Google-Address-Sanitizer:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     - uses: actions/checkout@v2
+  #     - name: install gtest
+  #       run: |
+  #         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  #         sudo apt-get install -y cmake
+  #         sudo apt-get install -y libgtest-dev
+  #         mkdir build_gtest
+  #         cd build_gtest
+  #         cmake /usr/src/gtest
+  #         sudo make
+  #         sudo cp ./lib/libgtest* /usr/lib
+  #         cd ..
+  #     - name: cmake
+  #       run: |
+  #         mkdir build
+  #         ls
+  #         cd build
+  #         cmake -Dgtest_force_shared_crt=ON ENABLE_GOOGLE_ADRESS_SANITIZER=ON ..
+  #         make
+  #     - name: run
+  #       run: |
+  #         cd build
+  #         ./func_test
+
+  # Google-Undefined-Sanitizer:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     - uses: actions/checkout@v2
+  #     - name: install gtest
+  #       run: |
+  #         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  #         sudo apt-get install -y cmake
+  #         sudo apt-get install -y libgtest-dev
+  #         mkdir build_gtest
+  #         cd build_gtest
+  #         cmake /usr/src/gtest
+  #         sudo make
+  #         sudo cp ./lib/libgtest* /usr/lib
+  #         cd ..
+  #     - name: cmake
+  #       run: |
+  #         mkdir build
+  #         ls
+  #         cd build
+  #         cmake -Dgtest_force_shared_crt=ON ENABLE_GOOGLE_UNDEFINED_SANITIZER=ON ..
+  #         make
+  #     - name: run
+  #       run: |
+  #         cd build
+  #         ./func_test
+
+
+  # Google-Leak-Sanitizer:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     - uses: actions/checkout@v2
+  #     - name: install gtest
+  #       run: |
+  #         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  #         sudo apt-get install -y cmake
+  #         sudo apt-get install -y libgtest-dev
+  #         mkdir build_gtest
+  #         cd build_gtest
+  #         cmake /usr/src/gtest
+  #         sudo make
+  #         sudo cp ./lib/libgtest* /usr/lib
+  #         cd ..
+  #     - name: cmake
+  #       run: |
+  #         mkdir build
+  #         ls
+  #         cd build
+  #         cmake -Dgtest_force_shared_crt=ON ENABLE_GOOGLE_LEAK_SANITIZER=ON ..
+  #         make
+  #     - name: run
+  #       run: |
+  #         cd build
+  #         ./func_test
+
+  # Valgrind:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     - uses: actions/checkout@v2
+  #     - name: install gtest
+  #       run: |
+  #         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  #         sudo apt-get install -y cmake
+  #         sudo apt-get install -y libgtest-dev
+  #         mkdir build_gtest
+  #         cd build_gtest
+  #         cmake /usr/src/gtest
+  #         sudo make
+  #         sudo cp ./lib/libgtest* /usr/lib
+  #         cd ..
+  #     - name: cmake
+  #       run: |
+  #         mkdir build
+  #         ls
+  #         cd build
+  #         cmake -Dgtest_force_shared_crt=ON ..
+  #         make
+  #     - name: run
+  #       run: |
+  #         sudo apt install -y valgrind
+  #         cd build
+  #         valgrind  --tool=memcheck --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes ./func_test
+  # fbinfer:
+  #       runs-on: ubuntu-latest
+  #       steps:
+  #       - uses: actions/checkout@v2
+  #       - name: run
+  #         run: |
+  #           VERSION=1.0.0; \
+  #           curl -sSL "https://github.com/facebook/infer/releases/download/v$VERSION/infer-linux64-v$VERSION.tar.xz" \
+  #           | sudo tar -C /opt -xJ && \
+  #           sudo ln -s "/opt/infer-linux64-v$VERSION/bin/infer" /usr/local/bin/infer
+  #           infer run -- gcc -c ./main.c
+  #           infer run -- gcc -c "./static lib/static_fild.c"
+  #           infer run -- gcc -c "./dynamic lib/dym_fild.c"
+  # codecov:
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #     - uses: actions/checkout@v2
+  #     - name: install gtest
+  #       run: |
+  #         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  #         sudo apt-get install -y cmake
+  #         sudo apt-get install -y libgtest-dev
+  #         mkdir build_gtest
+  #         cd build_gtest
+  #         cmake /usr/src/gtest 
+  #         sudo make
+  #         sudo cp ./lib/libgtest* /usr/lib
+  #         cd ..
+  #     - name: cmake
+  #       run: |
+  #         sudo apt install lcov
+  #         mkdir build
+  #         ls
+  #         cd build
+  #         cmake -D ENABLE_GCOV=ON ..
+  #         make
+  #         ./func_test
+  #         cd ./CMakeFiles/
+  #         gcov ./func_test.dir/test.gcno ./main.dir/main.c.gcno ./weather_struct.dir/weather_struct.c.gcno
+  #         lcov --capture --directory . --output-file HW1.info
+  #         genhtml HW1.info --output-directory GCOV_RES
+  #         bash <(curl -s https://codecov.io/bash) -t 1a260558-dd59-4f10-88eb-46698bd48e63 -f HW1.info || echo "Codecov did not collect coverage reports" 
