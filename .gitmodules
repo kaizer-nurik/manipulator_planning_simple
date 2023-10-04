@@ -1,0 +1,15 @@
+[submodule "rapidxml"]
+	path = C_library_for_planing/rapidxml
+	url = https://github.com/viriw/rapidxml
+[submodule "googletest"]
+	path = C_library_for_planing/googletest
+	url = https://github.com/google/googletest
+[submodule "C_library_for_planing/rapidxml"]
+	path = C_library_for_planing/rapidxml
+	url = https://github.com/viriw/rapidxml
+[submodule "C_library_for_planing/mpnn"]
+	path = C_library_for_planing/mpnn
+	url = https://github.com/drewm1980/mpnn
+[submodule "C_library_for_planing/json-develop"]
+	path = C_library_for_planing/json-develop
+	url = https://github.com/nlohmann/json

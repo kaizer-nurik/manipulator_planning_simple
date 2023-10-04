@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint number="0" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="2" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="3" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+    </joints>
+  </robot_info>
+  <start_configuration>
+    <angle number="0">99.16234704572173</angle>
+    <angle number="1">-0.4561094533866026</angle>
+    <angle number="2">-5.74979372326402</angle>
+    <angle number="3">3.350217499610153</angle>
+  </start_configuration>
+  <goal_point x="-1.13255" y="0.577975" angle="161.736" angle_tolerance="10" />
+  <scene>
+    <polygon>
+      <vertex x="-8.395348837209303" y="-0.37209302325581395" />
+      <vertex x="7.828571428571427" y="-0.028571428571428577" />
+      <vertex x="7.828571428571427" y="-0.35" />
+      <vertex x="-8.372093023255815" y="-0.6511627906976745" />
+    </polygon>
+    <polygon>
+      <vertex x="-2.829545454545455" y="0.9204545454545454" />
+      <vertex x="-2.8409090909090913" y="-0.7159090909090909" />
+      <vertex x="-2.579545454545455" y="-0.6818181818181819" />
+      <vertex x="-2.625" y="0.9886363636363638" />
+    </polygon>
+    <polygon>
+      <vertex x="-1.7704545454545455" y="0.8204545454545454" />
+      <vertex x="-1.7250000000000003" y="-0.6568181818181819" />
+      <vertex x="-1.531818181818182" y="-0.6340909090909091" />
+      <vertex x="-1.5204545454545455" y="0.7636363636363638" />
+    </polygon>
+    <polygon>
+      <vertex x="1.2888888888888888" y="2.025" />
+      <vertex x="1.3472222222222223" y="1.0416666666666665" />
+      <vertex x="2.069444444444444" y="1.0138888888888888" />
+      <vertex x="2.1805555555555554" y="1.8611111111111112" />
+    </polygon>
+    <polygon>
+      <vertex x="0.8235294117647058" y="3.676470588235294" />
+      <vertex x="3.2352941176470584" y="2.4999999999999996" />
+      <vertex x="2.176470588235294" y="4.294117647058823" />
+    </polygon>
+  </scene>
+</input_info>
