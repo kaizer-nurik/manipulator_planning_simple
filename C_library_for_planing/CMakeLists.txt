@@ -3,14 +3,8 @@ project(Manipulator C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-enable_testing() #to  discover tests in test explorer 
-
-add_subdirectory(googletest) # add googletest subdirectory
-
-include_directories(googletest/include) # this is so we can #include <gtest/gtest.h>
-set(RELEASE_FLAGS "-Ofast -DNDEBUG -DBOOST_DISABLE_ASSERTS")
-set(DEBUG_FLAGS "-Ofast -ggdb3")
+set(RELEASE_FLAGS "-O3")
+set(DEBUG_FLAGS "-O3")
 
 set(CMAKE_CXX_FLAGS_RELEASE ${RELEASE_FLAGS})
 set(CMAKE_C_FLAGS_RELEASE ${RELEASE_FLAGS})
@@ -18,61 +12,51 @@ set(CMAKE_C_FLAGS_RELEASE ${RELEASE_FLAGS})
 set(CMAKE_CXX_FLAGS_DEBUG ${DEBUG_FLAGS})
 set(CMAKE_C_FLAGS_DEBUG ${DEBUG_FLAGS})
 
+enable_testing() #to  discover tests in test explorer 
+add_subdirectory(googletest) # add googletest subdirectory
+include_directories(googletest/include) # this is so we can #include <gtest/gtest.h>
+# add_executable(test_IK "./test/test_IK.cpp") # add this executable
+# gtest_discover_tests(test_IK) # discovers tests by asking the compiled test executable to enumerate its tests
+
 add_subdirectory(mpnn) # add motion planning nearest neigbourhood directory
-include_directories(mpnn/include) # this is so we can #include <gtest/gtest.h>
+include_directories(mpnn/include) # this is so we can #include <ANN.h>
+
+add_subdirectory(json-develop) 
+include_directories(json-develop/single_include/nlohmann)
 
 
-add_executable(test_IK "./test/test_IK.cpp") # add this executable
+add_subdirectory(common) 
+include_directories(common/include)
 
-include(GoogleTest)
-gtest_discover_tests(test_IK) # discovers tests by asking the compiled test executable to enumerate its tests
+add_subdirectory(RRT) 
+include_directories(RRT/include)
 
-set(LIB_SOURCE_FILES "./src/obstacles.cpp")
-set(LIB_HEADERS_FILES "./include/obstacles.h")
-add_library(obstacles STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
-set_target_properties(obstacles PROPERTIES LINKER_LANGUAGE CXX)
-
-set(LIB_SOURCE_FILES "./src/planner.cpp")
-set(LIB_HEADERS_FILES "./include/planner.h")
-add_library(planner STATIC   ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
-set_target_properties(planner PROPERTIES LINKER_LANGUAGE CXX)
-
-set(LIB_HEADERS_FILES "./include/robot.h")
-set(LIB_SOURCE_FILES "./src/robot.cpp")
-add_library(robot STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES})
-set_target_properties(robot PROPERTIES LINKER_LANGUAGE CXX) 
-
-set(LIB_HEADERS_FILES "./include/parsing.h")
-set(LIB_HEADERS_FILES "./include/parsing.h")
-add_library(parsing STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
-set_target_properties(parsing PROPERTIES LINKER_LANGUAGE CXX)
+add_subdirectory(A_star) 
+include_directories(A_star/include)
 
 file(GLOB sources "./rapidxml/*.hpp")
-set(LIB_SOURCE_FILES "./src/rapidxml.cpp")
-add_library(rapidxml STATIC ${sources} ${LIB_SOURCE_FILES}) 
+add_library(rapidxml STATIC ${sources}) 
 set_target_properties(rapidxml PROPERTIES LINKER_LANGUAGE CXX)
 
-set(LIB_SOURCE_FILES "./src/file_saver.cpp")
-set(LIB_HEADERS_FILES "./include/file_saver.h")
-add_library(file_saver STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
-set_target_properties(file_saver PROPERTIES LINKER_LANGUAGE CXX)
+find_package(Threads)
 
-set(LIB_SOURCE_FILES "./src/inverse_kinematics.cpp")
-set(LIB_HEADERS_FILES "./include/inverse_kinematics.h")
-add_library(inverse_kinematics STATIC ${LIB_HEADERS_FILES} ${LIB_SOURCE_FILES}) 
-set_target_properties(inverse_kinematics PROPERTIES LINKER_LANGUAGE CXX)
+include_directories(./rapidxml ./googletest ./include ../common/include ../mpmm/include)
 
+add_executable(main_a_star "./main_a_star.cpp")
+target_link_libraries(main_a_star Threads::Threads inverse_kinematics file_saver  parsing robot a_star_planner rapidxml obstacles DNN )
+set_target_properties(main_a_star PROPERTIES LINKER_LANGUAGE CXX) 
 
-find_package (Threads)
+add_executable(main_a_star_single "./main_a_star_single.cpp")
+target_link_libraries(main_a_star_single Threads::Threads inverse_kinematics file_saver  parsing robot a_star_planner rapidxml obstacles DNN )
+set_target_properties(main_a_star_single PROPERTIES LINKER_LANGUAGE CXX) 
 
-include_directories(./rapidxml ./include ./googletest)
+add_executable(main_rrt "./main_rrt.cpp")
+target_link_libraries(main_rrt Threads::Threads inverse_kinematics file_saver  parsing robot planner_RRT rapidxml obstacles DNN )
+set_target_properties(main_rrt PROPERTIES LINKER_LANGUAGE CXX) 
 
-add_executable(main "./src/main.cpp")
-target_link_libraries(main Threads::Threads inverse_kinematics file_saver robot parsing planner rapidxml obstacles DNN )
-target_link_libraries(test_IK Threads::Threads inverse_kinematics  gtest robot parsing planner rapidxml obstacles)   
-set_target_properties(main PROPERTIES LINKER_LANGUAGE CXX) 
-
-
+add_executable(main_rrt_single "./main_rrt_single.cpp")
+target_link_libraries(main_rrt_single Threads::Threads inverse_kinematics file_saver  parsing robot planner_RRT rapidxml obstacles DNN )
+set_target_properties(main_rrt_single PROPERTIES LINKER_LANGUAGE CXX) 
 
 if(ENABLE_GCOV)
 SET(CMAKE_CXX_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage")
