@@ -76,6 +76,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.anim_manual_sldr.valueChanged.connect(self.manual_anim)
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
+        self.create_dataset_btn.clicked.connect(self.build_IK)
+
+    def build_IK(self):
+        IK_res = np.loadtxt(self.folder_choose_edit.text(),delimiter=',')
+        print(IK_res)
+        self.robot.set_angles(list(IK_res[0])[:self.robot.joint_count])
+        self.IK_robots = []
+        
+        for ik in IK_res[::10]:
+            # np.loadtxt(csv.split('\n'), delimiter=',')
+            self.IK_robots.append(self.robot.copy())
+            self.IK_robots[-1].set_angles(ik[:self.robot.joint_count])
+            graphics.draw_robot(self.scene, self.IK_robots[-1])
+
+
+
     def unlock_view(self):
         self.graphicsView.setInteractive(True)
         unlock_brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
@@ -373,7 +389,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         """Слот для кнопки "Обзор"
         открывает диалог открытия папки датасета
         """
-        fname = QFileDialog.getExistingDirectory(
-            None, 'Select a folder:', 'C:\\', QFileDialog.ShowDirsOnly)
+        fname = QFileDialog.getOpenFileName(
+            self,
+            "Открыть",
+            "",
+            "csv (*.csv);; All Files (*)",
+        )
         # self.plot.fitInView(QRectF(0,0,1000,1000))
-        self.folder_choose_edit.setText(fname)
+        self.folder_choose_edit.setText(fname[0])

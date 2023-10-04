@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'GUI.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.1
+## Created by: Qt User Interface Compiler version 6.5.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -146,20 +146,20 @@ class Ui_MainWindow(object):
         self.folder_choose_edit.setObjectName(u"folder_choose_edit")
         self.folder_choose_edit.setGeometry(QRect(10, 370, 381, 21))
         self.folder_choose_edit.setReadOnly(False)
-        self.animate_btn_2 = QPushButton(self.centralwidget)
-        self.animate_btn_2.setObjectName(u"animate_btn_2")
-        self.animate_btn_2.setGeometry(QRect(10, 410, 131, 28))
+        self.create_dataset_btn = QPushButton(self.centralwidget)
+        self.create_dataset_btn.setObjectName(u"create_dataset_btn")
+        self.create_dataset_btn.setGeometry(QRect(10, 410, 131, 28))
         self.folder_choose_btn = QPushButton(self.centralwidget)
         self.folder_choose_btn.setObjectName(u"folder_choose_btn")
         self.folder_choose_btn.setGeometry(QRect(280, 410, 93, 28))
         self.label_7 = QLabel(self.centralwidget)
         self.label_7.setObjectName(u"label_7")
         self.label_7.setGeometry(QRect(10, 310, 111, 20))
-        self.robot_joint_count_spin_2 = QSpinBox(self.centralwidget)
-        self.robot_joint_count_spin_2.setObjectName(u"robot_joint_count_spin_2")
-        self.robot_joint_count_spin_2.setGeometry(QRect(10, 340, 91, 22))
-        self.robot_joint_count_spin_2.setMinimum(1)
-        self.robot_joint_count_spin_2.setMaximum(1000000)
+        self.dataset_dot_spin = QSpinBox(self.centralwidget)
+        self.dataset_dot_spin.setObjectName(u"dataset_dot_spin")
+        self.dataset_dot_spin.setGeometry(QRect(10, 340, 91, 22))
+        self.dataset_dot_spin.setMinimum(1)
+        self.dataset_dot_spin.setMaximum(1000000)
         self.label_16 = QLabel(self.centralwidget)
         self.label_16.setObjectName(u"label_16")
         self.label_16.setGeometry(QRect(10, 205, 201, 41))
@@ -206,7 +206,7 @@ class Ui_MainWindow(object):
         self.create_goal_point_btn_pos.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u0434\u0430\u0442\u044c \u043a\u043e\u043d\u0435\u0447\u043d\u0443\u044e \u0442\u043e\u0447\u043a\u0443 \u043f\u043e \u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u044e", None))
         self.folder_choose_edit.setText("")
         self.folder_choose_edit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u041f\u0443\u0442\u044c \u0434\u043e \u043f\u0430\u043f\u043a\u0438 \u0434\u0430\u0442\u0430\u0441\u0435\u0442\u0430", None))
-        self.animate_btn_2.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c", None))
+        self.create_dataset_btn.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0437\u0434\u0430\u0442\u044c", None))
         self.folder_choose_btn.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0442\u043e\u0447\u0435\u043a", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>\u0420\u0430\u0434\u0438\u0443\u0441 \u043f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u0438</p><p>\u043a\u043e\u043d\u0435\u0447\u043d\u043e\u0439 \u0442\u043e\u0447\u043a\u0438</p></body></html>", None))
