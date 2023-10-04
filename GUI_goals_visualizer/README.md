@@ -1,6 +1,6 @@
 # GUI for XML task making
 
-This is GUI, made on QT and python for making xml tasks for path planning for manipulators.
+This is GUI, made on QT and python, for visualising goals and number of open nodes of path planning algorithms.
 
 ## Quickstart
 1) git clone this repo

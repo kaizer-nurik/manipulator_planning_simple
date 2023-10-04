@@ -51,7 +51,6 @@ class Obstacle(QGraphicsPolygonItem):
         self.fig = QPolygonF()
         obs_pen = QtGui.QPen(QtGui.Qt.black)
         obs_pen.setWidth(5)
-        self.setFlag(QGraphicsItem.ItemIsFocusable,True)
 
         obs_brush = QtGui.QBrush(QtGui.Qt.green)
         self.setPen(obs_pen)
@@ -80,16 +79,8 @@ class Obstacle(QGraphicsPolygonItem):
             p.append(dot.get_dot())
         return p
     
-    def mousePressEvent(self, event):
-        self.set_dots_visible(True)
-        
-    def focusInEvent(self,event):
-        self.set_dots_visible(True)
-    def focusOutEvent(self,event):
-        self.set_dots_visible(False)
-        
     def suicide(self):
-        self.manager.delete(self)
+        pass
         
 
                 
@@ -107,28 +98,25 @@ class ObstacleManager(QObject):
         for obstacle in self.obstacles:
             obstacle.set_dots_visible(False)
             
-    def create_obstacle(self):
-        self.off_dots()
-        self.obstacles.append(Obstacle(self))
-        self.scene.addItem(self.obstacles[-1])
 
-        self.scene.go_poli_mode(self.obstacles[-1])
-    
     def add_obstacle(self):
         self.off_dots()
         self.obstacles.append(Obstacle(self))
-        self.scene.addItem(self.obstacles[-1])
+        if self.scene is not None:
+            self.scene.addItem(self.obstacles[-1])
     def reset(self):
         for obs_ind in range(len(self.obstacles)):
             self.obstacles[0].setParentItem(None)
-            self.scene.removeItem(self.obstacles[0])
+            if self.scene is not None:
+                self.scene.removeItem(self.obstacles[0])
             self.obstacles.pop(0)
 
     def delete(self,obstacle_to_delete):
         for index, obstacle in enumerate(self.obstacles):
             if obstacle is obstacle_to_delete:
                 self.obstacles[index].setParentItem(None)
-                self.scene.removeItem(self.obstacles[index])
+                if self.scene is not None:
+                    self.scene.removeItem(self.obstacles[index])
                 self.obstacles.pop(index)
     def __iter__(self):
         self._current_index = 0
@@ -140,6 +128,17 @@ class ObstacleManager(QObject):
             return Polygon(self.obstacles[self._current_index-1].polygon())
         raise StopIteration
     
+    def copy(self,scene):
+        new = ObstacleManager(None,None,None,scene)
+        for obstacle in self.obstacles:
+            new.add_obstacle()
+            poli = new.obstacles[-1]
+            poli.set_dots_visible(False)
+            for vertex in obstacle.dots:
+                poli.add_dot(vertex.dot)
+            poli.set_dots_visible(False)
+        return new
+            
 
 
 class Polygon():
