@@ -234,54 +234,50 @@ time is in seconds.
 
 ___
 
-# Структура входного XML файла:
+# Structure of the input XML file:
 ```
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <input_info>
-  <robot_info> - Информация о роботе
-    <joints>   - Перечисление информации о каждом звене робота, можно задавать хоть сколько звеньев
-      <joint>
-        <length> length </length> длина звена (в метрах)
-        <width>  width  </width>  ширина звена (в метрах)
-        <limit1> limit  </limit1> ограничение по углу поворота относительно предыдущего звена (в градусах)
-        <limit2> limit  </limit2> ограничение по углу поворота относительно предыдущего звена (в градусах)
-        </joint>
-        .
-        .
-        .
-
+  <robot_info> Information about the manipulator
+    <joints> information about the manipulator joints: joint's number, joint's length and width in meters, limits of joint rotation in degrees relative to the previous joint
+      <joint number="0" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="2" length="1.0" width="0.2" limit_min="-180.0" limit_max="180.0" />
+      <joint number="3" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
     </joints>
   </robot_info>
-
-  <start_configuration> Информация о стартовой конфигурации: задаются углы поворота
-    <angle> angle1 </angle> каждого соединения, конфигурация робота задается как вектор
-    <angle> angle2 </angle> длины DOF из углов 
-    .   Без потери общности считаем, что начало манипулятора находится в (0, 0)       
-    .   примечание: в GUI начало (500, 500)
-    .
-
-  </start_configuration>
-
-  <goal_point>  Информация о точке назначения: координаты точки, куда должен добраться
-    <x> x </x> дефлектор манипулятора
-    <y> y </y>
-    <angle1> angle1 </angle1> angle1, angle2 задают сектор, в котором последнее звено манипулятора
-    <angle2> angle2 </angle2> должно приблизиться к точке goal
-  </goal_point>
-
-  <scene> Информация о сцене с препятствиями
-    <polygon> Препятствия представляют собой многоугольники, для каждого многоугольника можно задать
-      <vertex> его количество вершин (треугольник, четырехугольник, ...)
-        <x> 1 </x> Каждая вершина характеризуется координатами на плоскости (в пространстве)
-        <y> 1 </y>
-      </vertex>
-      .
-      .
-      . 
+  <start_configuration> Information about the starting configuration of the manipulator: each joint's angle in degrees
+    <angle number="0">87.70938995736145</angle>
+    <angle number="1">2.087382155281091</angle>
+    <angle number="2">2.4627368642812257</angle>
+    <angle number="3">-10.487852845001214</angle>
+  </start_configuration> Cartesian point and coordinate tolerance in meters where the end-effector of the manipulator should arrive  and the orientation of the last joint with
+  <goal_point x="1.75" y="3.6111111111111107" coord_tolerance="0.1" angle="53.130102354155895" angle_tolerance="10" /> an angle tolerance in degrees
+  <scene> Scene information: sequence of obstacles in the form of polygons
+    <polygon> each polygon is specified as a set of vertices, the coordinates of the vertices are specified in meters
+      <vertex x="-2.7944444444444447" y="-0.85" />
+      <vertex x="-2.7388888888888885" y="-2.683333333333333" />
+      <vertex x="-0.9055555555555556" y="-2.6" />
+      <vertex x="-1.35" y="-1.2944444444444445" />
     </polygon>
-    . Задается много полигонов (многоугольников)
-    .
-    .
+    <polygon>
+      <vertex x="-3.433333333333333" y="3.3722222222222222" />
+      <vertex x="-3.016666666666666" y="1.5388888888888888" />
+      <vertex x="-1.988888888888889" y="2.15" />
+      <vertex x="-1.7944444444444443" y="3.483333333333333" />
+    </polygon>
+    <polygon>
+      <vertex x="1.761111111111111" y="2.65" />
+      <vertex x="1.761111111111111" y="1.6777777777777778" />
+      <vertex x="3.1222222222222222" y="1.3722222222222222" />
+      <vertex x="3.0944444444444446" y="2.733333333333333" />
+    </polygon>
+    <polygon>
+      <vertex x="2.4277777777777776" y="-1.35" />
+      <vertex x="1.7055555555555555" y="-2.8777777777777778" />
+      <vertex x="4.816666666666666" y="-2.9055555555555554" />
+      <vertex x="4.777777777777778" y="-1.3611111111111112" />
+    </polygon>
   </scene>
 </input_info>
 ```
