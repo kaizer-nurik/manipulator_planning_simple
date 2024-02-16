@@ -103,7 +103,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.number2open_nodes = dict()
         
         for data in scenes_data:
-            self.number2open_nodes[data["_number"]] = data["opened_nodes"]
+            self.number2open_nodes[int(data["_number"])] = int(float(data["opened_nodes"]))
         scene = Robo_scene()
         self.goals :List[(int,GoalPoint)] = []
         self.trajectories :dict[str] = dict()
@@ -125,7 +125,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         for number,goal in self.goals:
             print(number)
             print(self.number2open_nodes)
-            goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[number]))
+            goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[int(number)]))
         for number,goal in self.goals:
             
             goal.set_scene(scene)    
