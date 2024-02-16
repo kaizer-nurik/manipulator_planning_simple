@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='utf-8'?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint number="0" length="1.0" width="0.2" limit_min="-170.0" limit_max="170.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
+    </joints>
+  </robot_info>
+  <start_configuration>
+    <angle number="0">88.2642954110716</angle>
+    <angle number="1">0</angle>
+  </start_configuration>
+  <goal_point x="-0.967236" y="0.0724235" delta_radius="0.1" angle="-123.293" angle_tolerance="10" />
+  <scene>
+    <polygon>
+      <vertex x="-0.36" y="-0.17" />
+      <vertex x="-0.36" y="-0.94" />
+      <vertex x="0.36" y="-0.94" />
+      <vertex x="0.36" y="-0.17" />
+    </polygon>
+    <polygon>
+      <vertex x="-3.24" y="0.07" />
+      <vertex x="-3.24" y="-0.51" />
+      <vertex x="-1.0" y="-0.51" />
+      <vertex x="-1.0" y="0.07" />
+    </polygon>
+    <polygon>
+      <vertex x="1.77" y="-0.93" />
+      <vertex x="1.77" y="2.29" />
+      <vertex x="2.18" y="2.28" />
+      <vertex x="2.18" y="-0.93" />
+    </polygon>
+    <polygon>
+      <vertex x="1.78" y="-0.92" />
+      <vertex x="0.87" y="-0.91" />
+      <vertex x="0.88" y="-0.61" />
+      <vertex x="1.76" y="-0.61" />
+    </polygon>
+    <polygon />
+    <polygon>
+      <vertex x="0.8" y="2.29" />
+      <vertex x="0.8" y="2.0" />
+      <vertex x="1.76" y="2.0" />
+      <vertex x="1.77" y="2.29" />
+    </polygon>
+    <polygon>
+      <vertex x="0.87" y="1.27" />
+      <vertex x="0.87" y="0.96" />
+      <vertex x="1.76" y="0.96" />
+      <vertex x="1.76" y="1.27" />
+    </polygon>
+    <polygon>
+      <vertex x="0.89" y="0.3" />
+      <vertex x="0.9" y="-0.05" />
+      <vertex x="1.75" y="-0.05" />
+      <vertex x="1.75" y="0.3" />
+    </polygon>
+    <polygon>
+      <vertex x="-2.58" y="-0.505" />
+      <vertex x="-2.58" y="-0.915" />
+      <vertex x="-1.665" y="-0.915" />
+      <vertex x="-1.665" y="-0.505" />
+    </polygon>
+  </scene>
+<csv>
+88.264295,0.000000
+89.040253,5.224042
+93.447388,6.816907
+95.807645,10.456650
+96.677944,15.586351
+97.548243,20.716052
+98.418542,25.845753
+99.288842,30.975454
+100.159141,36.105155
+101.029440,41.234856
+101.899739,46.364557
+102.770038,51.494257
+103.640337,56.623958
+104.510636,61.753659
+105.380935,66.883360
+106.251235,72.013061
+107.121534,77.142762
+107.991833,82.272463
+108.862132,87.402164
+109.732431,92.531864
+110.602730,97.661565
+111.473029,102.791266
+112.343328,107.920967
+113.213628,113.050668
+114.083927,118.180369
+</csv></input_info>

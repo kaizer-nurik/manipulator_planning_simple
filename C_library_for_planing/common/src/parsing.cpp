@@ -44,16 +44,16 @@ bool read_scene(const std::string &filename, std::vector<Polygon> &polygons, Rob
                     int number = std::stoi(jointNode->first_attribute("number")->value());   
                                  
                     double length = std::stod(jointNode->first_attribute("length")->value());
-                    std::cout << "Link Length: " << length << std::endl;
+                    //std::cout << "Link Length: " << length << std::endl;
 
                     double width = std::stod(jointNode->first_attribute("width")->value());
-                    std::cout << "width: " << width << std::endl;
+                    //std::cout << "width: " << width << std::endl;
 
                     double limit1 = std::stod(jointNode->first_attribute("limit_min")->value()) ;
-                    std::cout << "limit1: " << limit1 << std::endl;
+                    //std::cout << "limit1: " << limit1 << std::endl;
 
                     double limit2 = std::stod(jointNode->first_attribute("limit_max")->value());
-                    std::cout << "limit2: " << limit2 << std::endl;
+                    //std::cout << "limit2: " << limit2 << std::endl;
                     start.AddJoint(length, width,  { limit1, limit2 });
                 }
             }

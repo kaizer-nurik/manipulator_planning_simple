@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='utf-8'?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint number="0" length="1.0" width="0.2" limit_min="-170.0" limit_max="170.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-180" limit_max="180" />
+    </joints>
+  </robot_info>
+  <start_configuration>
+    <angle number="0">88.2642954110716</angle>
+    <angle number="1">0</angle>
+  </start_configuration>
+  <goal_point x="-1.84678" y="0.245207" delta_radius="0.1" angle="-166.232" angle_tolerance="10" />
+  <scene>
+    <polygon>
+      <vertex x="-0.36" y="-0.17" />
+      <vertex x="-0.36" y="-0.94" />
+      <vertex x="0.36" y="-0.94" />
+      <vertex x="0.36" y="-0.17" />
+    </polygon>
+    <polygon>
+      <vertex x="-3.24" y="0.07" />
+      <vertex x="-3.24" y="-0.51" />
+      <vertex x="-1.0" y="-0.51" />
+      <vertex x="-1.0" y="0.07" />
+    </polygon>
+    <polygon>
+      <vertex x="1.77" y="-0.93" />
+      <vertex x="1.77" y="2.29" />
+      <vertex x="2.18" y="2.28" />
+      <vertex x="2.18" y="-0.93" />
+    </polygon>
+    <polygon>
+      <vertex x="1.78" y="-0.92" />
+      <vertex x="0.87" y="-0.91" />
+      <vertex x="0.88" y="-0.61" />
+      <vertex x="1.76" y="-0.61" />
+    </polygon>
+    <polygon />
+    <polygon>
+      <vertex x="0.8" y="2.29" />
+      <vertex x="0.8" y="2.0" />
+      <vertex x="1.76" y="2.0" />
+      <vertex x="1.77" y="2.29" />
+    </polygon>
+    <polygon>
+      <vertex x="0.87" y="1.27" />
+      <vertex x="0.87" y="0.96" />
+      <vertex x="1.76" y="0.96" />
+      <vertex x="1.76" y="1.27" />
+    </polygon>
+    <polygon>
+      <vertex x="0.89" y="0.3" />
+      <vertex x="0.9" y="-0.05" />
+      <vertex x="1.75" y="-0.05" />
+      <vertex x="1.75" y="0.3" />
+    </polygon>
+    <polygon>
+      <vertex x="-2.58" y="-0.505" />
+      <vertex x="-2.58" y="-0.915" />
+      <vertex x="-1.665" y="-0.915" />
+      <vertex x="-1.665" y="-0.505" />
+    </polygon>
+  </scene>
+<csv>
+88.264295,0.000000
+90.398883,3.865413
+94.059453,6.204843
+97.720023,8.544273
+101.380593,10.883703
+105.041163,13.223133
+108.701733,15.562563
+112.362303,17.901993
+116.022873,20.241423
+119.683443,22.580853
+123.344013,24.920282
+127.004583,27.259712
+130.665153,29.599142
+134.325723,31.938572
+137.986293,34.278002
+141.646863,36.617432
+145.307433,38.956862
+148.968003,41.296292
+</csv></input_info>

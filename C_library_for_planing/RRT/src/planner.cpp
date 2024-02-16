@@ -13,15 +13,13 @@
 #include <stdexcept>
 #include <assert.h>
 #include <chrono>
-#include <ANN.h>  // ANN declarations
+#include <ANN.h>
 #include <multiann.h>
-// из-за числовой нестабильности чисел с плавающей запятой
-// Возможны случаи, когда косинус равен не 1, а 1.000001 и т. д.
 #define COS_TOLERANCE 0.00000001
 
 void RRT::Stat::to_map(std::map<std::string, std::string> *inp_stats)
 {
-    (*inp_stats)["number_of_nodes"] = std::to_string(number_of_nodes);
+    (*inp_stats)["opened_nodes"] = std::to_string(number_of_nodes);
     (*inp_stats)["number_of_goal_expanding_nodes"] = std::to_string(number_of_goal_expanding_nodes);
     (*inp_stats)["number_of_random_nodes"] = std::to_string(number_of_random_nodes);
     (*inp_stats)["number_of_denied_nodes_random"] = std::to_string(number_of_denied_nodes_random);
@@ -52,12 +50,10 @@ RRT::Tree::Node* RRT::nearest_neighbour_stats(const Robot &pos)
     /*
     Обёртка для NN для сбора времени выполнения
     */
-
-    auto t1 = std::chrono::high_resolution_clock::now();
+    Timer1 tt1("1");
     auto result = nearest_neighbour(pos);
-    auto t2 = std::chrono::high_resolution_clock::now();
     stats.number_of_nn_check;
-    stats.time_of_nn_check += (t2 - t1)/1ns;
+    stats.time_of_nn_check += tt1.getElapsedTime();
     return result;
 }
 
@@ -66,11 +62,10 @@ bool RRT::collide_stats(const Robot &robot, const std::vector<double> config, co
     /*
      Обёртка для collide, которая собирает статистику по времени выполнения
     */
-    auto t1 = std::chrono::high_resolution_clock::now();
+    Timer1 tt1("1");
     bool result = collide(robot, config, poligons);
-    auto t2 = std::chrono::high_resolution_clock::now();
     stats.number_of_collision_check++;
-    stats.time_of_collision_check += (t2 - t1)/1ns;
+    stats.time_of_collision_check += tt1.getElapsedTime();
     return result;
 }
 RRT::Tree::Node* RRT::Tree::Node::add_children(Robot& child_pos)
@@ -207,20 +202,6 @@ bool RRT::is_finished() const
 
 RRT::Tree::Node* RRT::nearest_neighbour(const Robot &pos)
 {
-    // Определение ближайшего соседа полным перебором
-    // double min_distance = nodes[0].config.distance(pos);
-    // RRT::Tree::Node* min_node = nodes[0].node;
-
-    // for (int i=nodes.size()-1; i>0;i--)
-    // {
-    //     double dist = nodes[i].config.distance(pos);
-    //     if (min_distance > dist)
-    //     {
-    //         min_distance = dist;
-    //         min_node = nodes[i].node;
-    //     }
-    // }
-    // return min_node;
     ANNpoint query_pt; 
     query_pt = annAllocPt(dof);  
     std::copy(pos.configuration.begin(), pos.configuration.end(), query_pt);

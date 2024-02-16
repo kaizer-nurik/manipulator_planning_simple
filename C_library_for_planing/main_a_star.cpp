@@ -309,28 +309,28 @@ int main(int argc, const char *argv[])
     std::cout << getexepath() << std::endl;
 
     std::string path = argv[1]; // Первый параметр - кодирует сцену,
-    // 1 - Первая сцена, ручные тесты
-    // 1r - Первая сцена, случайные тесты
-    // 2 - Вторая сцена, ручные тесты
-    // 2r - Вторая сцена, случайные тесты
-    // 3 - Третья сцена, ручные тесты
-    // 3r - Третья сцена, случайные тесты
 
-    std::string line = "./dataset/scene" + path + "/";
-    std::string line2 = "";
-    if (path.substr(1, 1) == "r")
-    {
-        line2 = "scene_" + path.substr(0, 1) + "_random_test_";
-    }
-    else
-    {
-        line2 = "scene_" + path.substr(0, 1) + "_test_";
-    }
+    Timer t("FULL TIMER");
+    int dof = 7;
+    std::string line = "../../DATASET/SCENE2/"+ std::to_string(dof) + "dof/"; //"./dataset/scene" + path + "/";
+    
+    std::string line2 = "test_";
+    // if (path.substr(1, 1) == "r")
+    // {
+    //     line2 = "scene_" + path.substr(0, 1) + "_random_test_";
+    // }
+    // else
+    // {
+    //     line2 = "scene_" + path.substr(0, 1) + "_test_";
+    // }
 
-    std::cout << line + line2 + std::to_string(1) + ".xml" << std::endl;
+    std::cout << line + line2 + /*std::to_string(1)*/  ".xml" << std::endl;
     int successes = 0;
-    for (int i = 1; i <= 50; i++)
-    {
+    std::vector<int> successed;
+    for (int i = 1; i <= 100; i++)
+    {   
+        std::cout << "TEST NUMBER: " << i << std::endl;
+        //int i = 30;
         std::vector<Polygon> polygons;
         Robot start = Robot();
         GoalPoint goal(0.0, 0.0, 0.0, 0.0);
@@ -342,18 +342,37 @@ int main(int argc, const char *argv[])
             return EXIT_FAILURE;
         }
 
-        Planner_A_star Planner_A_star(line + line2 + std::to_string(i) + ".xml", line2 + std::to_string(i) + "_trajectory.xml");
+        // double delta = 360 / 100.0;
+        // double a1 = 0.0;
+        // double a2 = 0.0;
+        // std::ofstream outputFile("output.txt");
+        // for (int i1=0; i1<100; i1++)
+        // {
+        //     for (int i2=0; i2<100; i2++)
+        //     {
+        //         a1 = i1 * delta - 180;
+        //         a2 = i2 * delta - 180;
+        //         outputFile << a1 << ',' << a2 << ',' << collide(start, {a1, a2}, polygons) << std::endl;
+        //     }
+        // }
+        // outputFile.close();
+
+        Planner_A_star Planner_A_star(line + line2 + std::to_string(i) + ".xml", "./s2/" + std::to_string(dof) + "dof/scene/"+line2 + std::to_string(i) + "_trajectory.xml");
         std::map<std::string, double> dict;
         bool b = Planner_A_star.AStar(start, goal, polygons, dict);
         writeDataToJson(i, dict["g_units"], dict["coord_tolerance"], dict["angle_tolerance"], dict["time"], dict["coll_check_percentage"], dict["opened_nodes"],
-                        dict["closed_nodes"], dict["g_cost"], dict["turn_numbers"], "scene1_0_1_data.json");
+                       dict["closed_nodes"], dict["g_cost"], dict["turn_numbers"], "./s2/" + std::to_string(dof) + "dof/scene1_data.json");
 
         successes += b;
-        ////bool b = Planner_A_star.coll_test(start, polygons);
+        if (!b) successed.push_back(i);
+        //bool b = Planner_A_star.coll_test(start, polygons);
         std::cout << b << std::endl;
     }
 
-    std::cout << "tests completed " << successes << '/' << 50 << std::endl;
+    std::cout << "\ntests completed " << successes << '/' << 100 << std::endl;
+    for (const auto &i:successed)
+        std::cout << i << ", ";
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }

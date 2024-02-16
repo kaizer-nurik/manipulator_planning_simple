@@ -97,10 +97,9 @@ public:
             std::uniform_real_distribution<> dis(start.joints[i].limits[0], start.joints[i].limits[1]);
             random_gen.push_back(dis);
         }
-        auto t1 = std::chrono::high_resolution_clock::now();
-        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 100);
-        auto t2 = std::chrono::high_resolution_clock::now();
-        stats.time_of_IK_results = (t2 - t1)/1ns;
+        Timer1 tt1("1");
+        InverseKinematics::IK_statistics ik_stats = InverseKinematics::sample_all_goals(end_configurations, start, goal, obstacles, 2);
+        stats.time_of_IK_results = tt1.getElapsedTime();
         stats.number_of_collision_check_in_IK = ik_stats.number_of_collision_check;
         stats.time_of_collision_check_in_IK = ik_stats.time_of_collision_check;
         stats.number_of_IK_results = end_configurations.size();

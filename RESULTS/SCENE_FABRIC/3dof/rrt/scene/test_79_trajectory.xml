@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='utf-8'?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint number="0" length="0.6666599999999999" width="0.2" limit_min="-170.0" limit_max="170.0" />
+      <joint number="1" length="0.6666599999999999" width="0.2" limit_min="-170" limit_max="170" />
+      <joint number="2" length="0.6666599999999999" width="0.2" limit_min="-170" limit_max="170" />
+    </joints>
+  </robot_info>
+  <start_configuration>
+    <angle number="0">91.36392753160294</angle>
+    <angle number="1">0</angle>
+    <angle number="2">0</angle>
+  </start_configuration>
+  <goal_point x="-1.76332" y="0.543836" delta_radius="0.1" angle="168.477" angle_tolerance="10" />
+  <scene>
+    <polygon>
+      <vertex x="-0.36" y="-0.17" />
+      <vertex x="-0.36" y="-0.94" />
+      <vertex x="0.36" y="-0.94" />
+      <vertex x="0.36" y="-0.17" />
+    </polygon>
+    <polygon>
+      <vertex x="-3.24" y="0.07" />
+      <vertex x="-3.24" y="-0.51" />
+      <vertex x="-1.0" y="-0.51" />
+      <vertex x="-1.0" y="0.07" />
+    </polygon>
+    <polygon>
+      <vertex x="1.77" y="-0.93" />
+      <vertex x="1.77" y="2.29" />
+      <vertex x="2.18" y="2.28" />
+      <vertex x="2.18" y="-0.93" />
+    </polygon>
+    <polygon>
+      <vertex x="1.78" y="-0.92" />
+      <vertex x="0.87" y="-0.91" />
+      <vertex x="0.88" y="-0.61" />
+      <vertex x="1.76" y="-0.61" />
+    </polygon>
+    <polygon />
+    <polygon>
+      <vertex x="0.8" y="2.29" />
+      <vertex x="0.8" y="2.0" />
+      <vertex x="1.76" y="2.0" />
+      <vertex x="1.77" y="2.29" />
+    </polygon>
+    <polygon>
+      <vertex x="0.87" y="1.27" />
+      <vertex x="0.87" y="0.96" />
+      <vertex x="1.76" y="0.96" />
+      <vertex x="1.76" y="1.27" />
+    </polygon>
+    <polygon>
+      <vertex x="0.89" y="0.3" />
+      <vertex x="0.9" y="-0.05" />
+      <vertex x="1.75" y="-0.05" />
+      <vertex x="1.75" y="0.3" />
+    </polygon>
+    <polygon>
+      <vertex x="-2.58" y="-0.505" />
+      <vertex x="-2.58" y="-0.915" />
+      <vertex x="-1.665" y="-0.915" />
+      <vertex x="-1.665" y="-0.505" />
+    </polygon>
+  </scene>
+<csv>
+91.363928,0.000000,0.000000
+95.186644,-0.499604,-1.677680
+95.643482,2.397807,-4.323431
+94.448036,4.063722,-7.462070
+96.723655,7.116292,-8.133881
+98.999273,10.168862,-8.805692
+101.274892,13.221432,-9.477504
+103.550510,16.274002,-10.149315
+105.826129,19.326572,-10.821126
+108.101748,22.379142,-11.492938
+110.377366,25.431712,-12.164749
+112.652985,28.484282,-12.836560
+114.928604,31.536852,-13.508372
+117.204222,34.589422,-14.180183
+119.479841,37.641992,-14.851995
+121.755460,40.694562,-15.523806
+124.031078,43.747132,-16.195617
+126.306697,46.799702,-16.867429
+128.582316,49.852272,-17.539240
+130.857934,52.904842,-18.211051
+</csv></input_info>

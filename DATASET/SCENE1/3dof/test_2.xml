@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint number="0" length="0.6666" width="0.2" limit_min="-170.0" limit_max="170.0" />
+      <joint number="1" length="0.6666" width="0.2" limit_min="-170" limit_max="170" />
+      <joint number="2" length="0.6666" width="0.2" limit_min="-170" limit_max="170" />
+    </joints>
+  </robot_info>
+  <start_configuration>
+    <angle number="0">90.44414443311189</angle>
+    <angle number="1">0</angle>
+    <angle number="2">0</angle>
+  </start_configuration>
+  <goal_point x="0.193084" y="0.275751" delta_radius="0.1" angle="-70.9698" angle_tolerance="10" />
+  <scene>
+    <polygon>
+      <vertex x="0.6070707070707071" y="1.3949494949494952" />
+      <vertex x="0.8595959595959597" y="0.697979797979798" />
+      <vertex x="1.5161616161616163" y="0.5262626262626263" />
+      <vertex x="2.132323232323232" y="0.990909090909091" />
+      <vertex x="1.89" y="1.67" />
+      <vertex x="1.13" y="1.87" />
+    </polygon>
+    <polygon>
+      <vertex x="-1.81" y="-0.55" />
+      <vertex x="-1.13" y="-1.22" />
+      <vertex x="-0.5343434343434343" y="-0.6555555555555556" />
+      <vertex x="-1.201010101010101" y="0.011111111111111125" />
+    </polygon>
+    <polygon>
+      <vertex x="0.95" y="-1.45" />
+      <vertex x="1.8" y="-1.01" />
+      <vertex x="1.63" y="-0.52" />
+      <vertex x="1.0414141414141413" y="-0.49393939393939396" />
+      <vertex x="0.7" y="-0.93" />
+    </polygon>
+  </scene>
+</input_info>

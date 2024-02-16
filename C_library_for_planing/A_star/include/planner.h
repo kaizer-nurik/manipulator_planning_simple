@@ -87,6 +87,12 @@ namespace
         size_t operator()(const Node::Nodetype &node) const;
     };
 
+    struct HashNode1
+    {
+        size_t operator()(const MathVector<int> &position) const;
+    };
+
+
     // Define an equality function for the shared pointers to nodes
     struct EqualNode
     {
@@ -130,7 +136,7 @@ class Planner_A_star
 public:
     Planner_A_star(std::string input_filename, std::string output_filename) : input_filename_(input_filename), output_filename_(output_filename) {}
 
-    double heuristic(const Robot &robot, const GoalPoint &goalpoint, const MathVector<double> &angles);
+    double heuristic(const Robot &robot, const GoalPoint &goalpoint, const MathVector<double> &angles, const int &weight_label);
 
     double geuristic(const Robot &robot, const MathVector<double> &angles1, const MathVector<double> &angles2);
 

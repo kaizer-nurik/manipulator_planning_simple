@@ -59,8 +59,8 @@ void FileSaver::write_end_config_to_csv(std::string filename, std::vector<Robot>
 void FileSaver::write_map_to_json(std::string filename, std::map<std::string, std::string> &stats)
 {
 
-    std::ofstream file(filename, std::ofstream::out | std::ofstream::trunc);
-
+    //std::ofstream file(filename, std::ofstream::out | std::ofstream::trunc);
+    std::ofstream file(filename, std::ofstream::out | std::ofstream::app);
     if (file.fail())
     {
         std::cout << "Unable to open the file." << std::endl;

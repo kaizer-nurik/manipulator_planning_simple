@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+<input_info>
+  <robot_info>
+    <joints>
+      <joint number="0" length="1.0" width="0.2" limit_min="-170.0" limit_max="170.0" />
+      <joint number="1" length="1.0" width="0.2" limit_min="-170" limit_max="170" />
+    </joints>
+  </robot_info>
+  <start_configuration>
+    <angle number="0">87.27368900609372</angle>
+    <angle number="1">-1.7346045029088941</angle>
+  </start_configuration>
+  <goal_point x="0.313229" y="1.54641" delta_radius="0.1" angle="40.6331" angle_tolerance="10" />
+  <scene>
+    <polygon>
+      <vertex x="-2.41" y="2.22" />
+      <vertex x="-2.41" y="1.01" />
+      <vertex x="-1.04" y="1.01" />
+      <vertex x="-1.04" y="2.23" />
+    </polygon>
+    <polygon>
+      <vertex x="0.69" y="2.27" />
+      <vertex x="0.69" y="1.07" />
+      <vertex x="2.09" y="1.07" />
+      <vertex x="2.09" y="2.27" />
+    </polygon>
+    <polygon>
+      <vertex x="-2.46" y="-0.49" />
+      <vertex x="-2.46" y="-1.83" />
+      <vertex x="-1.05" y="-1.82" />
+      <vertex x="-1.05" y="-0.49" />
+    </polygon>
+    <polygon>
+      <vertex x="0.98" y="-0.46" />
+      <vertex x="0.96" y="-1.78" />
+      <vertex x="2.07" y="-1.79" />
+      <vertex x="2.06" y="-0.47" />
+    </polygon>
+    <polygon>
+      <vertex x="-1.56" y="1.49" />
+      <vertex x="-1.57" y="1.17" />
+      <vertex x="-0.41" y="1.16" />
+      <vertex x="-0.42" y="1.48" />
+    </polygon>
+    <polygon>
+      <vertex x="-1.6" y="0.05" />
+      <vertex x="-1.61" y="-0.47" />
+      <vertex x="-0.58" y="-0.47" />
+      <vertex x="-0.58" y="0.05" />
+    </polygon>
+    <polygon>
+      <vertex x="-1.05" y="-0.46" />
+      <vertex x="-1.04" y="-1.48" />
+      <vertex x="-0.38" y="-1.48" />
+      <vertex x="-0.38" y="-0.47" />
+    </polygon>
+    <polygon>
+      <vertex x="1.2" y="0.3" />
+      <vertex x="1.19" y="-0.46" />
+      <vertex x="1.75" y="-0.47" />
+      <vertex x="1.76" y="0.31" />
+    </polygon>
+  </scene>
+<csv>
+87.273689,-1.734605
+87.571123,-7.437170
+89.757418,-11.250876
+91.512816,-15.495477
+93.268214,-19.740079
+95.023613,-23.984681
+96.779011,-28.229282
+98.534409,-32.473884
+100.289808,-36.718486
+102.045206,-40.963088
+103.800604,-45.207689
+105.556003,-49.452291
+107.311401,-53.696893
+109.066799,-57.941494
+110.822198,-62.186096
+112.577596,-66.430698
+</csv></input_info>
