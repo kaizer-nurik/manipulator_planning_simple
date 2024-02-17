@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'GUI.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.2
+## Created by: Qt User Interface Compiler version 6.6.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -110,6 +110,15 @@ class Ui_MainWindow(object):
         self.log_scale_checkBox = QCheckBox(self.centralwidget)
         self.log_scale_checkBox.setObjectName(u"log_scale_checkBox")
         self.log_scale_checkBox.setGeometry(QRect(120, 160, 191, 20))
+        self.PDFexportButton = QPushButton(self.centralwidget)
+        self.PDFexportButton.setObjectName(u"PDFexportButton")
+        self.PDFexportButton.setGeometry(QRect(150, 270, 93, 28))
+        self.scale_spin = QSpinBox(self.centralwidget)
+        self.scale_spin.setObjectName(u"scale_spin")
+        self.scale_spin.setGeometry(QRect(570, 30, 91, 22))
+        self.scale_spin.setMinimum(10)
+        self.scale_spin.setMaximum(200)
+        self.scale_spin.setValue(100)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -142,5 +151,6 @@ class Ui_MainWindow(object):
         self.radioButton.setText(QCoreApplication.translate("MainWindow", u"\u0410*", None))
         self.radioButton_2.setText(QCoreApplication.translate("MainWindow", u"RRT", None))
         self.log_scale_checkBox.setText(QCoreApplication.translate("MainWindow", u"\u041b\u043e\u0433\u0430\u0440\u0438\u0444\u043c\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u043c\u0430\u0441\u0448\u0442\u0430\u0431", None))
+        self.PDFexportButton.setText(QCoreApplication.translate("MainWindow", u"\u042d\u043a\u0441\u043f\u043e\u0440\u0442 PDF", None))
     # retranslateUi
 

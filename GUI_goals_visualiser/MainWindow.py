@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QFileDialog, QGraphicsScene, QMainWindow
 from PySide6 import QtGui
-from PySide6.QtCore import Qt, QTimer, QPoint,QPointF, QEasingCurve, QRectF, QBuffer, QIODevice
+from PySide6.QtCore import Qt, QTimer, QPoint,QPointF, QEasingCurve, QRectF, QBuffer, QIODevice,QSizeF,QMarginsF,QRect
 import graphics
 from PIL import Image, ImageQt
 from robot_class import Robot_class
@@ -22,6 +22,7 @@ from heatbar_scene import HeatbarScene
 import json
 import re
 import time
+from datetime import datetime
 class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
     def __init__(self):
         super().__init__()
@@ -60,8 +61,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.graphicsView.setScene(self.scene)
         self.graphicsView.centerOn(0, 0)
         self.graphicsView.scale(1, -1)
+        
+        self.scale_spin.valueChanged.connect(lambda value: self.zoom_slider.setValue(value))
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
+        self.PDFexportButton.clicked.connect(self.create_pdf_callback)
     def set_log_scale_callback(self,value):
         self.heatmap_scene.set_log_scale(value)
         try:
@@ -108,14 +112,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.goals :List[(int,GoalPoint)] = []
         self.trajectories :dict[str] = dict()
         self.robot.joints[0].visuals.setParentItem(None)
-        csv,self.robot, self.obstacles, self.goal_point =  read_xml(self.folder_choose_edit.text()+"\\\\"+files[0],scene)
+        
+        csv,self.robot, self.obstacles, self.goal_point =  read_xml(os.path.join(self.folder_choose_edit.text(),files[0]),scene)
         number = int(re.findall("\d+",files[0])[-1])
         # print(files[0],number)
         self.goal_point.set_number(number)
         self.goals.append((number,self.goal_point))
         self.trajectories[number] = csv
         for file in files[1:]:
-            csv,Robot, obstacles, goal =  read_xml(self.folder_choose_edit.text()+"\\\\"+file, None)
+            csv,Robot, obstacles, goal =  read_xml(os.path.join(self.folder_choose_edit.text(),file), None)
             number = int(re.findall("\d+",file)[-1])
             # print(file,number)
             goal.set_number(number)
@@ -255,9 +260,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         tr = self.graphicsView.transform()
         self.graphicsView.setTransform(QtGui.QTransform(
             value/100, 0, 0, -value/100, tr.dx(), tr.dy()))
+        self.scale_spin.setValue(value)
         # self.graphicsView.scale(value/100,value/100)
 
-
+    
     def open_csv_dialog(self):
         """Слот для кнопки "Обзор"
         открывает диалог открытия файла и записывает имя в соотвествующий виджет
@@ -279,3 +285,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             None, 'Select a folder:', 'C:\\', QFileDialog.ShowDirsOnly)
         # self.plot.fitInView(QRectF(0,0,1000,1000))
         self.folder_choose_edit.setText(fname)
+
+    def create_pdf_callback(self)->None:
+        """
+        Callback function for 'export PDF' button in GUI. Creates pdf file with scene. name of file is current date and time.
+        """
+        current_datetime = datetime.now()
+
+        date_time_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+
+        filename = date_time_string + '.pdf'
+        pdf_writer = QtGui.QPdfWriter(filename)
+        pdf_writer.setPageSize(QtGui.QPageSize(QSizeF(750,600), QtGui.QPageSize.Point))
+        
+        pdf_writer.setPageMargins(QMarginsF(0,0,0,0))
+        
+        painter = QtGui.QPainter(pdf_writer)
+        # painter.drawRect(QRectF(0, 0, 10000, 10000))
+        # print(dir(pdf_writer))
+        p1 = self.graphicsView.mapToScene(0,0)
+        p2 = self.graphicsView.mapToScene(self.graphicsView.width(),self.graphicsView.height())
+        print(p1)
+        print(p2)
+        painter.setViewTransformEnabled(True)
+        
+        print(self.scene.sceneRect())
+        print(QRectF(p1.x(),-p1.y(),(p2.x()-p1.x()),(-p2.y()+p1.y())))
+        scale = 10
+        print(self.graphicsView.transform())
+        
+        # painter.setWorldTransform(self.graphicsView.transform(),combine=False)
+        # painter.scale(1,-1)
+        print(painter.viewport().size())
+        self.graphicsView.render(painter,target=QRectF(0,0,10000,10000),source=QRect())
+        self.heatbarView.render(painter,target=QRectF(10000,0,2500,10000),source=QRect())
+        # painter.setViewport()
+        print(painter.transform())
+        print(painter.viewTransformEnabled())
+        print(painter.worldMatrixEnabled())
+        painter.end()
