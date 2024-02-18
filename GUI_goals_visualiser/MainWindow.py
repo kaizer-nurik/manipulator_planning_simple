@@ -23,6 +23,9 @@ import json
 import re
 import time
 from datetime import datetime
+import functools
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
     def __init__(self):
         super().__init__()
@@ -44,10 +47,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             None, None, None, self.scene)
         self.goal_point = GoalPoint(10,self.scene)
         self.dataset_dot_spin.valueChanged.connect(self.dataset_value_changed)
-        self.folder_choose_btn.clicked.connect(self.open_folder_dialog)
+        self.folder_choose_btn.clicked.connect(functools.partial(self.open_folder_dialog, self.folder_choose_edit))
+        self.folder_choose_btn_2.clicked.connect(functools.partial(self.open_folder_dialog, self.folder_choose_edit_2))
         self.goal_point_delta_edit.textChanged.connect(
             self.change_goal_point_radius)
         self.process_dataset_btn.clicked.connect(self.process_dataset)
+        self.process_dataset_btn_2.clicked.connect(self.process_dataset_folder)
         self.plot = self.graphicsView  # для удобства
         
         self.zoom_slider.valueChanged.connect(self.ZoomSliderChange)
@@ -66,6 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
         self.PDFexportButton.clicked.connect(self.create_pdf_callback)
+        
     def set_log_scale_callback(self,value):
         self.heatmap_scene.set_log_scale(value)
         try:
@@ -105,8 +111,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             return
         
         self.number2open_nodes = dict()
-        
+        print('--------------------')
+        print(self.csv_choose_edit.text())
         for data in scenes_data:
+            print(data["_number"])
             self.number2open_nodes[int(data["_number"])] = int(float(data["opened_nodes"]))
         scene = Robo_scene()
         self.goals :List[(int,GoalPoint)] = []
@@ -128,8 +136,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
             self.trajectories[number] = csv
 
         for number,goal in self.goals:
-            print(number)
-            print(self.number2open_nodes)
+            # print(number)
+            # print(self.number2open_nodes)
             goal.dot.setBrush(self.heatmap_scene.value_to_hsv(self.number2open_nodes[int(number)]))
         for number,goal in self.goals:
             
@@ -277,50 +285,59 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         # self.plot.fitInView(QRectF(0,0,1000,1000))
         self.csv_choose_edit.setText(fname[0])
 
-    def open_folder_dialog(self):
+    def open_folder_dialog(self, line_edit):
         """Слот для кнопки "Обзор"
         открывает диалог открытия папки датасета
         """
         fname = QFileDialog.getExistingDirectory(
             None, 'Select a folder:', 'C:\\', QFileDialog.ShowDirsOnly)
         # self.plot.fitInView(QRectF(0,0,1000,1000))
-        self.folder_choose_edit.setText(fname)
+        line_edit.setText(fname)
 
-    def create_pdf_callback(self)->None:
+    def process_dataset_folder(self):
+        """
+        Processes whole dataset structure. requires special folder structure.
+        """
+        result_folder = self.folder_choose_edit_2.text()
+        scenes_folders = os.listdir(result_folder)
+        for scene_folder in scenes_folders:
+            dof_folders = os.listdir(os.path.join(result_folder,scene_folder))
+            for dof in dof_folders:
+                try:
+                    self.folder_choose_edit.setText(os.path.join(result_folder,scene_folder,dof,'a-star','scene'))
+                    self.csv_choose_edit.setText(os.path.join(result_folder,scene_folder,dof,'a-star','test_stats.json'))
+                    self.process_dataset()
+                    self.create_pdf_callback(filename=os.path.join(result_folder,scene_folder,dof,'a-star','result.pdf'))
+                except BaseException as e:
+                    print(e)
+                    
+                try:
+                    self.folder_choose_edit.setText(os.path.join(result_folder,scene_folder,dof,'rrt','scene'))
+                    self.csv_choose_edit.setText(os.path.join(result_folder,scene_folder,dof,'rrt','test_stats.json'))
+                    self.process_dataset()
+                    self.create_pdf_callback(filename=os.path.join(result_folder,scene_folder,dof,'rrt','result.pdf'))
+                except BaseException as e:
+                    print(e)
+                
+
+    def create_pdf_callback(self,filename=None)->None:
         """
         Callback function for 'export PDF' button in GUI. Creates pdf file with scene. name of file is current date and time.
         """
-        current_datetime = datetime.now()
-
-        date_time_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
-
-        filename = date_time_string + '.pdf'
+        
+        if filename is None:
+            current_datetime = datetime.now()
+            date_time_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+            filename = date_time_string + '.pdf'
         pdf_writer = QtGui.QPdfWriter(filename)
         pdf_writer.setPageSize(QtGui.QPageSize(QSizeF(750,600), QtGui.QPageSize.Point))
         
         pdf_writer.setPageMargins(QMarginsF(0,0,0,0))
         
         painter = QtGui.QPainter(pdf_writer)
-        # painter.drawRect(QRectF(0, 0, 10000, 10000))
-        # print(dir(pdf_writer))
-        p1 = self.graphicsView.mapToScene(0,0)
-        p2 = self.graphicsView.mapToScene(self.graphicsView.width(),self.graphicsView.height())
-        print(p1)
-        print(p2)
         painter.setViewTransformEnabled(True)
-        
-        print(self.scene.sceneRect())
-        print(QRectF(p1.x(),-p1.y(),(p2.x()-p1.x()),(-p2.y()+p1.y())))
-        scale = 10
-        print(self.graphicsView.transform())
-        
-        # painter.setWorldTransform(self.graphicsView.transform(),combine=False)
-        # painter.scale(1,-1)
-        print(painter.viewport().size())
+                
         self.graphicsView.render(painter,target=QRectF(0,0,10000,10000),source=QRect())
         self.heatbarView.render(painter,target=QRectF(10000,0,2500,10000),source=QRect())
-        # painter.setViewport()
-        print(painter.transform())
-        print(painter.viewTransformEnabled())
-        print(painter.worldMatrixEnabled())
+  
         painter.end()

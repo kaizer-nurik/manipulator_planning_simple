@@ -4,8 +4,10 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from MainWindow import MainWindow
 
 
+"""
+Processes whole dataset structure. requires special folder structure.
+"""
 
-        
 def main():
     """
         Точка входа
