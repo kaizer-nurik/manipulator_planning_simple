@@ -70,7 +70,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.scale_spin.valueChanged.connect(lambda value: self.zoom_slider.setValue(value))
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
-        self.PDFexportButton.clicked.connect(self.create_pdf_callback)
+        self.PDFexportButton.clicked.connect(lambda : self.create_pdf_callback())
         
     def set_log_scale_callback(self,value):
         self.heatmap_scene.set_log_scale(value)
@@ -130,10 +130,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         for file in files[1:]:
             csv,Robot, obstacles, goal =  read_xml(os.path.join(self.folder_choose_edit.text(),file), None)
             number = int(re.findall("\d+",file)[-1])
-            # print(file,number)
-            goal.set_number(number)
-            self.goals.append((number,goal))
-            self.trajectories[number] = csv
+            if number in self.number2open_nodes:
+                # print(file,number)
+                goal.set_number(number)
+                self.goals.append((number,goal))
+                self.trajectories[number] = csv
+            else:
+                print('Warning! no answer for test #', number)
 
         for number,goal in self.goals:
             # print(number)
@@ -324,11 +327,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         """
         Callback function for 'export PDF' button in GUI. Creates pdf file with scene. name of file is current date and time.
         """
-        
         if filename is None:
             current_datetime = datetime.now()
             date_time_string = current_datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
             filename = date_time_string + '.pdf'
+        print(filename)
+            
         pdf_writer = QtGui.QPdfWriter(filename)
         pdf_writer.setPageSize(QtGui.QPageSize(QSizeF(750,600), QtGui.QPageSize.Point))
         
