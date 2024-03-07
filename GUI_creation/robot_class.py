@@ -8,13 +8,13 @@ JOINT_WIDTH = 20
 
 class Robot_joint_visuals(QGraphicsEllipseItem):
 
-    def __init__(self, joint_num, *args, **kwargs):
+    def __init__(self, joint_num, color, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.joint_num = joint_num
         robot_pen = QtGui.QPen(QtGui.Qt.black)
-        robot_pen.setWidth(5)
-        robot_brush = QtGui.QBrush(QtGui.Qt.red)
+        robot_pen.setWidth(1)
+        robot_brush = QtGui.QBrush(color)
         self.setPen(robot_pen)
         self.setBrush(robot_brush)
 
@@ -43,7 +43,7 @@ class Robot_joint_visuals(QGraphicsEllipseItem):
 
 
 class robot_joint:
-    def __init__(self, joint_num, left_angle=-180, start_angle=0, right_angle=180, length=100):
+    def __init__(self, joint_num,color, left_angle=-180, start_angle=0, right_angle=180, length=100):
         self.joint_num = joint_num
         self.left_angle = left_angle
         self.start_angle = start_angle
@@ -52,7 +52,7 @@ class robot_joint:
         self.length = length
 
         self.visuals: Robot_joint_visuals = Robot_joint_visuals(
-            self.joint_num, QRectF(0, -self.width//2, self.length,self.width))
+            self.joint_num,color, QRectF(0, -self.width//2, self.length,self.width))
         self.set_pos(0, 0)
 
     def update_start_angle(self, angle):
@@ -87,9 +87,9 @@ class robot_joint:
 
 
 class Robot_class():
-    def __init__(self):
+    def __init__(self,color = QtGui.Qt.red):
 
-        self.joints = [robot_joint(1)]
+        self.joints = [robot_joint(1,color)]
         self.joint_count = 1
         self._current_index = 0
         self._angles = [0]
@@ -112,9 +112,12 @@ class Robot_class():
             right_angle (float, optional): правая граница угла. 
             length (int, optional): длина звена. Defaults to 100.
         """
+        color = QtGui.Qt.red
+        if self.joint_count != 0:
+            color = self.joints[0].visuals.brush().color()
         self.joint_count += 1
         self.joints.append(robot_joint(
-            self.joint_count, left_angle, start_angle, right_angle, length))
+            self.joint_count,color, left_angle, start_angle, right_angle, length))
         if self.joint_count != 1:
             self.joints[-1].set_pos(self.joints[-2].length,0)
             self.joints[-1].visuals.setParentItem(self.joints[-2].visuals)
@@ -133,6 +136,7 @@ class Robot_class():
         self.joints[0].update_right_limit(180)
         self.joints[0].update_length(100)
         self.joints[0].update_start_angle(0)
+        
     def change_joint_number(self, number):
         """Увеличить количество звеньев. Если хотим больше, чем есть - то создаем больше.
 

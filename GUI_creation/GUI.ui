@@ -556,6 +556,19 @@
      <string>10</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="path_pdf_btn">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>650</y>
+      <width>151</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Сохранить путь в пдф</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

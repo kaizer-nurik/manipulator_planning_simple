@@ -124,9 +124,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         csv,self.robot, self.obstacles, self.goal_point =  read_xml(os.path.join(self.folder_choose_edit.text(),files[0]),scene)
         number = int(re.findall("\d+",files[0])[-1])
         # print(files[0],number)
-        self.goal_point.set_number(number)
-        self.goals.append((number,self.goal_point))
-        self.trajectories[number] = csv
+        if number in self.number2open_nodes:
+            self.goal_point.set_number(number)
+            self.goals.append((number,self.goal_point))
+            self.trajectories[number] = csv
         for file in files[1:]:
             csv,Robot, obstacles, goal =  read_xml(os.path.join(self.folder_choose_edit.text(),file), None)
             number = int(re.findall("\d+",file)[-1])

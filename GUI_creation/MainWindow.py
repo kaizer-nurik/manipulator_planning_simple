@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QFileDialog, QGraphicsScene, QMainWindow
 from PySide6 import QtGui
-from PySide6.QtCore import Qt, QTimer, QPoint, QEasingCurve, QRectF
+from PySide6.QtCore import Qt, QTimer, QPoint, QEasingCurve, QRectF,QSizeF,QMarginsF,QRect
 import graphics
 from robot_class import Robot_class
 from robo_scene import Robo_scene
@@ -12,7 +12,7 @@ import numpy as np
 # from scipy import interpolate
 from GUI import Ui_MainWindow
 import math
-
+from datetime import datetime
 
 class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
     def __init__(self):
@@ -77,7 +77,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         # self.graphicsView.scale(self.plot.geometry().width()/SCENE_MAX_LENGTH,self.plot.geometry().width()/SCENE_MAX_LENGTH)
 
         self.create_dataset_btn.clicked.connect(self.build_IK)
+        
+        self.path_pdf_btn.clicked.connect(self.make_path_pdf)
 
+        self.do_pdf = False
     def build_IK(self):
         IK_res = np.loadtxt(self.folder_choose_edit.text(),delimiter=',')
         print(IK_res)
@@ -183,6 +186,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
     def manual_anim(self, value):
         self.anim_robot.set_angles(
             tuple(self.anim[int((self.anim.shape[0]-1)*value/100)]))
+        
+        if self.do_pdf:
+            self.lock_view()
+            self.anim_scene = Robo_scene()
+
+            self.current_joint = 0
+            self.anim_robot = Robot_class()
+            self.anim_robot.change_joint_number(1)
+            self.anim_obstacles = ObstacleManager(
+                None, None, None, self.anim_scene)
+
+            self.anim_goal_point = GoalPoint(self.anim_scene)
+            graphics.draw_robot(self.anim_scene, self.anim_robot)
+            self.graphicsView.setScene(self.anim_scene)
+            csv = read_xml(filename=self.csv_choose_edit.text(),
+                        robot=self.anim_robot,
+                        obstacles=self.anim_obstacles,
+                        goal_point=self.anim_goal_point,
+                        csv=True)
+            unlock_brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+            self.graphicsView.setBackgroundBrush(unlock_brush)
+
+            self.anim = np.loadtxt(csv.split('\n'), delimiter=',')
+            if len(self.anim.shape) == 1:
+                self.anim = self.anim.reshape(self.anim.shape[0], 1)
+            ANIM_COUNT_INTP = self.anim_manual_sldr.value()
+            axes = []
+            for i in range(self.anim.shape[1]):
+                axes.append(np.interp(np.linspace(0, 100, ANIM_COUNT_INTP), np.linspace(
+                    0, 100, self.anim.shape[0]), self.anim[:, i]))
+            anim_temp = np.vstack(axes).T
+            
+            
+            for count,anim in enumerate(anim_temp):
+                color = QtGui.QColor()
+                color.setHsv(int(count/anim_temp.shape[0]*255),255,255,150)
+                anim_robot_temp = Robot_class(color)
+                anim_robot_temp.change_joint_number(self.anim_robot.joint_count)
+                for joint_new,joint_original in zip(anim_robot_temp.joints,self.anim_robot.joints):
+                    joint_new.update_left_limit(joint_original.left_angle)
+                    joint_new.update_right_limit(joint_original.right_angle)
+                    joint_new.update_length(joint_original.length)
+                self.anim_scene.addItem(anim_robot_temp[0].visuals)
+                anim_robot_temp.set_pos(0,0)
+                anim_robot_temp.set_angles(tuple(anim))
 
     def reset_animation(self):
         value = 1
@@ -203,6 +251,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         self.start_angle_text.setText(f"{self.robot[value-1].start_angle:.2f}")
         self.start_angle_text.blockSignals(False)
         self.unlock_view()
+        self.do_pdf = False
 
     def reset_scene(self):
         self.robot.reset()
@@ -397,3 +446,67 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # класс окна
         )
         # self.plot.fitInView(QRectF(0,0,1000,1000))
         self.folder_choose_edit.setText(fname[0])
+
+    def make_path_pdf(self):
+        self.lock_view()
+        self.anim_scene = Robo_scene()
+
+        self.current_joint = 0
+        self.anim_robot = Robot_class()
+        self.anim_robot.change_joint_number(1)
+        self.anim_obstacles = ObstacleManager(
+            None, None, None, self.anim_scene)
+        unlock_brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+        self.graphicsView.setBackgroundBrush(unlock_brush)
+        self.anim_goal_point = GoalPoint(self.anim_scene)
+        graphics.draw_robot(self.anim_scene, self.anim_robot)
+        self.graphicsView.setScene(self.anim_scene)
+        csv = read_xml(filename=self.csv_choose_edit.text(),
+                       robot=self.anim_robot,
+                       obstacles=self.anim_obstacles,
+                       goal_point=self.anim_goal_point,
+                       csv=True)
+
+        self.anim = np.loadtxt(csv.split('\n'), delimiter=',')
+        if len(self.anim.shape) == 1:
+            self.anim = self.anim.reshape(self.anim.shape[0], 1)
+        ANIM_COUNT_INTP = self.anim_manual_sldr.value()
+        axes = []
+        for i in range(self.anim.shape[1]):
+            axes.append(np.interp(np.linspace(0, 100, ANIM_COUNT_INTP), np.linspace(
+                0, 100, self.anim.shape[0]), self.anim[:, i]))
+        anim_temp = np.vstack(axes).T
+        
+        
+        for count,anim in enumerate(anim_temp):
+            color = QtGui.QColor()
+            color.setHsv(int(count/anim_temp.shape[0]*255),255,255,150)
+            anim_robot_temp = Robot_class(color)
+            anim_robot_temp.change_joint_number(self.anim_robot.joint_count)
+            for joint_new,joint_original in zip(anim_robot_temp.joints,self.anim_robot.joints):
+                joint_new.update_left_limit(joint_original.left_angle)
+                joint_new.update_right_limit(joint_original.right_angle)
+                joint_new.update_length(joint_original.length)
+            self.anim_scene.addItem(anim_robot_temp[0].visuals)
+            anim_robot_temp.set_pos(0,0)
+            anim_robot_temp.set_angles(tuple(anim))
+            
+        current_datetime = datetime.now()
+        date_time_string = current_datetime.strftime("%Y-%m-%d %H.%M.%S.%f")
+        filename = date_time_string + '.pdf'
+            
+        pdf_writer = QtGui.QPdfWriter(filename)
+        pdf_writer.setPageSize(QtGui.QPageSize(QSizeF(600,600), QtGui.QPageSize.Point))
+        
+        pdf_writer.setPageMargins(QMarginsF(0,0,0,0))
+        
+        painter = QtGui.QPainter(pdf_writer)
+        painter.setViewTransformEnabled(True)
+                
+        self.graphicsView.render(painter,target=QRectF(0,0,10000,10000),source=QRect())
+  
+        painter.end()
+        
+        self.do_pdf = True
+
+

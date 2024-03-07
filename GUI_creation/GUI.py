@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'GUI.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.2
+## Created by: Qt User Interface Compiler version 6.6.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -166,6 +166,9 @@ class Ui_MainWindow(object):
         self.goal_point_delta_edit = QLineEdit(self.centralwidget)
         self.goal_point_delta_edit.setObjectName(u"goal_point_delta_edit")
         self.goal_point_delta_edit.setGeometry(QRect(20, 250, 61, 21))
+        self.path_pdf_btn = QPushButton(self.centralwidget)
+        self.path_pdf_btn.setObjectName(u"path_pdf_btn")
+        self.path_pdf_btn.setGeometry(QRect(60, 650, 151, 28))
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -211,5 +214,6 @@ class Ui_MainWindow(object):
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0442\u043e\u0447\u0435\u043a", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>\u0420\u0430\u0434\u0438\u0443\u0441 \u043f\u043e\u0433\u0440\u0435\u0448\u043d\u043e\u0441\u0442\u0438</p><p>\u043a\u043e\u043d\u0435\u0447\u043d\u043e\u0439 \u0442\u043e\u0447\u043a\u0438</p></body></html>", None))
         self.goal_point_delta_edit.setText(QCoreApplication.translate("MainWindow", u"10", None))
+        self.path_pdf_btn.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043f\u0443\u0442\u044c \u0432 \u043f\u0434\u0444", None))
     # retranslateUi
 
